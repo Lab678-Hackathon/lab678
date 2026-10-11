@@ -56,9 +56,10 @@ export function loadChoice() {
 
 // 서버(DB)에 저장된 현재 선택을 로컬로 복원 — 재로그인·기기 변경 시 '내가 고른 결과' 재현.
 // 로그인 사용자만. 성공 시 localStorage 를 DB 스냅샷으로 채워 home/mypage(loadChoice)가 렌더.
+// 반환: 서버에서 '새로' 채웠으면 true(= 홈 재렌더 필요), 이미 로컬에 있거나 없으면 false.
 export async function restoreChoiceFromServer() {
   if (!isSignedIn()) return false;
-  if (loadChoice()) return true; // 로컬에 이미 있으면 덮어쓰지 않음(토큰 갱신 시 clobber 방지)
+  if (loadChoice()) return false; // 로컬에 이미 있으면 재조회·재렌더 불필요(clobber 방지)
   try {
     const env = await getSession();
     const cc = env?.ok ? env.data?.current_choice : null;

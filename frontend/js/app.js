@@ -232,22 +232,25 @@ try {
 
 // 세션(익명/정식) 준비 후 첫 화면을 그린다 → 홈의 로그인 상태(Hello·Log out)가
 // 첫 페인트에 반영된다. auth 실패해도 화면은 그린다(비인증 진행).
-authReady().finally(async () => {
-  // 로그인 사용자면 DB에 저장된 '현재 선택'을 로컬로 복원(재로그인·기기 변경에도 유지, FR-L2).
-  await restoreChoiceFromServer();
+// 첫 화면은 네트워크를 기다리지 않고 즉시 그린다(로그인 체감 지연↓). 저장된 '현재 선택'
+// 복원은 백그라운드로 — 새로 채워지면 그때 홈만 재렌더. (A 선택·B 루트 카드는 비동기로 채움.)
+authReady().finally(() => {
   if (seen) showHome();
   else showWelcome();
-  // 가입 직후 복귀면(정식 로그인) 1회 온보딩. 홈 위에 덮어씀.
-  maybeShowOnboarding();
+  maybeShowOnboarding(); // 온보딩 판정(getPreferences)도 비블로킹
+  restoreChoiceFromServer().then((restored) => {
+    if (restored && document.querySelector(".home")) showHome();
+  });
 });
 
 // 로그인/로그아웃/OAuth 복귀로 세션이 바뀌면, 홈이 떠 있을 때 재렌더(Hello·Log out 반영).
-onAuthChange(async () => {
-  // 로그아웃 → 로컬 선택 숨김(DB 유지). 로그인 → DB 선택 복원. 그 후 홈 재렌더.
-  if (!isSignedIn()) clearLocalChoice();
-  else await restoreChoiceFromServer();
+onAuthChange(() => {
+  if (!isSignedIn()) clearLocalChoice(); // 로그아웃 → 로컬 선택 숨김(DB 유지)
   if (document.querySelector(".home")) showHome();
-  // 익명→Google 승격 직후 첫 로그인이면 온보딩(1회). 결과/선택 화면 위에는 띄우지 않음.
   if (document.querySelector(".home") || document.querySelector(".welcome"))
     maybeShowOnboarding();
+  // 로그인 → DB 선택 복원(백그라운드). 새로 채웠으면 홈 재렌더.
+  restoreChoiceFromServer().then((restored) => {
+    if (restored && document.querySelector(".home")) showHome();
+  });
 });
