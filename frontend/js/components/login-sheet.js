@@ -10,7 +10,7 @@ function el(tag, className, text) {
   return n;
 }
 
-export function showLoginSheet({ onEditInstead } = {}) {
+export function showLoginSheet({ onEditInstead, title, subtitle } = {}) {
   document.querySelector(".sheet-scrim")?.remove();
 
   const scrim = el("div", "sheet-scrim");
@@ -20,11 +20,12 @@ export function showLoginSheet({ onEditInstead } = {}) {
 
   sheet.append(
     el("div", "sheet-grip"),
-    el("h2", "sheet-title", "Sign in to find new options"),
+    el("h2", "sheet-title", title || "Sign in to find new options"),
     el(
       "p",
       "sheet-sub",
-      "New recommendations need a Google sign-in. Your current results and choice stay as they are.",
+      subtitle ||
+        "New recommendations need a Google sign-in. Your current results and choice stay as they are.",
     ),
   );
 

@@ -15,6 +15,28 @@ export function isLoggedIn() {
   return isSignedIn();
 }
 
+// ── 비회원 '추천 1회' 정책 (FR-L1) ──
+// 비회원은 추천 A 결과를 1회까지 받을 수 있고, 그 다음 재추천은 로그인 유도.
+// 뒤로가기/새로고침으로 폼을 재사용해도 '이미 1회 썼음'이 유지되도록 localStorage 에 기록한다.
+// (클라이언트 게이팅 — 기존 로그인 시트와 동일 신뢰수준. 하드 enforce 는 추후 서버 과제.)
+const GUEST_USED_KEY = "konnect.guestRecommended";
+
+export function markGuestRecommended() {
+  try {
+    localStorage.setItem(GUEST_USED_KEY, "1");
+  } catch {
+    /* 저장 불가(시크릿 등) — 이 세션에선 게이팅이 약해질 수 있음(graceful) */
+  }
+}
+
+export function guestRecommendUsed() {
+  try {
+    return localStorage.getItem(GUEST_USED_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function setResults(request, candidates) {
   state.request = request;
   state.candidates = candidates;

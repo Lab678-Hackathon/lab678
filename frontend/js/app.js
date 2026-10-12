@@ -16,10 +16,14 @@ import { renderChoiceView } from "./pages/choice.js";
 import { renderRouteView } from "./pages/route.js";
 import {
   clearLocalChoice,
+  guestRecommendUsed,
+  isLoggedIn,
   loadChoice,
+  markGuestRecommended,
   restoreChoiceFromServer,
   setResults,
 } from "./state.js";
+import { showLoginSheet } from "./components/login-sheet.js";
 
 const viewEl = document.getElementById("view");
 const WELCOME_KEY = "konnect.seenWelcome";
@@ -39,7 +43,7 @@ export function showHome() {
   mount(
     renderHomeView({
       onStartA: () => showInput(),
-      onOpenChat: showChat,
+      onOpenChat: openRouteB,
       onViewChoice: showSavedChoice,
       onOpenMyPage: showMyPage,
       onViewRoute: (p) => showSavedRoute({ ...p, onBack: showHome }),
@@ -51,6 +55,20 @@ export function showHome() {
 // AG-4 단일 챗봇 — FAQ(RAG)·즉시추천·문화루트를 하나의 대화 흐름으로.
 export function showChat() {
   mount(renderChatView({ onBack: showHome }), { fullBleed: true });
+}
+
+// 추천 B(Plan a route) 진입 — 비로그인이면 '로그인 필요' 안내 + 로그인 여부를 묻는다.
+// 'Continue with Google' = 예(로그인) / 'Not now' = 아니오(홈 유지). 로그인 사용자만 챗 진입.
+function openRouteB() {
+  if (!isLoggedIn()) {
+    showLoginSheet({
+      title: "Sign in to plan a route",
+      subtitle:
+        "Planning a culture route needs a Google sign-in. Would you like to sign in now?",
+    });
+    return;
+  }
+  showChat();
 }
 
 // My Page (L3) — 로그인 사용자만 진입(홈 Account). 뒤로=홈, 선택 보기=결과, 루트 보기=루트 뷰.
@@ -124,6 +142,13 @@ export function showInput(prefill) {
 
 // 공통 조회 플로우: 로딩(shimmer) → 성공(결과) / 취소(입력) / 실패(오류 화면).
 export function startRecommend(payload) {
+  // [FR-L1] 비회원은 추천 1회까지 — 이미 1회 썼으면(뒤로가기로 폼 재사용 포함) 조회하지
+  // 않고 로그인 유도. 모든 재추천 경로(홈 Right now·입력 CTA·Edit)가 이 길목으로 모인다.
+  if (!isLoggedIn() && guestRecommendUsed()) {
+    showLoginSheet();
+    return;
+  }
+
   const controller = new AbortController();
   let done = false;
 
@@ -150,6 +175,8 @@ export function startRecommend(payload) {
         return;
       }
       setResults(payload, env.data.candidates);
+      // 비회원의 '무료 1회'를 소진 표시 — 다음 재추천부터 로그인 유도(FR-L1).
+      if (!isLoggedIn()) markGuestRecommended();
       // 현재 요청조건을 서버에 영속(선택 전에도 연속성 — L1c/FR-L2). 실패 무영향.
       putSession({ last_request: payload }).catch(() => {});
       showResults({ request: payload, env });
