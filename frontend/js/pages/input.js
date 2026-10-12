@@ -8,7 +8,9 @@ import { openTimeSheet } from "../components/time-sheet.js";
 
 // FR-A4 예시 칩 — 디자인 10/8: 한 줄에 다 보이게 3개만(가로 스크롤 없음).
 // "I have plans later"는 "+ Add plans you already have" 링크와 겹쳐서 제외.
-const EXAMPLE_CONDITIONS = ["Indoor only", "Free or cheap", "Less walking"];
+// free 와 cheap 을 입력 단계부터 구분한다(칩 2개) → 파서가 free_only 와 budget_krw 로
+// 다르게 해석하고, 결과 라벨도 "Free to visit"(B03) vs "Within your budget"(B01)로 갈린다.
+const EXAMPLE_CONDITIONS = ["Indoor only", "Free only", "Cheap", "Less walking"];
 
 const ICONS = {
   pin: '<path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0Z"/><circle cx="12" cy="10" r="3"/>',
