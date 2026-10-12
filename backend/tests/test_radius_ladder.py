@@ -108,6 +108,40 @@ def test_first_tier_candidates_not_flagged_widened(monkeypatch):
     assert not any(c.from_widened_search for (c, *_) in judged)
 
 
+def test_widen_round_item_within_base_not_flagged(monkeypatch):
+    # 회귀: 확대 라운드에서 '판정'됐더라도 실제 거리가 base(1500) 안이면 Far 아님.
+    # (심야 Myeongdong 207m 버그 — 밀집 지역서 base 안 후보가 1차 top-K 밖으로 밀려
+    #  확대 라운드에서야 판정될 수 있다. 'far' 는 거리 기준이지 라운드 기준이 아니다.)
+    async def fake_fetch(lat, lng, trace, on_date, radius):
+        return [{"contentid": "near"}, {"contentid": "far"}]
+
+    async def fake_enrich(item, ctx, cond, trace):
+        cid = item["contentid"]
+        if cid == "a":
+            return _hard()  # 1차 풀 0 valid → 확장 트리거
+        return _valid(cid, distance_m=207 if cid == "near" else 2300)
+
+    monkeypatch.setattr(orch, "_fetch_pool", fake_fetch)
+    monkeypatch.setattr(orch, "semantic_similarities", _zeros)
+    monkeypatch.setattr(orch, "_enrich", fake_enrich)
+
+    judged, _h, used = asyncio.run(
+        orch.collect_judged(
+            37.57,
+            126.98,
+            _ctx(),
+            ParsedConditions(),
+            Trace(),
+            first_pool=[{"contentid": "a"}],
+            enrich_pool=8,
+        )
+    )
+    assert used == 3000
+    flagged = {c.id: c.from_widened_search for (c, *_) in judged}
+    assert flagged["near"] is False  # 207m — base 안이므로 Far 아님
+    assert flagged["far"] is True  # 2300m — base 밖이므로 Far
+
+
 def test_no_expand_when_enough(monkeypatch):
     first_pool = [{"contentid": "b"}, {"contentid": "c"}]
     calls = {"fetch": 0}

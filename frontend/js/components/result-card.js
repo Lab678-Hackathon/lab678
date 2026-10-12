@@ -54,17 +54,18 @@ export function aiSignalsToggle(signals, { inline = false } = {}) {
   return { button, row };
 }
 
+// 거리(m) → 짧은 라벨. 1km 이상은 km, 미만은 m. 없으면 null.
+export function formatDistance(m) {
+  if (m == null) return null;
+  return m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`;
+}
+
 // 반경 확대로 편입된 '조금 떨어진' 후보 → 분홍 "Far" 칩(투명 표시). 거리 있으면 함께.
 // null 반환(평범한 근접 후보)이면 호출부가 추가하지 않는다.
 export function farChip(c) {
   if (!c.from_widened_search) return null;
-  let label = "Far";
-  if (c.distance_m != null)
-    label +=
-      c.distance_m >= 1000
-        ? ` · ${(c.distance_m / 1000).toFixed(1)} km`
-        : ` · ${c.distance_m} m`;
-  return el("span", "far-chip", label);
+  const dist = formatDistance(c.distance_m);
+  return el("span", "far-chip", dist ? `Far · ${dist}` : "Far");
 }
 
 // Google Maps 길찾기 딥링크 (외부 상세 길찾기, DESIGN §3.4).
@@ -115,7 +116,10 @@ export function renderResultCard(c, origin, index = 0) {
   if (c.price && c.price.status !== "unknown")
     meta.append(el("span", "meta-item", c.price.display));
   if (c.movement) {
-    const m = el("span", "meta-item", c.movement.display);
+    // 예상 도보시간 옆에 거리(km/m)도 함께 — Tmap 경로 거리. 없으면 시간만.
+    const dist = formatDistance(c.movement.distance_m);
+    const text = dist ? `${c.movement.display} · ${dist}` : c.movement.display;
+    const m = el("span", "meta-item", text);
     if (c.movement.provenance === "estimate") m.classList.add("is-estimate");
     meta.append(m);
   }

@@ -532,7 +532,10 @@ async def collect_judged(
         pool = [it for it in pool if _pool_item_key(it) not in seen]
         j2, h2, seen2 = await _rerank_and_judge(pool, ctx, cond, trace, enrich_pool)
         for cand, *_ in j2:  # 확대로 편입된 후보 표시 → 프론트 거리 라벨(투명)
-            if cand is not None:
+            # 'far' 는 '언제 판정됐나'(확대 라운드)가 아니라 '실제로 base 밖인가'로 판단한다.
+            # 밀집 지역에선 base 안 후보가 1차 top-K 컷오프 밖으로 밀려 확대 라운드에서야
+            # 판정될 수 있는데(예: 심야 Myeongdong 207m), 그걸 Far 로 오분류하지 않는다.
+            if cand is not None and cand.distance_m is not None and cand.distance_m > base:
                 cand.from_widened_search = True
         judged += j2
         hard += h2
