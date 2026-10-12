@@ -13,6 +13,7 @@ import { renderChatView } from "./pages/chat.js";
 import { renderOnboardingView } from "./pages/onboarding.js";
 import { renderMyPageView } from "./pages/mypage.js";
 import { renderChoiceView } from "./pages/choice.js";
+import { renderRouteView } from "./pages/route.js";
 import {
   clearLocalChoice,
   loadChoice,
@@ -51,13 +52,27 @@ export function showChat() {
   mount(renderChatView({ onBack: showHome }), { fullBleed: true });
 }
 
-// My Page (L3) — 로그인 사용자만 진입(홈 Account). 뒤로=홈, 선택 보기=결과.
+// My Page (L3) — 로그인 사용자만 진입(홈 Account). 뒤로=홈, 선택 보기=결과, 루트 보기=루트 뷰.
 export function showMyPage() {
   mount(
     renderMyPageView({
       onBack: showHome,
       onHome: showHome,
       onViewChoice: showSavedChoice,
+      onViewRoute: showSavedRoute,
+    }),
+  );
+}
+
+// 저장된 B 문화루트 상세 — 재조립된 RouteData 를 경로선 지도 + 루트 카드로 렌더(My Page → View).
+// 뒤로=My Page(온 곳), 홈=메인.
+export function showSavedRoute({ data, trip } = {}) {
+  mount(
+    renderRouteView({
+      data,
+      trip,
+      onBack: showMyPage,
+      onHome: showHome,
     }),
   );
 }

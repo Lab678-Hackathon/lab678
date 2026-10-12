@@ -29,7 +29,7 @@ function fmtTime(iso) {
   });
 }
 
-export function renderMyPageView({ onBack, onHome, onViewChoice } = {}) {
+export function renderMyPageView({ onBack, onHome, onViewChoice, onViewRoute } = {}) {
   const root = el("section", "mypage");
 
   // Nav — chevron Back · My Page · Home(우상단).
@@ -246,6 +246,14 @@ export function renderMyPageView({ onBack, onHome, onViewChoice } = {}) {
   let savedRouteRef = null;
   function renderRouteSlot() {
     const slot = el("div", "mypage-route-slot");
+    // 저장 ref 의 시계시간(start_hm/end_hm)을 오늘 날짜 ISO 로 → 루트 카드의 날짜·시간 표기용.
+    // 없으면 null(카드가 시간 줄을 생략). 사실(운영시간 등)과 별개인 '계획 창' 표시값.
+    const tripFromRef = (ref) => {
+      if (!ref?.start_hm || !ref?.end_hm) return null;
+      const d = new Date();
+      const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return { start_at: `${ymd}T${ref.start_hm}:00`, end_at: `${ymd}T${ref.end_hm}:00` };
+    };
     const paint = () => {
       slot.replaceChildren();
       if (!savedRouteRef) return;
@@ -255,6 +263,16 @@ export function renderMyPageView({ onBack, onHome, onViewChoice } = {}) {
           savedRouteData = null;
           savedRouteRef = null;
           slot.replaceChildren();
+        },
+        // View → 경로선 지도 + 루트 카드 상세. 재조립이 캐시에 없거나 비면 한 번 더 시도해
+        // 신선한 RouteData 로 연다(저장은 참조만 — 사실·경로선은 매번 라이브 조회).
+        onView: async () => {
+          let data = savedRouteData;
+          if (!data?.routes?.length) {
+            data = await rebuildSavedRoute(savedRouteRef);
+            savedRouteData = data;
+          }
+          onViewRoute?.({ data, trip: tripFromRef(savedRouteRef) });
         },
       });
       if (card) slot.append(card);
