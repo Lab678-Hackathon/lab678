@@ -793,6 +793,8 @@ body {
 .note-editing .input-head, .note-editing .where-section { display: none; }
 .note-editing .cond-pill--collapse { display: flex; }
 .field-duration { margin: calc(-1 * var(--space-6)) 0 0; font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-primary-ink); }
+/* Done by 가 시작시각 +30분 미만일 때 빨간 경고(입력 검증) */
+.field-hint-error { margin: calc(-1 * var(--space-6)) 0 0; font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--c-error); }
 
 /* ── P9-1 선호 온보딩 (L2) ── */
 .onboarding { display: flex; flex-direction: column; gap: var(--space-16); padding-top: var(--space-12); }

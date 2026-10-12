@@ -69,6 +69,11 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   let startValue = prefill?.start_at?.slice(0, 16) ?? localNowValue();
   let endValue = prefill?.end_at?.slice(0, 16) ?? "";
 
+  // Done by 는 시작시각으로부터 최소 30분 뒤여야 한다(그 이하면 추천이 성립하지 않음).
+  const MIN_WINDOW_MIN = 30;
+  const windowMin = () =>
+    endValue ? Math.round((new Date(endValue) - new Date(startValue)) / 60000) : null;
+
   // ── Nav: chevron + 타이틀 ──
   const nav = el("div", "input-nav");
   const back = el("button", "nav-back");
@@ -195,13 +200,18 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   // 시간 안내: 종료 선택 시 "You have Xh Ym"(teal), 미선택 시 amber 안내
   const timeHint = el("p", "field-hint-amber", "Pick when you need to be done");
   function refreshHint() {
-    if (endValue) {
-      timeHint.textContent = durText(startValue, endValue);
-      timeHint.className = "field-duration";
-    } else {
+    if (!endValue) {
       timeHint.textContent = "Pick when you need to be done";
       timeHint.className = "field-hint-amber";
+      return;
     }
+    if (windowMin() < MIN_WINDOW_MIN) {
+      timeHint.textContent = "Allow at least 30 minutes after your start time";
+      timeHint.className = "field-hint-error";
+      return;
+    }
+    timeHint.textContent = durText(startValue, endValue);
+    timeHint.className = "field-duration";
   }
   refreshEnd();
 
@@ -287,7 +297,12 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   form.append(ctaWrap);
 
   function validate() {
-    const ok = !!locationLabel.trim() && !!startValue && !!endValue;
+    const win = windowMin();
+    const ok =
+      !!locationLabel.trim() &&
+      !!startValue &&
+      !!endValue &&
+      win >= MIN_WINDOW_MIN;
     cta.disabled = !ok;
     return ok;
   }
