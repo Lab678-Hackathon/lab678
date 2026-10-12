@@ -478,7 +478,7 @@ async def _rerank_and_judge(
     """
     if not pool:
         return [], 0, set()
-    intent = build_intent_text(cond, ctx.note)
+    intent = build_intent_text(cond)
     sims = await semantic_similarities(
         [pool_item_text(it) for it in pool], intent, trace
     )

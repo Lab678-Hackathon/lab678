@@ -16,18 +16,20 @@ from app.models.recommend import InterestCode, ParsedConditions
 def test_build_intent_text_combines_and_dedups():
     cond = ParsedConditions(
         interests=[InterestCode.PALACES_HISTORIC],
+        keywords=["Bukchon"],
         open_preferences=["quiet"],
     )
-    text = sr.build_intent_text(cond, "I want a calm palace visit")
+    text = sr.build_intent_text(cond)
     assert text is not None
-    assert "calm palace visit" in text
     assert "palaces and historic sites" in text
+    assert "Bukchon" in text
     assert "quiet" in text
 
 
-def test_build_intent_text_none_when_no_signal():
-    assert sr.build_intent_text(ParsedConditions(), None) is None
-    assert sr.build_intent_text(ParsedConditions(), "   ") is None
+def test_build_intent_text_ignores_raw_note():
+    # note 원문은 의도에 넣지 않는다 — 배제·설정 표현('don't like …','love to walk')이
+    # 긍정 의도로 새어 임베딩을 오염시킨다. 긍정 신호가 전혀 없으면 None.
+    assert sr.build_intent_text(ParsedConditions()) is None
 
 
 def test_build_intent_text_excludes_avoid_and_exclude():
@@ -36,7 +38,7 @@ def test_build_intent_text_excludes_avoid_and_exclude():
         avoid_interests=[InterestCode.LIVE_PERFORMANCES],
         exclude_concepts=["museums"],
     )
-    assert sr.build_intent_text(cond, None) is None
+    assert sr.build_intent_text(cond) is None
 
 
 def test_pool_item_text_sources():

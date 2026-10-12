@@ -35,16 +35,18 @@ _INTEREST_WORDS: dict[InterestCode, str] = {
 }
 
 
-def build_intent_text(cond: ParsedConditions, note: str | None) -> str | None:
-    """사용자 의도를 임베딩할 한 문자열로 합성. 신호가 전혀 없으면 None(의미랭킹 생략).
+def build_intent_text(cond: ParsedConditions) -> str | None:
+    """사용자가 '원한다고 명시한' 신호만 임베딩할 한 문자열로 합성. 없으면 None(의미랭킹 생략).
 
-    note 원문 + 관심사(enum→구절) + 개방형 긍정 선호를 순서 보존 dedup 으로 잇는다.
-    비선호/배제는 넣지 않는다(그건 별도 Hard/Soft 경로가 담당 — 여기선 '원하는 것'만).
+    관심사(enum→구절) + 키워드(구체 검색어) + 개방형 긍정 선호를 순서 보존 dedup 으로 잇는다.
+    **note 원문은 넣지 않는다** — "I don't like statue"·"I love to walk" 같은 배제·설정 표현이
+    긍정 의도로 새어들어가 임베딩(부정 이해 못 함)을 오염시키기 때문이다. note 의 긍정 내용은
+    이미 parse_note 가 interests/keywords/open_preferences 로 구조화해 담는다. 비선호/배제도
+    넣지 않는다(그건 별도 Hard/Soft·반경 경로가 담당 — 여기선 '원하는 것'만).
     """
     parts: list[str] = []
-    if note and note.strip():
-        parts.append(note.strip())
     parts += [_INTEREST_WORDS[i] for i in cond.interests if i in _INTEREST_WORDS]
+    parts += [k for k in cond.keywords if k and k.strip()]
     parts += [p for p in cond.open_preferences if p and p.strip()]
     deduped = list(dict.fromkeys(p.strip() for p in parts if p and p.strip()))
     text = ". ".join(deduped)
