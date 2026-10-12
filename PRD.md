@@ -321,5 +321,5 @@ Product Freeze는 끝났고 아래는 구현 단계에서 확인·결정할 항�
 - **Time (T01~T04):** `Fits your available time` / `Planned to fit your time window` / `Open when you can visit` / `Scheduled within your time window`
 - **Location & Movement (M01~M03):** `Within your walking limit` / `Within your travel limit` / `Shortest trip among these options`
 - **Interest (I01~I06):** `Matches your interest in traditional culture` / `… palaces and historic sites` / `… hands-on experiences` / `… art and exhibitions` / `… live performances` / `… festivals and events`
-- **Budget (B01~B02):** `Within your budget` / `Matches your free-only request`
+- **Budget (B01~B03):** `Within your budget` (유료·예산 내=cheap) / `Matches your free-only request` (명시적 무료요청) / `Free to visit` (free·cheap 요청 중 확정 '무료' 구분)
 - **Plan (P01~P02):** `Fits before your next stop` / `Fits between your plans`

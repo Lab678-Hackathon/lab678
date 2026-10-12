@@ -64,6 +64,30 @@ def test_free_only_reason_when_ok():
     assert "B02" in _codes(r)
 
 
+def test_free_or_cheap_free_gets_free_label():
+    # 'free or cheap'(budget_krw 설정·free_only 아님) + 확정 무료 → "Free to visit"(B03), B01 아님.
+    r = select_reasons(
+        _cand(price=PriceStatus.FREE),
+        ParsedConditions(budget_krw=30000),
+        TimingVerdict.OPEN,
+        BudgetVerdict.OK,
+        is_nearest=False,
+    )
+    assert "B03" in _codes(r) and "B01" not in _codes(r)
+
+
+def test_free_or_cheap_paid_within_budget_gets_budget_label():
+    # 'free or cheap' + 유료지만 예산 내(cheap) → "Within your budget"(B01), B03 아님.
+    r = select_reasons(
+        _cand(price=PriceStatus.PAID),
+        ParsedConditions(budget_krw=30000),
+        TimingVerdict.OPEN,
+        BudgetVerdict.OK,
+        is_nearest=False,
+    )
+    assert "B01" in _codes(r) and "B03" not in _codes(r)
+
+
 def test_no_budget_reason_when_over():
     # 예산 초과(alternative)엔 충족 reason 금지
     r = select_reasons(

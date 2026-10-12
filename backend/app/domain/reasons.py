@@ -32,6 +32,7 @@ REASON_COPY = {
     "I06": "Matches your interest in festivals and events",
     "B01": "Within your budget",
     "B02": "Matches your free-only request",
+    "B03": "Free to visit",
 }
 
 _INTEREST_CODE = {
@@ -63,15 +64,17 @@ def select_reasons(
             picks.append((1, _INTEREST_CODE[ic]))
             break
 
-    # 2) 예산 — 확정 가격이 조건을 '충족'할 때만 (OVER/UNKNOWN 이면 금지)
+    # 2) 예산 — 확정 가격이 조건을 '충족'할 때만 (OVER/UNKNOWN 이면 금지).
+    #    free 와 cheap 을 라벨로 구분한다: 확정 '무료'는 "Free to visit",
+    #    유료지만 예산 내(cheap)는 "Within your budget". 미확인 가격엔 붙이지 않는다(불변식1).
     if budget is BudgetVerdict.OK:
-        if cond.free_only and cand.price.status is PriceStatus.FREE:
-            picks.append((2, "B02"))
-        elif cond.budget_krw is not None and cand.price.status in (
-            PriceStatus.FREE,
-            PriceStatus.PAID,
-        ):
-            picks.append((2, "B01"))
+        is_free = cand.price.status is PriceStatus.FREE
+        if is_free and cond.free_only:
+            picks.append((2, "B02"))  # 명시적 무료요청 충족
+        elif is_free and cond.budget_krw is not None:
+            picks.append((2, "B03"))  # 'free or cheap' 중 '무료' 구분 표기
+        elif cond.budget_krw is not None and cand.price.status is PriceStatus.PAID:
+            picks.append((2, "B01"))  # 유료·예산 내 = cheap
 
     # 3) 시간 — 영업이 확인될 때만
     if timing is TimingVerdict.OPEN:
