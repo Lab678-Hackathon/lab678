@@ -42,6 +42,7 @@ export function showHome() {
       onOpenChat: showChat,
       onViewChoice: showSavedChoice,
       onOpenMyPage: showMyPage,
+      onViewRoute: (p) => showSavedRoute({ ...p, onBack: showHome }),
     }),
     { fullBleed: true },
   );
@@ -59,19 +60,19 @@ export function showMyPage() {
       onBack: showHome,
       onHome: showHome,
       onViewChoice: showSavedChoice,
-      onViewRoute: showSavedRoute,
+      onViewRoute: (p) => showSavedRoute({ ...p, onBack: showMyPage }),
     }),
   );
 }
 
-// 저장된 B 문화루트 상세 — 재조립된 RouteData 를 경로선 지도 + 루트 카드로 렌더(My Page → View).
-// 뒤로=My Page(온 곳), 홈=메인.
-export function showSavedRoute({ data, trip } = {}) {
+// 저장된 B 문화루트 상세 — 재조립된 RouteData 를 경로선 지도 + 루트 카드로 렌더(홈·My Page → View).
+// 뒤로=온 곳(기본 홈), 홈=메인.
+export function showSavedRoute({ data, trip, onBack } = {}) {
   mount(
     renderRouteView({
       data,
       trip,
-      onBack: showMyPage,
+      onBack: onBack || showHome,
       onHome: showHome,
     }),
   );

@@ -71,6 +71,7 @@ export function renderHomeView({
   onOpenChat,
   onViewChoice,
   onOpenMyPage,
+  onViewRoute,
 }) {
   const root = el("section", "home");
 
@@ -186,7 +187,17 @@ export function renderHomeView({
         clearRoute();
         routeSlot.replaceChildren();
       },
-      onView: () => onOpenChat?.(),
+      onView: () => {
+        const trip =
+          ref.start_hm && ref.end_hm
+            ? (() => {
+                const d = new Date();
+                const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                return { start_at: `${ymd}T${ref.start_hm}:00`, end_at: `${ymd}T${ref.end_hm}:00` };
+              })()
+            : null;
+        onViewRoute?.({ data, trip });
+      },
     });
     if (cardEl) routeSlot.append(cardEl);
   })();
