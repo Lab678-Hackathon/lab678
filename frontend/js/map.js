@@ -22,7 +22,8 @@ async function loadNaver() {
     if (!id) return false;
     await new Promise((resolve, reject) => {
       const s = document.createElement("script");
-      s.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(id)}`;
+      // language=en → 지도 라벨(지명·건물명)을 영어로. 외국인 FIT 대상 서비스.
+      s.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(id)}&language=en`;
       s.onload = resolve;
       s.onerror = reject;
       document.head.append(s);
