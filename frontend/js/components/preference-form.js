@@ -76,7 +76,9 @@ export function createPreferenceForm({
   const nlCard = el("div", "nl-input");
   const ta = el("textarea", "nl-textarea");
   ta.maxLength = 300;
-  ta.placeholder = "e.g. Shorter walks, quieter places, not too late at night";
+  // 예시는 '저장되는 선호 4종'(관심사·걷기·실내외·분위기)만 보여준다 — 가격·시간처럼
+  // 요청 단위로만 쓰는 조건은 여기 저장되지 않으므로 placeholder 로 유도하지 않는다.
+  ta.placeholder = "e.g. quiet spots, hands-on classes, indoor places, shorter walks";
   const footer = el("div", "nl-footer2");
   const counter = el("span", "nl-counter", "0/300");
   footer.append(counter);
