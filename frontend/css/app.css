@@ -723,7 +723,9 @@ body {
 /* grip zone: 터치 영역을 넓혀 그랩 바를 쉽게 끌 수 있게(아래로 스와이프 → 닫기) */
 .sheet-grip-zone { align-self: stretch; display: flex; justify-content: center; padding: var(--space-6) 0 var(--space-10); margin-top: calc(-1 * var(--space-10)); touch-action: none; cursor: grab; }
 .sheet-grip-zone:active { cursor: grabbing; }
-.sheet-grip { width: 40px; height: 4px; border-radius: var(--r-full); background: var(--c-border); pointer-events: none; }
+/* align-self:center → 자체 .sheet(column flex)에 grip 을 직접 넣는 로그인 시트에서도 중앙 정렬
+   (time-sheet 의 중앙 grip-zone 에선 무해). */
+.sheet-grip { width: 40px; height: 4px; align-self: center; border-radius: var(--r-full); background: var(--c-border); pointer-events: none; }
 .sheet-title { margin: 0; font-size: 18px; font-weight: var(--fw-bold); }
 .sheet-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); }
 .btn-google { border: 0; border-radius: var(--r-pill); padding: var(--space-14); font-size: var(--fs-meta); font-weight: var(--fw-bold); background: var(--c-primary); color: var(--c-on-primary); cursor: not-allowed; }
@@ -793,8 +795,6 @@ body {
 .note-editing .input-head, .note-editing .where-section { display: none; }
 .note-editing .cond-pill--collapse { display: flex; }
 .field-duration { margin: calc(-1 * var(--space-6)) 0 0; font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-primary-ink); }
-/* Done by 가 시작시각 +30분 미만일 때 빨간 경고(입력 검증) */
-.field-hint-error { margin: calc(-1 * var(--space-6)) 0 0; font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--c-error); }
 
 /* ── P9-1 선호 온보딩 (L2) ── */
 .onboarding { display: flex; flex-direction: column; gap: var(--space-16); padding-top: var(--space-12); }

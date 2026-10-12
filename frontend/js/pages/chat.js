@@ -9,6 +9,7 @@ import { renderResultCard } from "../components/result-card.js";
 import { renderRouteCard } from "../components/route-card.js";
 import { renderMap, renderRouteMap } from "../map.js";
 import { saveRoute } from "../state.js";
+import { showLoginSheet } from "../components/login-sheet.js";
 
 function el(tag, className, text) {
   const n = document.createElement(tag);
@@ -286,12 +287,17 @@ export function renderChatView({ onBack }) {
     const bar = el("div", "route-save-bar");
     const btn = el("button", "btn-save-route", "Save this route");
     btn.type = "button";
-    if (!isSignedIn()) {
-      btn.disabled = true;
-      btn.title = "Sign in to save your route";
-    }
     const note = el("p", "route-save-note", "Saving ≠ booking. We'll show it on your home & My Page.");
     btn.addEventListener("click", async () => {
+      // 비회원이 저장 시도 → 로그인 유도(DB 영속). 로그인 후 다시 저장.
+      if (!isSignedIn()) {
+        showLoginSheet({
+          title: "Sign in to save your route",
+          subtitle:
+            "Saving keeps this route on your home & My Page. Would you like to sign in now?",
+        });
+        return;
+      }
       btn.disabled = true;
       btn.textContent = "Saving…";
       const ok = await saveRoute({

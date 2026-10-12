@@ -2,7 +2,8 @@
 //  - 저장 전(9-1a/b/c): 제목 "Your pick", "Not saved yet", 버튼 "Save choice".
 //  - 저장 후(9-1·9-1s): 제목 "Your current choice", 버튼 "See on map", toast.
 // 선택 ≠ 방문(booking 아님) 고지를 양쪽 모두 유지. 저장 전엔 current choice로 안 보인다.
-import { saveChoice } from "../state.js";
+import { isLoggedIn, saveChoice } from "../state.js";
+import { showLoginSheet } from "../components/login-sheet.js";
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
@@ -173,6 +174,15 @@ export function renderChoiceView({
       const save = el("button", "btn-cta", "Save choice");
       save.type = "button";
       save.addEventListener("click", () => {
+        // 비회원이 저장 시도 → 로그인 유도(저장은 계정에 영속되므로). 로그인 후 다시 저장.
+        if (!isLoggedIn()) {
+          showLoginSheet({
+            title: "Sign in to save your pick",
+            subtitle:
+              "Saving keeps this as your current choice across devices. Would you like to sign in now?",
+          });
+          return;
+        }
         saveChoice(request, env, candidate.id); // 이제서야 저장(그 전엔 current choice 아님)
         isSaved = true;
         render();

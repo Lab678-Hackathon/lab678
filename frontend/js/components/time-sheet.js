@@ -3,6 +3,7 @@
 import { el, openSheet } from "./sheet.js";
 
 const ITEM_H = 40;
+const MIN_WINDOW_MIN = 30; // Done by 는 시작 +30분 이후여야 한다(그 이하 추천 불성립)
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1); // 1..12
 const MINUTES = Array.from({ length: 12 }, (_, i) => i * 5); // 0,5,..55
 const MERIDIEM = ["AM", "PM"];
@@ -130,22 +131,28 @@ export function openTimeSheet({ kind, startValue, endValue, onDone }) {
         const target = round5(b._date());
         b.classList.toggle("is-active", target.getTime() === d.getTime());
       }
-      if (isStart) {
-        if (endValue) {
-          const end = new Date(endValue);
-          const dur = Math.round((end - d) / 60000);
-          summary.textContent = `Done by ${fmtTime(end)} · You have ${fmtDur(dur)}`;
-          summary.classList.toggle("is-warn", dur <= 0);
-        } else {
-          summary.textContent = "";
-        }
-        doneBtn.disabled = false;
+      // 시작↔종료 간격(분). 시작 편집 중 종료 미설정이면 비교 불가(null).
+      const dur = isStart
+        ? endValue
+          ? Math.round((new Date(endValue) - d) / 60000)
+          : null
+        : Math.round((d - startDate) / 60000);
+      // 종료는 시작 +30분 이후여야 한다 → 이 박스 안에서 경고 + Done 비활성('after start'와 동일).
+      const tooShort = dur !== null && dur < MIN_WINDOW_MIN;
+      if (isStart && dur === null) {
+        summary.textContent = "";
+      } else if (tooShort) {
+        summary.textContent =
+          dur <= 0
+            ? "End must be after your start time"
+            : "Allow at least 30 minutes after your start time";
+      } else if (isStart) {
+        summary.textContent = `Done by ${fmtTime(new Date(endValue))} · You have ${fmtDur(dur)}`;
       } else {
-        const dur = Math.round((d - startDate) / 60000);
-        summary.textContent = dur > 0 ? `You have ${fmtDur(dur)}` : "End must be after your start time";
-        summary.classList.toggle("is-warn", dur <= 0);
-        doneBtn.disabled = dur <= 0;
+        summary.textContent = `You have ${fmtDur(dur)}`;
       }
+      summary.classList.toggle("is-warn", tooShort);
+      doneBtn.disabled = tooShort;
     }
 
     function setWheelsTo(date) {

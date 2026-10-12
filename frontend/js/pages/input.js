@@ -202,18 +202,15 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   // 시간 안내: 종료 선택 시 "You have Xh Ym"(teal), 미선택 시 amber 안내
   const timeHint = el("p", "field-hint-amber", "Pick when you need to be done");
   function refreshHint() {
-    if (!endValue) {
+    // 30분 미만 경고는 폼 아래가 아니라 '시계(time-sheet)' 박스 안에서 띄운다(거기서 Done 비활성).
+    // 여기선 기존처럼 소요시간(teal) / 미선택 안내(amber)만.
+    if (endValue) {
+      timeHint.textContent = durText(startValue, endValue);
+      timeHint.className = "field-duration";
+    } else {
       timeHint.textContent = "Pick when you need to be done";
       timeHint.className = "field-hint-amber";
-      return;
     }
-    if (windowMin() < MIN_WINDOW_MIN) {
-      timeHint.textContent = "Allow at least 30 minutes after your start time";
-      timeHint.className = "field-hint-error";
-      return;
-    }
-    timeHint.textContent = durText(startValue, endValue);
-    timeHint.className = "field-duration";
   }
   refreshEnd();
 
