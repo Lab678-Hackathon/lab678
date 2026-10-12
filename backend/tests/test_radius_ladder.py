@@ -87,7 +87,7 @@ def test_expands_when_thin(monkeypatch):
 
 
 def test_first_tier_candidates_not_flagged_widened(monkeypatch):
-    # 1단계(1500m)에서 충족된 후보는 widened 아님(거리 라벨 미표시).
+    # 1단계(base 2km)에서 충족된 후보는 widened 아님(거리 라벨 미표시).
     async def fake_enrich(item, ctx, cond, trace):
         return _valid(item["contentid"], distance_m=400)
 
@@ -104,7 +104,7 @@ def test_first_tier_candidates_not_flagged_widened(monkeypatch):
             enrich_pool=8,
         )
     )
-    assert used == 1500
+    assert used == 2000
     assert not any(c.from_widened_search for (c, *_) in judged)
 
 
@@ -168,25 +168,25 @@ def test_no_expand_when_enough(monkeypatch):
             enrich_pool=8,
         )
     )
-    assert len(judged) == 2 and used == 1500
+    assert len(judged) == 2 and used == 2000
     assert calls["fetch"] == 0  # 확장 재조회 없음(밀집 → 지연 불변)
 
 
 def test_base_radius_by_walking_pref():
-    # Product: 싫음 1.5km · 미언급 3km · 좋음 5km(최대 반경).
-    assert orch.base_radius(True) == 1500
-    assert orch.base_radius(None) == 3000
-    assert orch.base_radius(False) == 5000
+    # Product: 싫음 1km · 미언급 2km · 좋음 3km(최대 반경).
+    assert orch.base_radius(True) == 1000
+    assert orch.base_radius(None) == 2000
+    assert orch.base_radius(False) == 3000
 
 
-def test_base_3000_expands_only_to_5000(monkeypatch):
-    # 기본 반경 3km(미언급) → 희소 시 5km 로만 확장(3km 는 이미 base, 1.5km 로 안 내려감).
+def test_base_2000_expands_only_to_3000(monkeypatch):
+    # 기본 반경 2km(미언급) → 희소 시 3km 로만 확장(2km 는 이미 base, 1km 로 안 내려감).
     async def fake_fetch(lat, lng, trace, on_date, radius):
-        assert radius == 5000  # base(3000)보다 큰 단계만
+        assert radius == 3000  # base(2000)보다 큰 단계만
         return [{"contentid": "b"}, {"contentid": "c"}]
 
     async def fake_enrich(item, ctx, cond, trace):
-        return _hard() if item["contentid"] == "a" else _valid(item["contentid"], 4200)
+        return _hard() if item["contentid"] == "a" else _valid(item["contentid"], 2800)
 
     monkeypatch.setattr(orch, "_fetch_pool", fake_fetch)
     monkeypatch.setattr(orch, "semantic_similarities", _zeros)
@@ -200,14 +200,14 @@ def test_base_3000_expands_only_to_5000(monkeypatch):
             Trace(),
             first_pool=[{"contentid": "a"}],
             enrich_pool=8,
-            base=3000,
+            base=2000,
         )
     )
-    assert used == 5000 and len(judged) == 2
+    assert used == 3000 and len(judged) == 2
 
 
 def test_base_at_ceiling_no_expansion(monkeypatch):
-    # 걷기 좋아함 → base 5km(최대). 더 넓힐 단계가 없으니 희소해도 확장 안 함(래더 끝).
+    # 걷기 좋아함 → base 3km(최대). 더 넓힐 단계가 없으니 희소해도 확장 안 함(래더 끝).
     calls = {"fetch": 0}
 
     async def fake_fetch(*a, **k):
@@ -229,15 +229,15 @@ def test_base_at_ceiling_no_expansion(monkeypatch):
             Trace(),
             first_pool=[{"contentid": "a"}],
             enrich_pool=8,
-            base=5000,
+            base=3000,
         )
     )
-    assert used == 5000 and judged == [] and calls["fetch"] == 0
+    assert used == 3000 and judged == [] and calls["fetch"] == 0
 
 
 def test_expands_to_last_radius_then_stops(monkeypatch):
-    # 끝까지 희소해도 ladder 끝에서 멈춘다(무한 아님). 각 단계 새 아이템 1개씩.
-    pools = {3000: [{"contentid": "b"}], 5000: [{"contentid": "c"}]}
+    # 끝까지 희소해도 ladder 끝에서 멈춘다(무한 아님). base 1km → 2km → 3km 각 1개씩.
+    pools = {2000: [{"contentid": "b"}], 3000: [{"contentid": "c"}]}
 
     async def fake_fetch(lat, lng, trace, on_date, radius):
         return pools.get(radius, [])
@@ -258,8 +258,9 @@ def test_expands_to_last_radius_then_stops(monkeypatch):
             Trace(),
             first_pool=[{"contentid": "a"}],
             enrich_pool=8,
+            base=1000,
         )
     )
     assert judged == []
-    assert used == 5000  # 마지막 단계(5km)까지 확장 후 종료
+    assert used == 3000  # 마지막 단계(3km)까지 확장 후 종료
     assert hard == 3  # a, b, c

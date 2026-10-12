@@ -230,7 +230,7 @@ async def recommend_route(
     cond = merge_saved_interests(cond, saved_interests)
     cond = merge_saved_open_preferences(cond, saved_open_preferences)
     cond = merge_saved_walks(cond, prefer_shorter_walks)
-    base = base_radius(cond.prefer_shorter_walks)  # 싫음 1.5·없음 3·좋음 5km(§6.6 soft)
+    base = base_radius(cond.prefer_shorter_walks)  # 싫음 1·없음 2·좋음 3km(§6.6 soft)
 
     pool, env = await asyncio.gather(
         _fetch_pool(lat, lng, trace, ctx.start_at.date(), base),

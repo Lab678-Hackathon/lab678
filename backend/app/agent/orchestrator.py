@@ -80,14 +80,14 @@ from app.sources import gplaces, seoulculture, tmap, tourapi
 # 문화경험 콘텐츠 타입(EngService2): 관광지·문화시설·축제/공연/행사.
 # (식당·쇼핑·숙박 등은 제외 — PRD §6.4)
 _CULTURAL_TYPES = (76, 78, 85)
-_SEARCH_RADIUS_M = 1500
+_SEARCH_RADIUS_M = 2000  # 기본(걷기 선호 미언급) 반경 — 함수 기본 인자용
 _MAX_CANDIDATES = 4
 _ENRICH_POOL = 8  # 판정 후 Hard 제외분을 다음 후보로 대체하기 위한 보강 범위
 
 # [P1] 적응형 반경 ladder — 결과가 희소할 때만 단계적으로 넓혀 재조회(§7 P1, L1/L4).
-# 흔한 밀집 지역은 1단계(1500m)에서 바로 충족돼 확장이 트리거되지 않는다(지연 불변).
-# 최대 반경 5km: 걷기 선호가 좋음이면 5km 기본, 희소 시 확장 상한도 5km.
-_RADIUS_LADDER = (1500, 3000, 5000)
+# 흔한 밀집 지역은 base 반경에서 바로 충족돼 확장이 트리거되지 않는다(지연 불변).
+# 최대 반경 3km: 걷기 선호가 좋음이면 3km 기본, 희소 시 확장 상한도 3km.
+_RADIUS_LADDER = (1000, 2000, 3000)
 _MIN_VIABLE = 2  # 유효 후보가 이 수 미만이면 '선택지 부족' → 반경 확대(강제 채움 아님)
 _MORE_VIABLE = (
     6  # 사용자가 '더/추가'를 명시하면 이 목표까지 반경을 넓혀 후보 발굴(문제1)
@@ -98,17 +98,17 @@ _RADIUS_EXPANDED_NOTICE = (
 
 
 def base_radius(prefer_shorter_walks: bool | None) -> int:
-    """걷기 선호 → 기본 탐색 반경(m). True(짧게)=1.5km · None(미언급)=3km · False(길게 OK)=5km.
+    """걷기 선호 → 기본 탐색 반경(m). True(짧게)=1km · None(미언급)=2km · False(길게 OK)=3km.
 
-    하드 캡이 아니다(§6 soft): 희소(유효<2)하면 collect_judged 가 최대 5km 까지 확장하고,
+    하드 캡이 아니다(§6 soft): 희소(유효<2)하면 collect_judged 가 최대 3km 까지 확장하고,
     확장 편입분은 from_widened_search → 프론트 'far' 라벨로 투명 표시. Product 결정(걷기 선호가
     '기본' 발견 범위를 정하되 숨기지 않고 넓힐 수 있음) — CLAUDE §6.6 갱신 반영.
     """
     if prefer_shorter_walks is True:
-        return 1500
+        return 1000
     if prefer_shorter_walks is False:
-        return 5000  # 걷기 좋아함 → 최대 반경 5km
-    return 3000
+        return 3000  # 걷기 좋아함 → 최대 반경 3km
+    return 2000
 
 
 async def _fetch_tour_pool(
@@ -523,7 +523,7 @@ async def collect_judged(
     judged, hard, seen = await _rerank_and_judge(
         first_pool, ctx, cond, trace, enrich_pool
     )
-    # 확장은 base(걷기 선호가 정한 기본 반경)보다 큰 단계만 — base 가 5km 면 확장 없음.
+    # 확장은 base(걷기 선호가 정한 기본 반경)보다 큰 단계만 — base 가 3km 면 확장 없음.
     used_radius = base
     for radius in (r for r in _RADIUS_LADDER if r > base):
         if len(judged) >= min_viable:
@@ -596,7 +596,7 @@ async def recommend_a(
     cond = merge_saved_open_preferences(cond, saved_open_preferences)
     # 걷기 선호: note 가 말했으면 최우선, 안 했으면 저장값. 이후 cond.prefer_shorter_walks 가 유효값.
     cond = merge_saved_walks(cond, prefer_shorter_walks)
-    # [걷기 선호 → 기본 탐색 반경] 싫음 1.5·없음 3·좋음 5km(§6.6 soft — 희소 시 확장·far 라벨).
+    # [걷기 선호 → 기본 탐색 반경] 싫음 1·없음 2·좋음 3km(§6.6 soft — 희소 시 확장·far 라벨).
     base = base_radius(cond.prefer_shorter_walks)
 
     pool, env = await asyncio.gather(
