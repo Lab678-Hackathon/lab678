@@ -249,7 +249,7 @@ async def recommend_route(
     # [select+judge] 의미 관련도 선발(P2) + 적응형 반경(P1) — A 와 동일 정책을 공용 헬퍼로.
     # feasible 가 부족하면 반경을 넓혀 재조회(루트 'unmet' 감소, 강제 채움 아님). '더' 요청 시
     # 목표를 _MORE_VIABLE 로 올려 더 넓게 발굴(문제1).
-    results, _hard, used_radius = await collect_judged(
+    results, _hard, _used_radius = await collect_judged(
         lat,
         lng,
         ctx,
@@ -261,8 +261,8 @@ async def recommend_route(
         # '더/추가'면 목표(prev+N)까지 feasible 를 모으도록 min_viable 을 올려 반경 확장을 유도.
         min_viable=max(_MORE_VIABLE, max_stops or 0) if want_more else _MIN_VIABLE,
     )
-    if used_radius > base:
-        route_notices.append(_RADIUS_EXPANDED_NOTICE)
+    # 반경 확대 안내는 '확대 트리거' 가 아니라 '실제로 base 밖 스톱이 루트에 들어갔나' 로
+    # 결정한다(최종 route.stops 기준, 아래 성공 반환 직전) — A 와 동일 정책.
     valid = [(c, txt) for (c, _, _, txt) in results]
     # 스톱별 Reason(코스 "왜 이 장소")용 판정 보관 — 관심사·시간·예산 근거 재사용(A와 동일).
     verdicts = {c.id: (t, b) for (c, t, b, _) in results}
@@ -369,6 +369,9 @@ async def recommend_route(
         total_walk=route.total_walk_minutes,
         route_name=route.name,
     )
+    # base 밖(from_widened_search, 거리기준) 스톱이 실제로 루트에 들어간 경우에만 안내.
+    if any(getattr(s, "from_widened_search", False) for s in route.stops):
+        route_notices.append(_RADIUS_EXPANDED_NOTICE)
     return RouteData(
         routes=[route],
         origin=origin,

@@ -639,7 +639,7 @@ async def recommend_a(
     # [select+judge] 의미 관련도 우선 선발(P2) + 적응형 반경(P1): 1단계 풀을 (관심사 enum →
     # 의미 유사도 → 실내외 → 거리)로 재정렬해 상위 K 를 판정하고, 유효가 부족하면 반경을 넓혀
     # 재조회한다(강제 채움 아님 — 선택지가 2개도 안 될 때만 확대). 사실·가용성은 _enrich 소유.
-    judged, excluded_hard, used_radius = await collect_judged(
+    judged, excluded_hard, _used_radius = await collect_judged(
         lat,
         lng,
         ctx,
@@ -651,8 +651,6 @@ async def recommend_a(
         min_viable=_MORE_VIABLE if want_more else _MIN_VIABLE,
     )
     valid = list(judged)
-    # 확장 안내·far 라벨: base(사용자 기본 반경)를 넘겨 조회했을 때만(그들의 기본 범위는 아님).
-    radius_notices = [_RADIUS_EXPANDED_NOTICE] if used_radius > base else []
     # [충돌 투명 안내] 실내/외 선호 ↔ 관심사 모순(예: indoor + 궁궐)이면 조용히 처리하지 않고
     # 왜 이런 결과인지 알린다(Option 1 — 폼/즉시추천은 되묻지 않으므로 notice 로 투명성 확보).
     conflicting = io_interest_conflict(cond)
@@ -716,10 +714,19 @@ async def recommend_a(
     )
     if notices:  # 0건-세이프 발동 — trace 로 증빙
         trace.step("exclude_safe_fallback", concepts=cond.exclude_concepts)
-    # 반경 확대·실내외 strict 안내를 함께 전달(투명 — 왜 이 결과인지 사용자에게 고지).
-    notices = [*radius_notices, *conflict_notices, *io_notices, *notices]
     kept = [by_id[i] for i in kept_ids]
     candidates = [c for c, _, _ in kept]
+    # [반경 확대 안내] '확대가 트리거됐나'(used_radius>base)가 아니라 '실제로 base 밖 후보가
+    # 표시되나'로 결정한다 — 밀집 지역서 base 안 후보가 1차 top-K 밖이라 확대 라운드에서야
+    # 판정될 수 있는데(예: 심야 명동, 명동성당 207m), 그때 실제 표시가 전부 base 안이면
+    # 넓혔다고 알리지 않는다. from_widened_search 는 거리기준(distance_m>base)으로 정확.
+    radius_notices = (
+        [_RADIUS_EXPANDED_NOTICE]
+        if any(c.from_widened_search for c in candidates)
+        else []
+    )
+    # 반경 확대·실내외 strict 안내를 함께 전달(투명 — 왜 이 결과인지 사용자에게 고지).
+    notices = [*radius_notices, *conflict_notices, *io_notices, *notices]
     fits = sum(1 for c in candidates if c.status.value == "fits")
     alt = sum(1 for c in candidates if c.status.value == "alternative")
     trace.step(
