@@ -100,9 +100,17 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
       `${request.start_location.label} · ${fmtTime(request.start_at)}–${fmtTime(request.end_at)}`,
     ),
   );
+  // 비회원이 조건을 고치는 건 사실상 재추천(FR-L1) → 로그인 유도. 로그인 시 바로 편집.
+  const guardedEdit = () => {
+    if (!isLoggedIn()) {
+      showLoginSheet({ onEditInstead: onEdit });
+      return;
+    }
+    onEdit();
+  };
   const editInline = el("button", "cond-edit", "Edit");
   editInline.type = "button";
-  editInline.addEventListener("click", onEdit);
+  editInline.addEventListener("click", guardedEdit);
   condPill.append(editInline);
   // 상단 이동(10/8): 좌상단 Back · 우상단 Home(→ 메인).
   const home = el("button", "icon-home");
@@ -230,7 +238,7 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
   const actions = el("div", "deck-actions");
   const editBtn = el("button", "btn-ghost", "Edit conditions");
   editBtn.type = "button";
-  editBtn.addEventListener("click", onEdit);
+  editBtn.addEventListener("click", guardedEdit);
   const findBtn = el("button", "btn-ghost", "Find new options");
   findBtn.type = "button";
   findBtn.addEventListener("click", () => {
