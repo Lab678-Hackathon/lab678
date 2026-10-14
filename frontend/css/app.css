@@ -466,9 +466,6 @@ body {
 .core-action.is-disabled .core-cta { background: var(--c-border); color: var(--c-text-muted); }
 
 /* 신뢰 안내 — 한 줄 (박스 없음, 카드와 간격 넓힘). 13px muted. */
-.home-info { display: flex; gap: var(--space-8); align-items: center; margin-top: 28px; }
-.home-info-icon { flex: 0 0 auto; width: 18px; height: 18px; border-radius: var(--r-full); background: var(--c-primary); color: var(--c-on-primary); font-size: 11px; font-weight: var(--fw-bold); font-style: italic; display: flex; align-items: center; justify-content: center; }
-.home-info-text { font-size: var(--fs-meta); color: var(--c-text-muted); }
 
 /* Log in (비활성·저우선) — 화면 최하단(Figma), 밑줄 없음 */
 .home-login { display: flex; align-items: center; justify-content: center; margin-top: auto; padding-top: var(--space-20); }

@@ -213,23 +213,14 @@ export function renderHomeView({
   const routeSlot = el("div", "home-route-slot");
   content.append(routeSlot);
 
-  // 신뢰 안내 — 한 줄, 첫 방문에서만(재방문에선 뺌 · Figma v2). 의미(05 §159)는 그대로.
-  const info = el("div", "home-info");
-  info.append(
-    el("span", "home-info-icon", "i"),
-    el("span", "home-info-text", "We clearly mark any unconfirmed information."),
-  );
-  if (!revisit) content.append(info);
-
   (async () => {
     // 참조(ref)만 로드해 카드를 즉시 렌더 — 라이브 재조립은 View 누르는 순간(showSavedRoute)
     // 에서 스플래시와 함께 수행한다(홈 로드 시 선재조립 → 카드가 뒤늦게 뜨던 문제 해소).
     const ref = await loadRoute();
     if (!ref) return;
-    // 저장 루트만 있는 비로그인 재방문 보정 — 안내문 제거 + 제목을 재방문형으로.
+    // 저장 루트만 있는 비로그인 재방문 보정 — 제목을 재방문형으로.
     if (!revisit) {
       revisit = true;
-      info.remove();
       homeHead.textContent = titleFor(true);
     }
     const cardEl = renderSavedRouteCard(null, ref, {
