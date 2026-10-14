@@ -1,5 +1,5 @@
 // W-0 · 웰컴 (LF-01 첫 실행 1회). 풀스크린 히어로 + Get started 버튼만(하단).
-// 히어로 일러스트(Figma: Seoul)는 외부 에셋이라 토큰 기반 그라디언트로 대체(자리표시).
+// 히어로 배경 = Figma Seoul 일러스트(assets/img/welcome-hero.png) — .welcome 배경에 적용.
 function el(tag, className, text) {
   const n = document.createElement(tag);
   if (className) n.className = className;

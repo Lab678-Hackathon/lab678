@@ -363,7 +363,8 @@ body {
 /* ── W-0 · 웰컴 ──────────────────────────────────────────── */
 .welcome {
   position: absolute; inset: 0; display: flex; flex-direction: column;
-  background: linear-gradient(180deg, #7fc2cd 0%, #a9d6d4 42%, #d9ebe5 72%, var(--c-bg) 100%);
+  /* Get Started 히어로 일러스트(Figma v2) — 상단 하늘에 로고, 하단에 버튼. 색은 로드 전 폴백. */
+  background: #bfe0e4 url("../assets/img/welcome-hero.png") center / cover no-repeat;
 }
 .welcome-hero { flex: 1; display: flex; justify-content: center; padding-top: 26%; }
 .welcome-brand { text-align: center; }
