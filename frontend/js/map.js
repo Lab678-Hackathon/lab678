@@ -5,8 +5,10 @@
 // - SDK 로드 실패(도메인 미등록 등) 시 지도 컨테이너를 숨긴다(카드는 그대로).
 import { API_BASE } from "./config.js";
 import { TYPE_GLYPH } from "./components/result-card.js";
+import { icon3dSrc } from "./components/icons3d.js";
 
 const TEAL = "#007385";
+const WHITE = "#ffffff";
 const reduceMotion = window.matchMedia(
   "(prefers-reduced-motion: reduce)",
 ).matches;
@@ -35,6 +37,34 @@ async function loadNaver() {
 
 function startPinHTML() {
   return '<div class="start-pin"></div>';
+}
+
+// 출발점 — 남색 점 + 회색 후광, 왼쪽에 3D 걷는 사람(36px). A·B 지도 공용(Figma v2).
+function startPinWalkHTML() {
+  return (
+    '<div class="start-pin-wrap">' +
+    `<img class="start-walker" src="${icon3dSrc("walking")}" width="36" height="36" alt="" aria-hidden="true" draggable="false" />` +
+    '<span class="start-pin"></span>' +
+    "</div>"
+  );
+}
+
+// B 루트 지도 핀 — 번호만(순서가 중요). 청록 원 30 · 흰 테두리 2 · 흰 숫자 (Figma v2).
+function numOnlyPinHTML(n) {
+  return `<div class="num-pin">${n}</div>`;
+}
+
+// 경로선 2겹(흰 테두리 밑 + 청록 위) — 지도 길·건물 위에서도 선이 떠 보이게(Figma v2).
+// outer=흰 테두리 두께, inner=청록 두께. 불투명 100%.
+function drawRouteLines(maps, map, latlngs, outer, inner) {
+  new maps.Polyline({
+    map, path: latlngs, strokeColor: WHITE, strokeWeight: outer, strokeOpacity: 1,
+    strokeLineCap: "round", strokeLineJoin: "round", zIndex: 1,
+  });
+  return new maps.Polyline({
+    map, path: latlngs, strokeColor: TEAL, strokeWeight: inner, strokeOpacity: 1,
+    strokeLineCap: "round", strokeLineJoin: "round", zIndex: 2,
+  });
 }
 
 // 번호+유형 핀. 선택 상태/걷기 라벨은 포커스 때 DOM 클래스/텍스트로 갱신.
@@ -217,7 +247,8 @@ export async function renderRouteMap(container, origin, route) {
   new maps.Marker({
     position: new maps.LatLng(origin.lat, origin.lng),
     map,
-    icon: { content: startPinHTML(), anchor: new maps.Point(9, 9) },
+    // 출발 걷는 사람(왼쪽) + 남색 점 — 점 중심이 좌표에 오도록 anchor.
+    icon: { content: startPinWalkHTML(), anchor: new maps.Point(47, 18) },
     zIndex: 50,
   });
   const bounds = new maps.LatLngBounds(
@@ -231,10 +262,8 @@ export async function renderRouteMap(container, origin, route) {
     new maps.Marker({
       position: pos,
       map,
-      icon: {
-        content: numPinHTML(TYPE_GLYPH[c.type] ?? TYPE_GLYPH.default, i + 1),
-        anchor: new maps.Point(16, 16),
-      },
+      // B 핀은 번호만(순서가 중요 — 유형 아이콘 미표기). 유형은 타임라인 태그로.
+      icon: { content: numOnlyPinHTML(i + 1), anchor: new maps.Point(15, 15) },
     });
     bounds.extend(pos);
   });
@@ -244,17 +273,8 @@ export async function renderRouteMap(container, origin, route) {
     const p = seg.movement?.path;
     if (p?.length) for (const [la, ln] of p) latlngs.push(new maps.LatLng(la, ln));
   }
-  if (latlngs.length) {
-    new maps.Polyline({
-      map,
-      path: latlngs,
-      strokeColor: TEAL,
-      strokeWeight: 5,
-      strokeOpacity: 0.9,
-      strokeLineCap: "round",
-      strokeLineJoin: "round",
-    });
-  }
+  // 흰 테두리 9 + 청록 5 (불투명 100%).
+  if (latlngs.length) drawRouteLines(maps, map, latlngs, 9, 5);
   map.fitBounds(bounds, { top: 40, right: 40, bottom: 40, left: 40 });
   return { map };
 }
@@ -295,17 +315,9 @@ export async function renderMiniMap(container, origin, candidate) {
     zIndex: 100,
   });
   const path = candidate.movement?.path;
-  if (path?.length) {
-    new maps.Polyline({
-      map,
-      path: path.map(([la, ln]) => new maps.LatLng(la, ln)),
-      strokeColor: TEAL,
-      strokeWeight: 4,
-      strokeOpacity: 0.9,
-      strokeLineCap: "round",
-      strokeLineJoin: "round",
-    });
-  }
+  // 미니 지도 경로선 — 흰 테두리 8 + 청록 4 (Figma v2).
+  if (path?.length)
+    drawRouteLines(maps, map, path.map(([la, ln]) => new maps.LatLng(la, ln)), 8, 4);
   const bounds = new maps.LatLngBounds(
     new maps.LatLng(origin.lat, origin.lng),
     new maps.LatLng(candidate.lat, candidate.lng),
