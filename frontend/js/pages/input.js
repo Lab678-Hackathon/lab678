@@ -245,7 +245,7 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
 
   const examples = el("div", "chips");
   for (const phrase of EXAMPLE_CONDITIONS) {
-    const chip = el("button", "chip", `+ ${phrase}`);
+    const chip = el("button", "chip chip--example", `+ ${phrase}`);
     chip.type = "button";
     chip.setAttribute("aria-pressed", "false");
     chip.addEventListener("click", () => {

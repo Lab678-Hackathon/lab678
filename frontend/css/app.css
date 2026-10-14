@@ -59,7 +59,7 @@ body {
 .input-view { flex: 1; display: flex; flex-direction: column; }
 
 /* ── 공통 헤더 ── */
-.app-header h1 { font-size: var(--fs-title); font-weight: var(--fw-bold); margin: 0 0 var(--space-4); }
+.app-header h1 { font-size: var(--fs-title); font-weight: var(--fw-semibold); margin: 0 0 var(--space-4); }
 .app-header p { margin: 0; font-size: var(--fs-body); color: var(--c-text-muted); }
 
 /* ── 입력 폼 (LF-02) ── */
@@ -78,7 +78,7 @@ body {
 .field { display: flex; flex-direction: column; gap: var(--space-8); }
 .field > label { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
 .field input, .field textarea {
-  font-family: inherit; font-size: var(--fs-meta); color: var(--c-text);
+  font-family: inherit; font-size: var(--fs-input); color: var(--c-text);
   background: var(--c-surface); border: 1px solid var(--c-border);
   border-radius: var(--r-flag); padding: var(--space-12) var(--space-14);
   width: 100%; min-width: 0;  /* UA 기본 min-width 무력화(모바일 가로 넘침 방지) */
@@ -112,6 +112,8 @@ body {
   font-size: var(--fs-body); font-weight: var(--fw-medium);
 }
 .chip[aria-pressed="true"] { background: var(--c-primary-tint); border-color: var(--c-primary); color: var(--c-primary); font-weight: var(--fw-semibold); }
+/* 예시 칩(P-09 자유입력 보기) — 더 크고 진하게 (Figma v2: 13px Medium #1a2429, 지금 12px 회색) */
+.chip--example { font-size: var(--fs-meta); color: var(--c-text); }
 
 /* 인라인 오류(추천 전 입력오류 — 시스템 예외 아님) */
 .form-error {
@@ -131,7 +133,7 @@ body {
 .btn-cta {
   width: 100%; border: 0; cursor: pointer;
   background: var(--c-primary); color: var(--c-on-primary);
-  border-radius: var(--r-pill); padding: var(--space-14); font-size: var(--fs-meta); font-weight: var(--fw-bold);
+  border-radius: var(--r-pill); padding: var(--space-14); font-size: var(--fs-button); font-weight: var(--fw-semibold);
 }
 .btn-cta:disabled { background: var(--c-border); color: var(--c-text-muted); cursor: not-allowed; }
 
@@ -300,7 +302,7 @@ body {
 .choice-note { margin: var(--space-4) 0 0; background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-12) var(--space-14); font-size: var(--fs-body); color: var(--c-text-muted); line-height: 1.4; }
 .choice-actions { display: flex; flex-direction: column; gap: var(--space-8); margin-top: var(--space-6); }
 .choice-actions > button { width: 100%; }
-.btn-outline-pill { min-height: 44px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-pill); color: var(--c-text); font-size: var(--fs-body); font-weight: var(--fw-bold); cursor: pointer; padding: var(--space-10) var(--space-14); }
+.btn-outline-pill { min-height: 44px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-pill); color: var(--c-text); font-size: var(--fs-button); font-weight: var(--fw-semibold); cursor: pointer; padding: var(--space-10) var(--space-14); }
 .btn-outline-pill:hover { border-color: var(--c-primary); color: var(--c-primary); }
 .btn-outline-pill:disabled { opacity: 0.5; cursor: default; }
 
@@ -399,7 +401,7 @@ body {
 .home-greeting { margin-top: var(--space-20); }
 .home-hello { margin: 0 0 var(--space-6); font-size: var(--fs-title); font-weight: var(--fw-bold); color: #fff; }
 .home-stamp { margin: 0 0 var(--space-6); font-size: var(--fs-badge); font-weight: var(--fw-semibold); letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.88); }
-.home-head { margin: 0; font-size: 22px; line-height: var(--lh-tight); font-weight: var(--fw-bold); max-width: 320px; color: #fff; }
+.home-head { margin: 0; font-size: var(--fs-display); line-height: var(--lh-tight); font-weight: var(--fw-bold); max-width: 320px; color: #fff; }
 
 /* 현재 선택 카드 (M-2) */
 .choice-card { background: var(--c-surface); border-radius: var(--r-card); box-shadow: var(--shadow-card); padding: var(--space-12); margin-top: var(--space-20); display: flex; flex-direction: column; gap: var(--space-10); cursor: pointer; }

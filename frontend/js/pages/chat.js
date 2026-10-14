@@ -363,11 +363,11 @@ export function renderChatView({ onBack, onHome }) {
     }
   }
 
-  // "Save this route" — 로그인 사용자만(DB 영속). 참조(스톱 제목·origin·시간창)만 저장하고
+  // "Go with this route"(구 "Save this route") — 로그인 사용자만(DB 영속). 참조(스톱 제목·origin·시간창)만 저장하고
   // 열 때 라이브 재조립(캐싱 금지 준수). 선택 ≠ 방문 — 예약/방문 확정이 아님을 문구로 유지.
   function routeSaveBar(route, origin) {
     const bar = el("div", "route-save-bar");
-    const btn = el("button", "btn-save-route", "Save this route");
+    const btn = el("button", "btn-save-route", "Go with this route");
     btn.type = "button";
     const note = el("p", "route-save-note", "Saving ≠ booking. We'll show it on your home & My Page.");
     btn.addEventListener("click", async () => {

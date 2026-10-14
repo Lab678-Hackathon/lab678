@@ -23,12 +23,14 @@
   --c-on-primary: #ffffff;     /* teal 위 텍스트 */
 
   /* ---------- Color · Result State (상태 배지) ---------- */
-  --c-fits-bg: #dff3e7;   --c-fits-text: #2e7d4f;   /* Fits your conditions */
-  --c-check-bg: #fdf0d0;  --c-check-text: #a8660a;  /* Check needed */
+  --c-fits-bg: #dff3e7;   --c-fits-text: #2e7d4f;   /* Fits your conditions (유지: 초록) */
+  /* Check needed·Planned → 중립 회색 (Figma v2 10/8: 주황 → 회색, 과한 주의색 완화) */
+  --c-check-bg: #f1f3f5;  --c-check-text: #545f6b;  /* Check needed / Planned */
   --c-alt-bg: #e6e8f2;    --c-alt-text: #454773;    /* Alternative / 중립 안내 */
 
-  /* ---------- Color · Unconfirmed flag 칩 ---------- */
-  --c-flag-bg: #fbf1de;   --c-flag-text: #9a5b00;
+  /* ---------- Color · Unconfirmed flag 칩 (Partly confirmed 등) ---------- */
+  /* v2 10/8: 주황 → 중립 회색 (Check 배지와 동일 톤). 의미(미확인)는 라벨 텍스트로 유지. */
+  --c-flag-bg: #f1f3f5;   --c-flag-text: #545f6b;
 
   /* ---------- Color · Far (반경 확대로 편입된 '조금 떨어진' 후보) ---------- */
   --c-far-bg: #fbe3ef;    --c-far-text: #b03a76;   /* 분홍 — 멀리서 찾은 결과 투명 표시 */
@@ -43,8 +45,10 @@
   --fw-semibold: 600;
   --fw-medium: 500;
 
-  --fs-input: 16px;    /* 텍스트 입력(자연어·챗·검색) — 모바일 16px(iOS 포커스 확대 방지, 07 가이드) */
-  --fs-title: 16px;    /* 카드 제목·결과 타이틀 */
+  --fs-display: 24px;  /* 메인 큰 제목(홈 재방문/첫방문 타이틀) — Figma v2 */
+  --fs-button: 16px;   /* 하단 큰 액션 버튼(SemiBold) — Figma v2 */
+  --fs-input: 16px;    /* 텍스트 입력(자연어·챗·검색·폼) — 모바일 16px(iOS 포커스 확대 방지, 07 가이드) */
+  --fs-title: 16px;    /* 카드 제목·결과 타이틀·상단 화면 제목 */
   --fs-meta: 13px;     /* 시간·가격·이동 Fact */
   --fs-body: 12px;     /* 추천 이유·링크·버튼 */
   --fs-badge: 11px;    /* 상태 배지·flag·보조 */
