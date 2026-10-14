@@ -15,6 +15,7 @@ from __future__ import annotations
 import re
 from typing import Any
 
+from app.domain.reservation import judge_reservation
 from app.models.recommend import (
     Candidate,
     ExperienceType,
@@ -373,11 +374,12 @@ def normalize_seoul_event(row: dict[str, Any]) -> Candidate | None:
     # 안정적 id: 좌표 없는 소스라 TITLE+시작일로 합성(중복제거·재조회 일관성).
     uid = f"{title}|{_seoul_yyyymmdd(row.get('STRTDATE'))}"
 
+    etype = _seoul_type(row.get("CODENAME"))
     return Candidate(
         id=f"seoul-{abs(hash(uid)) % (10**10)}",
         title=title,
         source="seoul",
-        type=_seoul_type(row.get("CODENAME")),
+        type=etype,
         status=ResultStatus.CHECK_NEEDED,  # 판정 전(orchestrator 에서 3상태 산정)
         reasons=[],
         time=time_info,
@@ -388,6 +390,7 @@ def normalize_seoul_event(row: dict[str, Any]) -> Candidate | None:
         official_links=links,
         lat=lat,
         lng=lng,
+        reservation=judge_reservation(etype),  # 유형만으로(서울 소스는 intro 신호 없음)
     )
 
 
@@ -446,4 +449,5 @@ def normalize_candidate(
         official_links=links,
         lat=lat,
         lng=lng,
+        reservation=judge_reservation(etype, intro),  # 예약 적용성(유형+공식 신호)
     )

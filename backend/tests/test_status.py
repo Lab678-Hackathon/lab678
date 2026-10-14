@@ -13,18 +13,22 @@ from app.models.recommend import (
     PriceInfo,
     PriceStatus,
     Provenance,
+    ReservationVerdict,
     ResultStatus,
 )
 
 
 def _cand(
-    price_status: PriceStatus, etype: ExperienceType = ExperienceType.DEFAULT
+    price_status: PriceStatus,
+    etype: ExperienceType = ExperienceType.DEFAULT,
+    reservation: ReservationVerdict = ReservationVerdict.NOT_REQUIRED,
 ) -> Candidate:
     return Candidate(
         id="c1",
         title="X",
         type=etype,
         status=ResultStatus.CHECK_NEEDED,
+        reservation=reservation,
         price=PriceInfo(
             status=price_status,
             display="d",
@@ -37,9 +41,16 @@ def _cand(
     )
 
 
-def R(price, timing, budget=BudgetVerdict.OK, cond=None, etype=ExperienceType.DEFAULT):
+def R(
+    price,
+    timing,
+    budget=BudgetVerdict.OK,
+    cond=None,
+    etype=ExperienceType.DEFAULT,
+    reservation=ReservationVerdict.NOT_REQUIRED,
+):
     return resolve_status(
-        _cand(price, etype), timing, budget, cond or ParsedConditions()
+        _cand(price, etype, reservation), timing, budget, cond or ParsedConditions()
     )
 
 
@@ -163,3 +174,47 @@ def test_no_interest_request_keeps_fact_based_fits():
     )
     assert status is ResultStatus.FITS
     assert flags == []
+
+
+# ── (2026-10-14 Product) 예약 적용성 — Fits 는 NOT_REQUIRED 일 때만, 미확인은 Partially ──
+def test_reservation_unconfirmed_is_partially_confirmed():
+    # 사실(시간·가격·예산)이 다 맞아도 예매 적용·미확인이면 Fits 아님 → check_needed + flag
+    status, flags = R(
+        PriceStatus.FREE,
+        TimingVerdict.OPEN,
+        reservation=ReservationVerdict.APPLIES_UNCONFIRMED,
+    )
+    assert status is ResultStatus.CHECK_NEEDED
+    assert "Booking may be required" in [f.text for f in flags]
+
+
+def test_reservation_unknown_is_partially_confirmed():
+    status, flags = R(
+        PriceStatus.FREE, TimingVerdict.OPEN, reservation=ReservationVerdict.UNKNOWN
+    )
+    assert status is ResultStatus.CHECK_NEEDED
+    assert "Booking may be required" in [f.text for f in flags]
+
+
+def test_reservation_not_required_is_fits():
+    # 예약 불필요가 명확하면(워크인) 사실 다 맞을 때 Fits
+    status, flags = R(
+        PriceStatus.FREE,
+        TimingVerdict.OPEN,
+        reservation=ReservationVerdict.NOT_REQUIRED,
+    )
+    assert status is ResultStatus.FITS
+    assert flags == []
+
+
+def test_reservation_flag_on_over_budget_alternative():
+    status, flags = R(
+        PriceStatus.PAID,
+        TimingVerdict.OPEN,
+        BudgetVerdict.OVER,
+        ParsedConditions(budget_krw=5000),
+        reservation=ReservationVerdict.APPLIES_UNCONFIRMED,
+    )
+    assert status is ResultStatus.ALTERNATIVE
+    texts = [f.text for f in flags]
+    assert "Above your budget" in texts and "Booking may be required" in texts

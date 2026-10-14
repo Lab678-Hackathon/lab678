@@ -13,7 +13,12 @@ from app.domain.normalize import (
     normalize_price,
     parse_duration_min,
 )
-from app.models.recommend import ExperienceType, PriceStatus, Provenance
+from app.models.recommend import (
+    ExperienceType,
+    PriceStatus,
+    Provenance,
+    ReservationVerdict,
+)
 
 
 # ── 가격 정규화 (무료 추정 금지) ──
@@ -199,6 +204,32 @@ def test_candidate_free_no_price_flag():
     c = normalize_candidate(_item(), intro={"usefeeculture": "Free"}, common={})
     assert c.price.status is PriceStatus.FREE
     assert "Price needs checking" not in [f.text for f in c.flags]
+
+
+# ── 예약 적용성(유형+공식 신호) ──
+def test_candidate_reservation_performance_signal_in_festival_type():
+    # 축제·공연(85)에 공연 신호(agelimit/playtime)가 있으면 예매공연 → APPLIES_UNCONFIRMED
+    c = normalize_candidate(
+        _item(contenttypeid="85", title="A Play"),
+        intro={"agelimit": "14 years old or older", "playtime": "90 minutes"},
+        common={},
+    )
+    assert c is not None
+    assert c.reservation is ReservationVerdict.APPLIES_UNCONFIRMED
+
+
+def test_candidate_reservation_open_festival_is_not_required():
+    # 축제·공연(85)에 공연 신호가 없으면 개방축제 → NOT_REQUIRED(워크인)
+    c = normalize_candidate(
+        _item(contenttypeid="85", title="Open Festival"), intro={}, common={}
+    )
+    assert c.reservation is ReservationVerdict.NOT_REQUIRED
+
+
+def test_candidate_reservation_museum_is_not_required():
+    # 문화시설(78)은 워크인 입장형 → NOT_REQUIRED
+    c = normalize_candidate(_item(), intro={}, common={})
+    assert c.reservation is ReservationVerdict.NOT_REQUIRED
 
 
 def test_parse_duration_min():

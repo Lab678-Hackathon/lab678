@@ -13,6 +13,12 @@ alternative(개수가 부족할 때 감수하고 제안)로 분류한다 — 제
 
 미확인을 긍정으로 바꾸지 않는다. alternative 는 차이를 flag로 명시하고
 해당 조건에 충족 Reason을 붙이지 않는다(reasons 단계에서 budget OK 아닐 때 제외).
+
+(2026-10-14 Product) Fits 는 예약 필요 여부가 명확해야 한다. candidate.reservation 이
+NOT_REQUIRED(일반 입장에 예약 불필요가 통념상 확인)일 때만 Fits 가능. 예매 적용 콘텐츠인데
+가능 상태 미확인(APPLIES_UNCONFIRMED)이거나 판단 근거가 없으면(UNKNOWN) Fits 가 아니라
+Partially confirmed(check_needed)로 두고 'Booking may be required' flag 로 투명 안내한다.
+예약 적용성 판정은 domain/reservation.py(유형+공식 신호, 미확인을 긍정으로 바꾸지 않음·§6).
 """
 
 from __future__ import annotations
@@ -24,6 +30,7 @@ from app.models.recommend import (
     Candidate,
     ParsedConditions,
     PriceStatus,
+    ReservationVerdict,
     ResultStatus,
     UnconfirmedFlag,
 )
@@ -39,6 +46,13 @@ def resolve_status(
     if timing is TimingVerdict.CLOSED:
         return None, []
 
+    # 예약 적용성 — Fits 는 NOT_REQUIRED 일 때만. 예매 적용(미확인)·판단불가면 Fits 가 아니라
+    # Partially confirmed 로 두고 flag 로 투명 안내(§6 — 미확인을 긍정으로 바꾸지 않는다).
+    reservation_ok = candidate.reservation is ReservationVerdict.NOT_REQUIRED
+    booking_flag = (
+        [] if reservation_ok else [UnconfirmedFlag(text="Booking may be required")]
+    )
+
     # 2) 예산 초과 → 조건 완화 대안 (차이 명시)
     if budget is BudgetVerdict.OVER:
         flags: list[UnconfirmedFlag] = []
@@ -48,7 +62,7 @@ def resolve_status(
             flags.append(UnconfirmedFlag(text="Above your budget"))
         if timing is TimingVerdict.UNCERTAIN:
             flags.append(UnconfirmedFlag(text="Hours need checking"))
-        return ResultStatus.ALTERNATIVE, flags
+        return ResultStatus.ALTERNATIVE, flags + booking_flag
 
     # 미확인(가격·시간) 분리 — fits/check/alt 어느 쪽이든 flag 는 투명 표기.
     price_known = candidate.price.status in (PriceStatus.FREE, PriceStatus.PAID)
@@ -59,6 +73,7 @@ def resolve_status(
         flags.append(UnconfirmedFlag(text="Price varies · check details"))
     if timing is TimingVerdict.UNCERTAIN:
         flags.append(UnconfirmedFlag(text="Hours need checking"))
+    flags += booking_flag  # 예약 미확인은 fits 외 어느 쪽이든 투명 표기
 
     # 3) 요청 관심사/선호 불일치 → 조건 '밖' 대안. 사실(시간·가격)이 다 맞아도 Fits/Partially 아님.
     #    미확인 flag 가 함께 있으면 보존해 투명 표기(가격 확인 등은 여전히 알려준다).
@@ -68,8 +83,9 @@ def resolve_status(
             *flags,
         ]
 
-    # 4~5) 요청 선호는 맞음 → 사실 미확인 여부로 fits/check 분기.
+    # 4~5) 요청 선호는 맞음 → 사실·예약 미확인 여부로 fits/check 분기.
+    #    Fits 는 예약 불필요가 명확(reservation_ok)할 때만 — 예매 미확인이면 Partially confirmed.
     budget_ok = budget in (BudgetVerdict.OK,)  # UNKNOWN 예산은 fits 아님
-    if timing is TimingVerdict.OPEN and price_known and budget_ok:
+    if timing is TimingVerdict.OPEN and price_known and budget_ok and reservation_ok:
         return ResultStatus.FITS, []
     return ResultStatus.CHECK_NEEDED, flags

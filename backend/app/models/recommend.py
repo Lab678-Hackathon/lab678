@@ -138,6 +138,18 @@ class ExperienceType(str, Enum):
     DEFAULT = "default"
 
 
+class ReservationVerdict(str, Enum):
+    """예약/예매 적용성 (2026-10-14 Product). 판정은 domain/reservation.py.
+
+    Fits 는 예약 필요 여부가 명확해야 한다 → NOT_REQUIRED 만 Fits 가능.
+    APPLIES_UNCONFIRMED(예매 적용·상태 미확인)·UNKNOWN 은 Partially confirmed(check_needed).
+    """
+
+    NOT_REQUIRED = "not_required"
+    APPLIES_UNCONFIRMED = "applies_unconfirmed"
+    UNKNOWN = "unknown"
+
+
 class PriceStatus(str, Enum):
     """가격 정규화 (PRD §6.2). unknown/partial 을 free 로 바꾸지 않는다."""
 
@@ -229,6 +241,9 @@ class Candidate(BaseModel):
     distance_m: int | None = None
     # P1 반경 확대로 편입된 후보 — 프론트가 '조금 떨어진 곳' 거리 라벨을 표시(투명).
     from_widened_search: bool = False
+    # 예약/예매 적용성(유형+공식 신호로 판정, domain/reservation.py). Fits 는 NOT_REQUIRED
+    # 일 때만 가능 — 예매 적용(미확인)·판단불가면 Partially confirmed(check_needed)로 둔다.
+    reservation: ReservationVerdict = ReservationVerdict.NOT_REQUIRED
     # AI 분류 근거 키워드(영문, 표시 전용) — 파이프라인이 실제로 산정한 분류 신호를 그대로
     # 노출(유형·실내외·관심사·가격). 사실/가용성 판정에 쓰지 않는다(§6 — 순서·설명만).
     # 각 신호는 label + matched(사용자 요청 일치 여부 — UI 가 흰색/녹색으로 구분).
