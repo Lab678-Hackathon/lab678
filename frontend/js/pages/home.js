@@ -42,7 +42,7 @@ function nowStamp() {
 }
 
 // 비활성 코어액션 카드(B) — 클릭 불가, 'Coming soon' 배지.
-function coreAction({ kicker, title, sub, cta, disabled, onClick }) {
+function coreAction({ kicker, title, sub, cta, image, disabled, onClick }) {
   const card = el("button", "core-action");
   card.type = "button";
   if (disabled) {
@@ -53,6 +53,8 @@ function coreAction({ kicker, title, sub, cta, disabled, onClick }) {
     card.addEventListener("click", onClick);
   }
   const illo = el("div", "core-illo");
+  // 카드 그림(Figma v2) — A=서울 전경, B=문화 루트 일러스트. 첫방문·재방문·로그인 공통.
+  if (image) illo.style.backgroundImage = `url("assets/img/${image}")`;
   if (disabled) illo.append(el("span", "soon-badge", "Phase 2"));
   const body = el("div", "core-body");
   body.append(
@@ -209,6 +211,7 @@ export function renderHomeView({
       title: "Right now",
       sub: "Fits your location and the time you have.",
       cta: "Find experiences",
+      image: "card-a-right-now.png",
       disabled: false,
       onClick: onStartA,
     }),
@@ -217,6 +220,7 @@ export function renderHomeView({
       title: "Plan a route",
       sub: "2–3 experiences for a date you choose.",
       cta: "Create a route",
+      image: "card-b-plan-a-route.png",
       disabled: false,
       onClick: onOpenChat,
     }),
