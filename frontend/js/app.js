@@ -30,6 +30,29 @@ import { showLoginSheet } from "./components/login-sheet.js";
 const viewEl = document.getElementById("view");
 const WELCOME_KEY = "konnect.seenWelcome";
 
+// ── 콜드스타트 스플래시 제어 (index.html #splash) ──
+// authReady()가 /api/config(백엔드)를 부르므로 Render 콜드스타트 시 첫 화면까지
+// 수십 초가 걸린다. 그 공백을 스플래시가 덮고, 첫 뷰가 mount 되면 내린다.
+const SPLASH_MIN_MS = 500; // 웜 백엔드에서 번쩍이지 않게 최소 노출
+const SPLASH_HINT_MS = 3500; // 이보다 오래 걸리면 콜드스타트 안내 문구 노출
+const splashShownAt = Date.now();
+const splashHintTimer = setTimeout(() => {
+  document.getElementById("splash-status")?.classList.add("show");
+}, SPLASH_HINT_MS);
+
+function hideSplash() {
+  const splash = document.getElementById("splash");
+  if (!splash) return;
+  clearTimeout(splashHintTimer);
+  const wait = Math.max(0, SPLASH_MIN_MS - (Date.now() - splashShownAt));
+  setTimeout(() => {
+    splash.classList.add("is-hiding");
+    // fade-out 끝나면 제거. transition 미동작 환경 대비 안전 타이머도 건다.
+    splash.addEventListener("transitionend", () => splash.remove(), { once: true });
+    setTimeout(() => splash.remove(), 600);
+  }, wait);
+}
+
 // fullBleed=true → 지도가 프레임을 꽉 채우는 결과 뷰(패딩 제거).
 function mount(node, { fullBleed = false } = {}) {
   viewEl.classList.toggle("app--bleed", fullBleed);
@@ -293,6 +316,7 @@ try {
 authReady().finally(() => {
   if (seen) showHome();
   else showWelcome();
+  hideSplash(); // 첫 뷰가 그려졌으니 콜드스타트 스플래시를 내린다
   maybeShowOnboarding(); // 온보딩 판정(getPreferences)도 비블로킹
   restoreChoiceFromServer().then((restored) => {
     if (restored && document.querySelector(".home")) showHome();
