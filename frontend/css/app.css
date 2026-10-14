@@ -403,7 +403,6 @@ body {
 .home-account:hover { box-shadow: 0 0 0 2px var(--c-primary); }
 .home-account:disabled { opacity: 0.6; cursor: default; }
 .home-greeting { margin-top: var(--space-20); }
-.home-hello { margin: 0 0 var(--space-6); font-size: var(--fs-title); font-weight: var(--fw-bold); color: #fff; }
 .home-stamp { margin: 0 0 var(--space-6); font-size: var(--fs-badge); font-weight: var(--fw-semibold); letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.88); }
 .home-head { margin: 0; font-size: var(--fs-display); line-height: var(--lh-tight); font-weight: var(--fw-bold); max-width: 320px; color: #fff; }
 
@@ -413,14 +412,12 @@ body {
 .choice-tag { background: var(--c-primary-tint); color: var(--c-primary); border-radius: var(--r-full); padding: var(--space-3) var(--space-8); font-size: var(--fs-badge); font-weight: var(--fw-bold); }
 .choice-when { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
 .choice-card-head .choice-clear { margin-left: auto; }
-.mini-map { height: 84px; border-radius: var(--r-md); overflow: hidden; background: var(--c-border); }
+.mini-map { height: 150px; border-radius: var(--r-md); overflow: hidden; background: var(--c-border); }
 .choice-card-info { display: flex; align-items: center; gap: var(--space-8); }
 .choice-card-texts { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
 .choice-card-title { font-size: var(--fs-meta); font-weight: var(--fw-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .choice-card-sub { font-size: var(--fs-body); color: var(--c-text-muted); }
 .choice-card-view { flex: 0 0 auto; color: var(--c-primary); font-size: var(--fs-meta); font-weight: var(--fw-bold); }
-
-.home-explore-label { margin: var(--space-20) 0 0; font-size: var(--fs-badge); font-weight: var(--fw-bold); letter-spacing: 0.08em; color: var(--c-text-muted); }
 
 /* 코어 액션 A/B */
 .core-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); margin-top: var(--space-12); }

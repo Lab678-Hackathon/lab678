@@ -117,24 +117,56 @@ export function renderHomeView({
   brand.append(brandRight);
   content.append(brand);
 
-  // 인사
-  const greeting = el("div", "home-greeting");
-  // 로그인(비익명) 사용자에겐 Google 이름으로 Hello 인사.
+  // 인사 — 메인 구성을 첫방문·재방문·로그인 모두 동일하게(A/B 카드 먼저). 재방문/로그인은
+  // 큰 제목 "Welcome back[, Name]", 첫방문은 안내 제목. (Figma v2 메인 재구성)
   const name = isLoggedIn() ? displayName() : null;
-  if (name) {
-    greeting.append(el("p", "home-hello", `Hello, ${name.split(" ")[0]} 👋`));
-  }
-  greeting.append(
-    el("p", "home-stamp", nowStamp()),
-    el("h1", "home-head", "Find a cultural experience that fits your day."),
-  );
-  content.append(greeting);
 
-  // M-2 · 현재 선택 재접근 (선택 ≠ 방문)
+  // M-2 현재 선택(선택 ≠ 방문)은 아래에서 쓰지만, 제목·안내문 분기를 위해 먼저 로드.
   const saved = loadChoice();
   const savedCand = saved?.env?.data?.candidates?.find(
     (c) => c.id === saved.candidateId,
   );
+  // 재방문 = 로그인했거나 현재 선택이 있음(저장 루트는 비동기 → 로드 후 보정).
+  let revisit = !!name || !!savedCand;
+  const titleFor = (rv) =>
+    name
+      ? `Welcome back, ${name.split(" ")[0]}`
+      : rv
+        ? "Welcome back"
+        : "Find a cultural experience that fits your day.";
+
+  const greeting = el("div", "home-greeting");
+  const homeHead = el("h1", "home-head", titleFor(revisit));
+  greeting.append(el("p", "home-stamp", nowStamp()), homeHead);
+  content.append(greeting);
+
+  // 코어 액션 A / B (동급 2열) — 메인 최상단(첫방문과 같은 자리).
+  const actions = el("div", "core-actions");
+  actions.append(
+    coreAction({
+      kicker: "IMMEDIATE RECOMMENDATION",
+      title: "Right now",
+      sub: "Fits your location and the time you have.",
+      cta: "Find experiences",
+      image: "card-a-right-now.png",
+      disabled: false,
+      onClick: onStartA,
+    }),
+    coreAction({
+      kicker: "CHOOSE A DATE",
+      title: "Plan a route",
+      sub: "2–3 experiences for a date you choose.",
+      cta: "Create a route",
+      image: "card-b-plan-a-route.png",
+      disabled: false,
+      onClick: onOpenChat,
+    }),
+  );
+  content.append(actions);
+
+  // 현재 선택·루트는 A/B 카드 아래 섹션으로(재방문 시). 신뢰 안내(한 줄)는 첫방문에서만.
+
+  // M-2 · 현재 선택 재접근 (선택 ≠ 방문)
   if (savedCand) {
     const choice = el("div", "choice-card");
     const head = el("div", "choice-card-head");
@@ -149,7 +181,6 @@ export function renderHomeView({
       e.stopPropagation();
       clearChoice();
       choice.remove();
-      exploreLabel.textContent = "START HERE";
     });
     head.append(clear);
 
@@ -181,11 +212,26 @@ export function renderHomeView({
   // 참조만 저장했으므로 매번 신선 재조회(캐싱 금지 준수). 로그인·세션 없으면 조용히 생략.
   const routeSlot = el("div", "home-route-slot");
   content.append(routeSlot);
+
+  // 신뢰 안내 — 한 줄, 첫 방문에서만(재방문에선 뺌 · Figma v2). 의미(05 §159)는 그대로.
+  const info = el("div", "home-info");
+  info.append(
+    el("span", "home-info-icon", "i"),
+    el("span", "home-info-text", "We clearly mark any unconfirmed information."),
+  );
+  if (!revisit) content.append(info);
+
   (async () => {
     // 참조(ref)만 로드해 카드를 즉시 렌더 — 라이브 재조립은 View 누르는 순간(showSavedRoute)
     // 에서 스플래시와 함께 수행한다(홈 로드 시 선재조립 → 카드가 뒤늦게 뜨던 문제 해소).
     const ref = await loadRoute();
     if (!ref) return;
+    // 저장 루트만 있는 비로그인 재방문 보정 — 안내문 제거 + 제목을 재방문형으로.
+    if (!revisit) {
+      revisit = true;
+      info.remove();
+      homeHead.textContent = titleFor(true);
+    }
     const cardEl = renderSavedRouteCard(null, ref, {
       onClear: () => {
         clearRoute();
@@ -195,46 +241,6 @@ export function renderHomeView({
     });
     if (cardEl) routeSlot.append(cardEl);
   })();
-
-  const exploreLabel = el(
-    "p",
-    "home-explore-label",
-    savedCand ? "OR EXPLORE SOMETHING NEW" : "START HERE",
-  );
-  content.append(exploreLabel);
-
-  // 코어 액션 A / B (동급 2열) — B 비활성
-  const actions = el("div", "core-actions");
-  actions.append(
-    coreAction({
-      kicker: "IMMEDIATE RECOMMENDATION",
-      title: "Right now",
-      sub: "Fits your location and the time you have.",
-      cta: "Find experiences",
-      image: "card-a-right-now.png",
-      disabled: false,
-      onClick: onStartA,
-    }),
-    coreAction({
-      kicker: "CHOOSE A DATE",
-      title: "Plan a route",
-      sub: "2–3 experiences for a date you choose.",
-      cta: "Create a route",
-      image: "card-b-plan-a-route.png",
-      disabled: false,
-      onClick: onOpenChat,
-    }),
-  );
-  content.append(actions);
-
-  // 신뢰 안내 — 한 줄 (디자인 10/8: 박스·제목 제거, "ⓘ We clearly mark any unconfirmed
-  // information." 한 줄). 의미(05 §159: 추정 않고 미확인은 구분 표시)는 그대로.
-  const info = el("div", "home-info");
-  info.append(
-    el("span", "home-info-icon", "i"),
-    el("span", "home-info-text", "We clearly mark any unconfirmed information."),
-  );
-  content.append(info);
 
   root.append(content);
   return root;
