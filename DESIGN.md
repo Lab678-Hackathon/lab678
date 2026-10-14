@@ -152,7 +152,7 @@ A 결과·B 루트 공통 카드. **24개 상태 조합** = `State(Fits/Check/Al
   - B 루트 핀은 번호 핀 사용. Start 핀 = 다크 ink 원.
 - **Experience Type Icon** (`218:3878`) — D-06 유형 아이콘. **개발 키 고정:** `hands_on` / `performance` / `exhibition` / `historic_visit` / `festival_event` / `default`(유형 미상). export 이름 `icon-type-{key}`. 모양이 바뀌어도 키는 고정.
 - **Walk time 라벨** — teal pill `≈12 min walk`. **경로/거리/시간 provenance 3단계**(PRD §7): 경로선+시간/거리 → 핀+시간/거리+외부지도 → 핀+외부지도(`Route unavailable`). 임의 직선 금지.
-- **외부 길찾기** — `Directions (external map)` = Google Maps 딥링크.
+- **외부 길찾기** — `Directions (external map)` = Naver Map 딥링크(`map.naver.com/p/directions`; 2026-10-14 Google→Naver 전환).
 
 ### 3.5 버튼 · 피드백
 | 컴포넌트 | 스펙 |

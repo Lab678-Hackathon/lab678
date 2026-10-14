@@ -55,7 +55,7 @@
 | **DB / Auth / 상태저장** | **Supabase** (Postgres + pgvector + **Supabase Auth**) | **Supabase Auth가 Google OAuth 처리** → 프론트가 세션 JWT 획득 → FastAPI는 JWT 검증만(provider-agnostic). 사용자·선호·현재 선택·세션 상태 저장. |
 | **지도 렌더링** | **Naver Maps SDK** (프론트) | 핀·지도 표시. |
 | **경로(도보) 표시·계산** | **Tmap API** (백엔드 프록시) | 구간별 도보 경로선·거리·시간. |
-| **외부 길찾기 딥링크** | **Google Maps URL** | 외국인 사용자 상세 길찾기 연결. |
+| **외부 길찾기 딥링크** | **Naver Map URL** (`map.naver.com/p/directions`) | 외국인 사용자 상세 길찾기 연결. 한국 도보/대중교통 경로 정확(2026-10-14 Google→Naver 전환). 영문은 사용자 네이버 지도 언어설정. |
 | **외부 데이터** | TourAPI(EngService2) · 서울문화포털 문화행사 API · 기상청 · AirKorea | 추천 시점 **직접 조회(경량)**. **응답 캐싱 없음**(API 정책·데이터 신선도 — 매 요청 직접 조회). **KOPIS 제외**(레이트 10/s·공유IP 중지 리스크·지오 부적합·커버리지 중복 — `docs/agent-architecture.md` §6.10). |
 | **보조 장소정보** | **Google Places API (New)** (보조 한정) | 좌표·주소·링크 보강. 이미지는 공식 소스 우선·Places는 Fallback. `price_level`·평점·리뷰 판정 사용 금지. **예외: `businessStatus`는 폐업 음성 신호로 Hard 제외 판정에 허용**(§6 신뢰 강화). 개발=데모 키 / 배포=정식 키(무료 티어), **키만 교체·코드 불변**. 상세 PRD §6.7. |
 | **배포** | Frontend: Vercel/Supabase 호스팅 · Backend: Render | 외부 접근 URL 필수. |
@@ -132,7 +132,7 @@ code/
 
 ### 4.3 지도·이동
 - 프론트: Naver Maps SDK로 렌더. 경로선·거리·시간은 백엔드가 **Tmap 프록시**로 계산해 provenance(신뢰 수준)와 함께 내려준다.
-- UI는 PRD §7의 **3단계 Fallback**을 provenance 값으로 분기. **임의 직선을 실제 경로처럼 그리지 않는다.** 상세 길찾기는 Google Maps 딥링크.
+- UI는 PRD §7의 **3단계 Fallback**을 provenance 값으로 분기. **임의 직선을 실제 경로처럼 그리지 않는다.** 상세 길찾기는 Naver Map 딥링크(`map.naver.com/p/directions`, EPSG:3857 좌표).
 
 ### 4.4 인증·상태 (Supabase Auth)
 - **Supabase Auth가 Google OAuth를 처리**한다. 프론트가 `signInWithOAuth`로 세션 JWT를 받고, FastAPI는 **JWT 검증만** 한다(provider-agnostic — 이후 Kakao 등 추가해도 백엔드 재작업 없음).

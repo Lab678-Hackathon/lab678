@@ -68,13 +68,27 @@ export function farChip(c) {
   return el("span", "far-chip", dist ? `Far · ${dist}` : "Far");
 }
 
-// Google Maps 길찾기 딥링크 (외부 상세 길찾기, DESIGN §3.4).
-// 대중교통 모드 — 구글맵은 한국에서 도보 경로를 제공하지 않는다(도보는 내부 Tmap).
+// WGS84(lat/lng) → EPSG:3857 Web Mercator. map.naver.com/p 경로 좌표계(lng=x, lat=y).
+function toWebMercator(lat, lng) {
+  const x = (lng * 20037508.34) / 180;
+  const y =
+    (Math.log(Math.tan(((90 + lat) * Math.PI) / 360)) / (Math.PI / 180)) *
+    (20037508.34 / 180);
+  return [x, y];
+}
+
+// 네이버 지도 길찾기 딥링크 (외부 상세 길찾기). 외국인 사용자는 네이버 지도를 영문으로
+// 전환해 쓰므로 한국 도보/대중교통 경로를 Google 보다 정확히 제공한다. 웹 경로는 좌표를
+// EPSG:3857(lng,lat 순)로 받고 `/{start}/{end}/-/{mode}` 형식. 이름은 URL 인코딩(구분자 ',' 보호).
 export function directionsUrl(origin, c) {
   if (!origin?.lat || !origin?.lng || c.lat == null || c.lng == null) return null;
+  const [sx, sy] = toWebMercator(origin.lat, origin.lng);
+  const [dx, dy] = toWebMercator(c.lat, c.lng);
+  const sName = encodeURIComponent(origin.label ?? "Start");
+  const dName = encodeURIComponent(c.title ?? "Destination");
   return (
-    "https://www.google.com/maps/dir/?api=1" +
-    `&origin=${origin.lat},${origin.lng}&destination=${c.lat},${c.lng}&travelmode=transit`
+    "https://map.naver.com/p/directions/" +
+    `${sx},${sy},${sName},,/${dx},${dy},${dName},,/-/transit`
   );
 }
 
