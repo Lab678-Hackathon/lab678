@@ -122,10 +122,11 @@ body {
 .form-error[hidden] { display: none; }
 
 /* 하단 CTA */
+/* 조건 입력 CTA("Find experiences") — 스크롤을 내리면 내용 맨 아래에 놓인다(과거 sticky 로
+   화면 하단에 떠 다른 버튼 위를 덮던 문제 해소). 내용이 짧으면 margin-top:auto 로 바닥에 밀착. */
 .cta {
-  position: sticky; bottom: 0; margin-top: auto;
+  margin-top: auto;
   padding-top: var(--space-12); padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: linear-gradient(to top, var(--c-bg) 70%, transparent);
 }
 .btn-cta {
   width: 100%; border: 0; cursor: pointer;
