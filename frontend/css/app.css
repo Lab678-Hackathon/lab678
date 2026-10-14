@@ -391,14 +391,16 @@ body {
   border-radius: 0 0 28px 28px; overflow: hidden;
   background: linear-gradient(180deg, #1a7e8c 0%, #2a8a93 100%);
 }
+/* 흐릿한 서울 일러스트 — 남산타워가 보이는 산 밴드로 크롭(center 42%), 부드럽게 blur. */
 .home-header-bg::before {
   content: ""; position: absolute; inset: -8px;
-  background: url("../assets/img/welcome-hero.png") center top / cover no-repeat;
-  filter: blur(3px) saturate(0.82); opacity: 0.55;
+  background: url("../assets/img/welcome-hero.png") center 42% / cover no-repeat;
+  filter: blur(2px) saturate(0.9); opacity: 0.72;
 }
+/* teal 틴트 — 상단(텍스트 뒤)은 짙게, 중단은 옅게(산·타워 비침), 하단은 teal. */
 .home-header-bg::after {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(20, 100, 112, 0.28) 0%, rgba(20, 100, 112, 0.5) 100%);
+  background: linear-gradient(180deg, rgba(18, 92, 103, 0.62) 0%, rgba(20, 105, 112, 0.26) 46%, rgba(26, 122, 124, 0.36) 100%);
 }
 .home-content {
   position: relative; z-index: 1; min-height: 100%;
