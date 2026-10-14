@@ -113,6 +113,29 @@ export function openConfirmSheet({ request, conditions, onShow, onEdit }) {
       root.append(chips);
     }
 
+    // 우리가 다룰 수 없는 요청(미래 일정·문화 외 영역)은 조용히 무시하지 않고 편안하게 알린다.
+    // 사용자가 '내 입력이 무시됐다'가 아니라 '이건 이 서비스 범위가 아니구나'로 이해하도록.
+    const unsupported = Array.isArray(conditions?.unsupported)
+      ? conditions.unsupported
+      : [];
+    if (unsupported.length) {
+      const note = el("div", "confirm-unsupported");
+      note.append(
+        el(
+          "p",
+          "confirm-unsupported-title",
+          `We can't plan around ${unsupported.join(", ")}.`,
+        ),
+        el(
+          "p",
+          "confirm-unsupported-sub",
+          "KONNECT focuses on Seoul cultural experiences — try things like palaces, " +
+            "exhibitions, traditional crafts, or performances.",
+        ),
+      );
+      root.append(note);
+    }
+
     const show = el("button", "btn-cta", "Show experiences");
     show.type = "button";
     show.addEventListener("click", () => {

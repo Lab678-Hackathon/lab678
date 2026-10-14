@@ -106,6 +106,17 @@ class ParsedConditions(BaseModel):
         "prefers shorter / less walking. False = explicitly fine with long / lots of walking. "
         "Null = not mentioned (so a saved preference may fill it — Request > Preference).",
     )
+    unsupported: list[str] = Field(
+        default_factory=list,
+        description="Short labels for things the user asked for that this service CANNOT act "
+        "on, so the UI can say so plainly instead of silently ignoring them. Two cases only: "
+        "(1) scheduling a future activity/meal/event at a time (e.g. 'dinner at 7', 'catch a "
+        "show tonight', 'meet friends later') — we recommend cultural experiences for the given "
+        "window, not future plans; (2) off-domain requests outside Seoul cultural experiences "
+        "(e.g. 'zoo', 'shopping', 'nightclubs', 'hiking', 'theme park'). Use a short lowercase "
+        "label (e.g. 'dinner plans', 'zoos / animals', 'shopping'). Leave EMPTY if everything "
+        "the user wrote maps to a supported condition. Display-only — never affects results.",
+    )
 
 
 class ResultStatus(str, Enum):

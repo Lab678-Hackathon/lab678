@@ -65,6 +65,14 @@ _SYSTEM = (
     "an explicit liking for OR OK with lots of walking ('long walks are fine', 'I don't mind "
     "walking a lot', 'happy to walk', 'I love to walk', 'I love walking', 'walking is my "
     "favourite') -> prefer_shorter_walks:false; if walking isn't mentioned, leave it null.\n"
+    "Put into 'unsupported' (short lowercase labels) anything the user asked for that this "
+    "service canNOT act on, so we can tell them plainly instead of ignoring it. Only two cases: "
+    "(1) scheduling a future activity/meal/event at a time we don't plan around (e.g. 'dinner at "
+    "7' -> 'dinner plans', 'catch a show tonight' -> 'evening show'); (2) off-domain requests "
+    "outside Seoul cultural experiences (e.g. 'see the zoo' -> 'zoos / animals', 'go shopping' -> "
+    "'shopping', 'nightclub' -> 'nightlife'). Leave 'unsupported' EMPTY when everything maps to a "
+    "supported condition. Never put a supported condition (interest, budget, indoor/outdoor, "
+    "walking, a cultural keyword/place, a finish time) into 'unsupported'.\n"
     "Examples:\n"
     "- 'free or cheap' -> budget_krw:30000 (free_only stays false)\n"
     "- 'only free experiences' -> free_only:true\n"
@@ -80,7 +88,11 @@ _SYSTEM = (
     "- 'try calligraphy near Bukchon, but not Gyeongbokgung' -> interests:[hands_on], "
     "keywords:['calligraphy','Bukchon'], exclude_places:['Gyeongbokgung']\n"
     "- 'outdoor only, free palaces' -> interests:[palaces_historic], indoor_outdoor:outdoor, "
-    "indoor_outdoor_strict:true, free_only:true"
+    "indoor_outdoor_strict:true, free_only:true\n"
+    "- 'free exhibitions, then dinner at 7 in Myeongdong' -> interests:[art_exhibitions], "
+    "free_only:true, unsupported:['dinner plans']\n"
+    "- 'I love animals, take me to the zoo' -> unsupported:['zoos / animals'] "
+    "(nothing else maps)"
 )
 
 _PROMPT = ChatPromptTemplate.from_messages(

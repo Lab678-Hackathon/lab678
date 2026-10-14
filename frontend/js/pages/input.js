@@ -229,7 +229,7 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   const nlCard = el("div", "nl-input");
   const noteInput = el("textarea", "nl-textarea");
   noteInput.placeholder =
-    'In your own words — e.g. "Indoors please, under ₩20,000. Dinner at 7 in Myeongdong."';
+    'In your own words — e.g. "Indoors please, under ₩20,000, and I love traditional crafts."';
   if (prefill?.note) noteInput.value = prefill.note;
   const nlFooter = el("div", "nl-footer");
   nlFooter.append(

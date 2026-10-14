@@ -799,6 +799,14 @@ body {
 .confirm-chip-x { background: none; border: 0; cursor: pointer; color: var(--c-primary); font-size: var(--fs-body); line-height: 1; padding: 0; opacity: 0.75; }
 .confirm-chip-x:hover { opacity: 1; }
 .confirm-empty { margin: 0; font-size: var(--fs-body); color: var(--c-text-muted); }
+/* 다룰 수 없는 요청 안내 — 경고가 아니라 '이건 범위 밖'을 편안히 알리는 톤(앰버 flag 팔레트). */
+.confirm-unsupported {
+  background: var(--c-flag-bg); border-radius: var(--r-flag);
+  padding: var(--space-10) var(--space-12);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.confirm-unsupported-title { margin: 0; font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-flag-text); }
+.confirm-unsupported-sub { margin: 0; font-size: var(--fs-badge); color: var(--c-flag-text); }
 .confirm-sheet .btn-cta { margin-top: var(--space-6); }
 .confirm-edit { background: none; border: 0; cursor: pointer; color: var(--c-primary); font-size: var(--fs-body); font-weight: var(--fw-bold); padding: var(--space-6); }
 
