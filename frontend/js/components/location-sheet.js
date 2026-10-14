@@ -16,6 +16,7 @@ const POPULAR = [
   { label: "Myeongdong", lat: 37.5637, lng: 126.985 },
   { label: "Namsangol Hanok Village", lat: 37.5593, lng: 126.9942 },
   { label: "Dongdaemun · DDP", lat: 37.5663, lng: 127.009 },
+  { label: "Daehangno · Hyehwa", lat: 37.582, lng: 127.002 },
 ];
 
 const SEARCH_SVG =
