@@ -6,7 +6,12 @@
 
 from __future__ import annotations
 
+import asyncio
+
+from app.agent import orchestrator as orch
+from app.core.trace import Trace
 from app.domain.operational import PresenceVerdict, judge_presence
+from app.models.recommend import Candidate, ResultStatus
 
 # 후보 좌표 (Alive Museum 인사동점 실측 근방)
 _LAT, _LNG = 37.5718843, 126.9872034
@@ -53,3 +58,44 @@ def test_closed_but_missing_coords_not_excluded():
 
 def test_unknown_status_not_excluded():
     assert judge_presence(_place(""), _LAT, _LNG) is PresenceVerdict.OPERATIONAL
+
+
+# ── 최종 선정분 전용 폐업 체크(쿼터 절약, orchestrator.closed_candidate_ids) ──
+def _tour(cid, lat=_LAT, lng=_LNG, source="tour"):
+    return Candidate(
+        id=cid, title=f"T{cid}", source=source, status=ResultStatus.CHECK_NEEDED,
+        lat=lat, lng=lng,
+    )
+
+
+def test_closed_candidate_ids_excludes_closed_and_caches(monkeypatch):
+    calls: list[str] = []
+
+    async def fake_find(title, lat, lng):
+        calls.append(title)
+        # T1 은 폐업, 나머지는 영업중
+        return {
+            "businessStatus": "CLOSED_PERMANENTLY" if title == "T1" else "OPERATIONAL",
+            "location": {"latitude": lat, "longitude": lng},
+        }
+
+    monkeypatch.setattr(orch.gplaces, "find_place", fake_find)
+    cands = [_tour("1"), _tour("2")]
+    cache: dict = {}
+    closed = asyncio.run(orch.closed_candidate_ids(cands, cache, Trace()))
+    assert closed == {"1"}  # 폐업만 제외
+    assert set(cache.keys()) == {"1", "2"}  # 결과 캐시됨
+    # 재호출 시 캐시 사용 → find_place 추가 호출 없음
+    calls.clear()
+    closed2 = asyncio.run(orch.closed_candidate_ids(cands, cache, Trace()))
+    assert closed2 == {"1"} and calls == []
+
+
+def test_closed_candidate_ids_skips_seoul_and_no_coords(monkeypatch):
+    async def fake_find(title, lat, lng):  # pragma: no cover - 호출되면 안 됨
+        raise AssertionError("seoul/좌표없음 후보에 Places 호출 금지")
+
+    monkeypatch.setattr(orch.gplaces, "find_place", fake_find)
+    cands = [_tour("s", source="seoul"), _tour("n", lat=None, lng=None)]
+    closed = asyncio.run(orch.closed_candidate_ids(cands, {}, Trace()))
+    assert closed == set()  # 대상 아님 → 호출도 제외도 없음

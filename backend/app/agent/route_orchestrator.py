@@ -25,6 +25,7 @@ from app.agent.orchestrator import (
     _augment_with_keywords,
     _fetch_pool,
     base_radius,
+    closed_candidate_ids,
     collect_judged,
 )
 from app.core.trace import Trace
@@ -36,6 +37,7 @@ from app.domain.exclusion import (
     select_with_exclusion,
 )
 from app.domain.locations import detect_location_in_text, resolve_start_coords
+from app.domain.operational import PresenceVerdict
 from app.domain.preferences_merge import (
     merge_saved_interests,
     merge_saved_open_preferences,
@@ -341,15 +343,32 @@ async def recommend_route(
         )
     else:
         cap = max_stops if max_stops else MAX_DAY_STOPS
-    stops = (
-        assemble_route(origin, primary, max_stops=cap, pinned=pinned)
-        if len(primary) >= 2 or pinned
-        else []
-    )
-    if len(stops) < 2:
-        stops = assemble_route(origin, io_base, max_stops=cap, pinned=pinned)
-    if len(stops) < 2:
-        stops = assemble_route(origin, feasible, max_stops=cap, pinned=pinned)
+    # [filter-closed] 조립된 '최종 스톱'에만 Places 폐업 체크(쿼터 절약 — 풀 전체 호출 금지,
+    # A 와 동일 정책). 닫힌 스톱은 풀·pin 에서 빼고 재조립(backfill). 매 라운드 풀이 줄어 유한
+    # 종료. 쿼터 소진·미확인은 operational 로 흘려 제외하지 않는다(§6).
+    presence_cache: dict[str, PresenceVerdict] = {}
+    while True:
+        if pinned is not None:
+            cap = len(pinned) + max(0, add_n)
+        stops = (
+            assemble_route(origin, primary, max_stops=cap, pinned=pinned)
+            if len(primary) >= 2 or pinned
+            else []
+        )
+        if len(stops) < 2:
+            stops = assemble_route(origin, io_base, max_stops=cap, pinned=pinned)
+        if len(stops) < 2:
+            stops = assemble_route(origin, feasible, max_stops=cap, pinned=pinned)
+        closed = (
+            await closed_candidate_ids(stops, presence_cache, trace) if stops else set()
+        )
+        if not closed:
+            break
+        primary = [c for c in primary if c.id not in closed]
+        io_base = [c for c in io_base if c.id not in closed]
+        feasible = [c for c in feasible if c.id not in closed]
+        if pinned is not None:
+            pinned = [c for c in pinned if c.id not in closed] or None
     # 스톱별 Reason(코스 "왜 이 장소" — 관심사/시간/예산 근거). 근거 없으면 0개(강제 금지).
     # + AI 분류 근거 키워드(표시 전용, A 와 동일). 루트는 classify_places 미호출 →
     #   실내외는 유형 휴리스틱 fallback(io_verdict 없음). 사실 생성 아님·판정 불변(§6).

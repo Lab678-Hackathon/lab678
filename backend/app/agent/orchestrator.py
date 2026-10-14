@@ -231,11 +231,9 @@ class SourceRecord:
     source: str
     judge_intro: dict[str, Any]
     classify_text: str
-    place: dict[str, Any] | None = None  # Places businessStatus (tour 폐업 신호용)
     check_event_period: bool = (
         False  # 날짜형(행사/공연·type85) 종료/미개막 Hard 판정 대상
     )
-    check_presence: bool = False  # Places 폐업 신호 Hard 판정 대상(tour 전용)
     allow_llm_hours: bool = False  # 운영시간 UNCERTAIN→OPEN LLM 재추출 허용(tour 전용)
 
 
@@ -261,24 +259,18 @@ async def _fetch_and_normalize(item: dict) -> SourceRecord | None:
 
     cid = str(item.get("contentid"))
     ctype = str(item.get("contenttypeid"))
-    # 공식 상세(정본)·반복정보(detailInfo2)·Places businessStatus(폐업 음성 신호)를 병렬 조회.
-    # detailInfo2 는 detailIntro2 가 놓치는 입장료·운영시간을 공식 데이터로 보강한다(§6.2 준수).
-    # Places 는 보조·graceful — 실패해도 추천을 막지 않는다(§4.2·§6.7).
-    intro, common, info, place = await asyncio.gather(
+    # 공식 상세(정본)·반복정보(detailInfo2)를 병렬 조회. detailInfo2 는 detailIntro2 가 놓치는
+    # 입장료·운영시간을 공식 데이터로 보강한다(§6.2 준수). Places 폐업 체크는 여기서 하지 않는다
+    # — 풀 전체가 아니라 '최종 선정분'에만 호출(쿼터 절약, orchestrator 선정 후 단계).
+    intro, common, info = await asyncio.gather(
         tourapi.detail_intro(cid, ctype),
         tourapi.detail_common(cid),
         tourapi.detail_info(cid, ctype),
-        gplaces.find_place(
-            item.get("title") or "",
-            float(item.get("mapy") or 0) or 0.0,
-            float(item.get("mapx") or 0) or 0.0,
-        ),
         return_exceptions=True,
     )
     intro = intro if isinstance(intro, dict) else {}
     common = common if isinstance(common, dict) else {}
     info = info if isinstance(info, list) else []
-    place = place if isinstance(place, dict) else None
 
     # detailInfo2 로 빈 요금·운영시간 보강(공식 데이터만, 있을 때만).
     intro = enrich_intro(intro, info)
@@ -294,9 +286,7 @@ async def _fetch_and_normalize(item: dict) -> SourceRecord | None:
         judge_intro=intro,
         # 개방형 배제 의미분류용 텍스트(이름 + 공식 overview). 사실 생성 아님 — 공식 텍스트만.
         classify_text=f"{cand.title}. {_strip_html(common.get('overview'))}"[:400],
-        place=place,
         check_event_period=(ctype == "85"),  # 날짜형만 종료/미개막 판정
-        check_presence=True,  # Places 폐업 신호 교차확인
         allow_llm_hours=True,  # 운영시간 자유텍스트 LLM 재추출 허용
     )
 
@@ -304,9 +294,11 @@ async def _fetch_and_normalize(item: dict) -> SourceRecord | None:
 async def _judge_record(
     rec: SourceRecord, ctx: RequestContext, cond: ParsedConditions, trace: Trace
 ) -> tuple[Candidate | None, TimingVerdict, BudgetVerdict, str]:
-    """[check 가용성] SourceRecord → 운영/휴무/기간/폐업/예산 판정 → 3상태. Hard 는 (None,...).
+    """[check 가용성] SourceRecord → 운영/휴무/기간/예산 판정 → 3상태. Hard 는 (None,...).
 
     판정은 전부 결정론 코드(공식 데이터만). 성공 시 candidate.status/flags 를 세팅해 반환한다.
+    폐업(Places businessStatus) Hard 제외는 여기서 하지 않고 '최종 선정분'에만 수행한다
+    (쿼터 절약 — filter_closed_final, orchestrator 선정 후 단계).
     """
     cand = rec.candidate
 
@@ -320,13 +312,6 @@ async def _judge_record(
                 period=period.value,
                 src=rec.source,
             )
-            return None, TimingVerdict.UNCERTAIN, BudgetVerdict.UNKNOWN, ""
-
-    # [judge-0] 폐업/임시휴업(Places 음성 신호·좌표 교차확인) → Hard 제외.
-    if rec.check_presence:
-        presence = judge_presence(rec.place, cand.lat, cand.lng)
-        if presence is not PresenceVerdict.OPERATIONAL:
-            trace.step("presence_excluded", title=cand.title, status=presence.value)
             return None, TimingVerdict.UNCERTAIN, BudgetVerdict.UNKNOWN, ""
 
     # [judge] 운영시간·휴무·행사기간 + 예산 → 3상태. Hard 충돌은 제외.
@@ -504,7 +489,9 @@ async def _rerank_and_judge(
         pool = [pool[i] for i in order]
     # pin 제목 매칭 아이템을 선두로(안정 정렬 — 나머지 순서 보존). 저장 스톱이 반드시 판정되게.
     if priority_titles:
-        pool = sorted(pool, key=lambda it: 0 if _pool_title(it) in priority_titles else 1)
+        pool = sorted(
+            pool, key=lambda it: 0 if _pool_title(it) in priority_titles else 1
+        )
     batch = pool[:enrich_pool]
     seen = {_pool_item_key(it) for it in batch}
     results = await asyncio.gather(*(_enrich(it, ctx, cond, trace) for it in batch))
@@ -550,7 +537,11 @@ async def collect_judged(
             # 'far' 는 '언제 판정됐나'(확대 라운드)가 아니라 '실제로 base 밖인가'로 판단한다.
             # 밀집 지역에선 base 안 후보가 1차 top-K 컷오프 밖으로 밀려 확대 라운드에서야
             # 판정될 수 있는데(예: 심야 Myeongdong 207m), 그걸 Far 로 오분류하지 않는다.
-            if cand is not None and cand.distance_m is not None and cand.distance_m > base:
+            if (
+                cand is not None
+                and cand.distance_m is not None
+                and cand.distance_m > base
+            ):
                 cand.from_widened_search = True
         judged += j2
         hard += h2
@@ -587,6 +578,43 @@ async def _attach_movement(cand: Candidate, olat: float, olng: float) -> None:
     if cand.lat is not None and cand.lng is not None:
         leg = await tmap.pedestrian_route(olat, olng, cand.lat, cand.lng)
     cand.movement = movement_from_leg(leg)
+
+
+async def closed_candidate_ids(
+    cands: list[Candidate], cache: dict[str, PresenceVerdict], trace: Trace
+) -> set[str]:
+    """최종 선정분(tour)만 Places businessStatus 로 폐업/임시휴업 교차확인 → '닫힌' id 집합.
+
+    쿼터 절약(§6.7·§4.2): 풀 전체가 아니라 '보여질 후보'에만 호출한다 — Places SearchText 는
+    일일 쿼터가 작아, 후보마다 호출하면 추천 몇 번에 소진돼 종일 폐업 체크가 죽는다. 제목은
+    정규화된 영문명(한글 제거)으로 질의해 매칭률을 높인다. 실패·미확인·좌표 불일치·쿼터초과는
+    제외하지 않는다(operational — 미확인을 '닫힘'으로 단정하지 않음). 결과는 cache 에 적재해
+    backfill 재선정 때 재호출을 피한다."""
+    targets = [
+        c
+        for c in cands
+        if c.source == "tour"
+        and c.id not in cache
+        and c.lat is not None
+        and c.lng is not None
+    ]
+    if targets:
+        results = await asyncio.gather(
+            *(gplaces.find_place(c.title, c.lat, c.lng) for c in targets),
+            return_exceptions=True,
+        )
+        for c, place in zip(targets, results):
+            place = place if isinstance(place, dict) else None
+            verdict = judge_presence(place, c.lat, c.lng)
+            cache[c.id] = verdict
+            if verdict is not PresenceVerdict.OPERATIONAL:
+                trace.step("presence_excluded", title=c.title, status=verdict.value)
+    return {
+        c.id
+        for c in cands
+        if cache.get(c.id, PresenceVerdict.OPERATIONAL)
+        is not PresenceVerdict.OPERATIONAL
+    }
 
 
 async def recommend_a(
@@ -721,12 +749,28 @@ async def recommend_a(
             [(c.id, txt) for (c, _, _, txt) in valid], cond.exclude_concepts, trace
         )
     by_id = {c.id: (c, t, b) for (c, t, b, _) in valid}
+    valid_ids = [c.id for (c, _, _, _) in valid]
     kept_ids, notices, applied = select_with_exclusion(
-        [c.id for (c, _, _, _) in valid],
-        exclude_ids,
-        cond.exclude_concepts,
-        _MAX_CANDIDATES,
+        valid_ids, exclude_ids, cond.exclude_concepts, _MAX_CANDIDATES
     )
+    # [filter-closed] 최종 선정분에만 Places 폐업 체크(쿼터 절약, closed_candidate_ids). CLOSED
+    # 는 valid 에서 빼고 재선정(backfill) — 보여질 후보가 폐업이면 다음 후보로 메운다. 매 라운드
+    # valid 가 줄어 유한 종료. 쿼터 소진·미확인은 operational 로 흘려 제외하지 않는다(§6).
+    presence_cache: dict[str, PresenceVerdict] = {}
+    closed_total = 0
+    while True:
+        closed = await closed_candidate_ids(
+            [by_id[i][0] for i in kept_ids], presence_cache, trace
+        )
+        if not closed:
+            break
+        closed_total += len(closed)
+        valid_ids = [i for i in valid_ids if i not in closed]
+        kept_ids, notices, applied = select_with_exclusion(
+            valid_ids, exclude_ids, cond.exclude_concepts, _MAX_CANDIDATES
+        )
+    if closed_total:
+        trace.step("presence_excluded_final", removed=closed_total)
     if notices:  # 0건-세이프 발동 — trace 로 증빙
         trace.step("exclude_safe_fallback", concepts=cond.exclude_concepts)
     kept = [by_id[i] for i in kept_ids]
