@@ -2,6 +2,7 @@
 // Field Row(탭→바텀시트) · 시간 휠 시트 · 예시 칩 · note 포커스 시 Where&when 접힘 ·
 // 제출 시 "Here's what we understood" 확인 시트(4a). FR-A1·A2·A4·A5·A6.
 import { postParse } from "../api.js";
+import { cachedCoords } from "../state.js";
 import { openConfirmSheet } from "../components/confirm-sheet.js";
 import { openLocationSheet } from "../components/location-sheet.js";
 import { openTimeSheet } from "../components/time-sheet.js";
@@ -65,9 +66,11 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   const root = el("section", "view input-view");
 
   // 상태값
+  // 기본은 메인 진입 때 받아둔 현재 위치 좌표(있으면) — 'Current location' 이 실제
+  // GPS 를 싣고 전송된다. prefill(이전 요청·저장값) 이 있으면 그걸 우선.
   let geoCoords = prefill?.start_location?.lat != null
     ? { lat: prefill.start_location.lat, lng: prefill.start_location.lng }
-    : null;
+    : cachedCoords();
   let locationLabel = prefill?.start_location?.label ?? "Current location";
   let startValue = prefill?.start_at?.slice(0, 16) ?? localNowValue();
   let endValue = prefill?.end_at?.slice(0, 16) ?? "";

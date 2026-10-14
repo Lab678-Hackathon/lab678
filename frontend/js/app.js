@@ -16,6 +16,7 @@ import { renderChoiceView } from "./pages/choice.js";
 import { renderRouteLoadingView, renderRouteView } from "./pages/route.js";
 import {
   clearLocalChoice,
+  ensureCurrentLocation,
   guestRecommendUsed,
   hmOf,
   isLoggedIn,
@@ -65,6 +66,7 @@ export function showWelcome() {
 }
 
 export function showHome() {
+  ensureCurrentLocation(); // 메인 진입 시 위치 동의 1회 요청(멱등) → 좌표 사전 확보
   mount(
     renderHomeView({
       onStartA: () => showInput(),

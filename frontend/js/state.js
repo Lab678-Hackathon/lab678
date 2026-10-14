@@ -43,6 +43,38 @@ export function setResults(request, candidates) {
   state.focusedId = candidates[0]?.id ?? null;
 }
 
+// ── 현재 위치 (메인 진입 시 1회 동의 요청) ──
+// 홈 진입 때 브라우저 위치 권한을 한 번 물어 좌표를 캐시한다. 이후 입력 폼의 기본
+// 'Current location' 이 실제 GPS 좌표를 싣고 추천 조회로 전달된다(사전 입력 — 시트에서
+// 다시 'Current location' 을 누르지 않아도 됨). 거부/실패/미지원은 조용히 null(§6-7:
+// 좌표는 '출발점' 한정이며 강제하지 않는다 — GPS 자동 방문판정 아님).
+let _geoCoords = null; // { lat, lng } | null
+let _geoAsked = null; // 진행 중/완료된 요청 Promise (중복 프롬프트 방지)
+
+export function cachedCoords() {
+  return _geoCoords;
+}
+
+// 멱등 — 여러 번 불러도 위치 권한은 한 번만 요청한다(캐시된 Promise 재사용).
+export function ensureCurrentLocation() {
+  if (_geoAsked) return _geoAsked;
+  if (!navigator.geolocation) {
+    _geoAsked = Promise.resolve(null);
+    return _geoAsked;
+  }
+  _geoAsked = new Promise((resolve) => {
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        _geoCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        resolve(_geoCoords);
+      },
+      () => resolve(null), // 거부/타임아웃 → null (강제 안 함, graceful)
+      { timeout: 10000, maximumAge: 300000 },
+    );
+  });
+  return _geoAsked;
+}
+
 // ── 현재 선택 영속 (A6, 비로그인 — localStorage. Phase 2에서 계정 연결) ──
 // 선택 ≠ 방문. GPS 자동 방문판정 없음.
 const CHOICE_KEY = "konnect.currentChoice";
