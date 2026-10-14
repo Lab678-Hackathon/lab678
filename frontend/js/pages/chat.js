@@ -298,7 +298,7 @@ export function renderChatView({ onBack, onHome }) {
         const b = card.querySelector(".btn-select");
         const isSel = cid === cand.id;
         card.classList.toggle("is-choice", isSel);
-        if (b) b.textContent = isSel ? "Saved ✓" : "Select experience";
+        if (b) b.textContent = isSel ? "Saved ✓" : "Select";
       }
       bubble(
         "assistant",

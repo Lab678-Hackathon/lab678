@@ -159,11 +159,41 @@ export async function renderMap(container, origin, candidates) {
     }
   }
 
+  // 실시간 현재 위치 마커(빨간 점 + pulse 링). watchPosition 콜백이 좌표를 밀어넣으면
+  // 첫 호출에 생성, 이후 위치만 갱신한다. 경로 재계산은 하지 않는다(§6 #7 · Tmap 재호출 없음).
+  let liveMarker = null;
+  function setLiveLocation(lat, lng) {
+    if (lat == null || lng == null) return;
+    const pos = new maps.LatLng(lat, lng);
+    if (!liveMarker) {
+      liveMarker = new maps.Marker({
+        position: pos,
+        map,
+        icon: {
+          content:
+            '<div class="live-loc"><span class="live-loc-ring"></span><span class="live-loc-dot"></span></div>',
+          anchor: new maps.Point(13, 13),
+        },
+        zIndex: 200, // 출발/후보 핀 위에
+      });
+    } else {
+      liveMarker.setPosition(pos);
+    }
+  }
+  function clearLiveLocation() {
+    if (liveMarker) {
+      liveMarker.setMap(null);
+      liveMarker = null;
+    }
+  }
+
   return {
     focus,
     onPinClick(cb) {
       pinClickCb = cb;
     },
+    setLiveLocation,
+    clearLiveLocation,
   };
 }
 

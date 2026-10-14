@@ -2,6 +2,7 @@
 // 핀/카드 포커스는 지도 카메라·핀·경로선이 부드럽게 이어지도록 애니메이션(map.js).
 // Find new options → 비로그인이면 로그인 유도 시트(디자인 구현, OAuth는 Phase 2).
 import { directionsUrl, renderResultCard } from "../components/result-card.js";
+import { openDirectionsOverlay } from "../components/directions-overlay.js";
 import { showLoginSheet } from "../components/login-sheet.js";
 import { renderMap } from "../map.js";
 import { isLoggedIn, loadChoice, state } from "../state.js";
@@ -203,8 +204,9 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
     dirChip.innerHTML = 'Directions <span aria-hidden="true">↗</span>';
     dirChip.addEventListener("click", () => {
       const f = cands.find((c) => c.id === state.focusedId) || cands[0];
-      const url = directionsUrl(data.origin, f);
-      if (url) window.open(url, "_blank", "noopener");
+      // 외부 Naver 페이지는 iframe 임베드 불가(X-Frame-Options: DENY) → 인앱 풀스크린
+      // 개요 지도 오버레이로 열고, 상세는 그 안의 "Open in Naver Map" 로 외부 연결한다.
+      if (directionsUrl(data.origin, f)) openDirectionsOverlay({ origin: data.origin, candidate: f });
       else showToast("Directions unavailable for this spot");
     });
     countRow.append(dirChip);
@@ -320,7 +322,7 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
         head.append(el("span", "current-choice", "✓ Current choice"));
         if (selectBtn) selectBtn.textContent = "Selected";
       } else if (selectBtn) {
-        selectBtn.textContent = "Select experience";
+        selectBtn.textContent = "Select";
       }
     }
   }

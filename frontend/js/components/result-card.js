@@ -189,7 +189,7 @@ export function renderResultCard(c, origin, index = 0) {
     links.append(a);
   }
   // 외부 지도 길찾기는 결과 상단 "Directions ↗" 칩으로 이동(10/8) — 카드 per-item 링크 제거.
-  const select = el("button", "btn-select", "Select experience");
+  const select = el("button", "btn-select", "Select");
   select.dataset.status = c.status;
   select.dataset.id = c.id;
   actions.append(links, select);
