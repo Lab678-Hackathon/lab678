@@ -1,5 +1,6 @@
 // Result Card v3 (LF-03 카드 캐러셀) — Fact · Reason · 미확인을 시각 분리(신뢰 UX).
 // 상태 배지 후보당 1개, Reason 0~2개, 미확인은 별도 flag 칩. 썸네일에 번호 배지.
+import { typeIcon3d } from "./icons3d.js";
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
@@ -100,7 +101,7 @@ export function renderResultCard(c, origin, index = 0) {
   const head = el("div", "card-head");
   const thumb = el("div", "card-thumb");
   if (c.image_url) thumb.style.backgroundImage = `url("${c.image_url}")`;
-  else thumb.append(el("span", "card-thumb-glyph", TYPE_GLYPH[c.type] ?? TYPE_GLYPH.default));
+  else thumb.append(typeIcon3d(c.type, { size: 40, className: "card-thumb-icon" }));
   thumb.append(el("span", "card-num", String(index + 1)));
   const headText = el("div", "card-head-text");
   // 등급 라벨(배지)을 누르면 이 후보의 AI 분류 매칭(signals)을 펼친다 — "왜 이 등급/추천인지"를

@@ -2,6 +2,7 @@
 // A 즉시추천 = 활성, B 문화루트·Log in = 디자인 구현하되 비활성(Phase 2).
 // 현재 선택이 있으면(A6 localStorage) 재접근 카드 + 미니맵을 상단에 노출.
 import { displayName, signInWithGoogle } from "../auth.js";
+import { icon3d } from "../components/icons3d.js";
 import { renderMiniMap } from "../map.js";
 import {
   clearChoice,
@@ -95,7 +96,8 @@ export function renderHomeView({
     account.setAttribute("aria-label", "My Page");
     account.addEventListener("click", () => onOpenMyPage?.());
   } else {
-    account.textContent = "👤";
+    // 로그인 전 — 3D 프로필 아이콘(28px, 흰 원 32 안). 사용 규칙(Figma v2).
+    account.append(icon3d("profile", { size: 28 }));
     account.title = "Log in";
     account.setAttribute("aria-label", "Log in");
     account.addEventListener("click", async () => {
