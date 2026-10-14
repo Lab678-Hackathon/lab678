@@ -7,6 +7,7 @@ import { createPreferenceForm, INTERESTS } from "../components/preference-form.j
 import { openPrefConfirm } from "../components/pref-confirm.js";
 import { openSheet, el as sheetEl } from "../components/sheet.js";
 import { loadChoice, loadRoute } from "../state.js";
+import { icon3d } from "../components/icons3d.js";
 
 const LABEL = Object.fromEntries(INTERESTS); // code → 표시 라벨
 const CHEVRON =
@@ -34,7 +35,7 @@ export function renderMyPageView({ onBack, onHome, onViewPick, onViewRoute } = {
   const home = el("button", "nav-home");
   home.type = "button";
   home.setAttribute("aria-label", "Home");
-  home.innerHTML = HOME;
+  home.append(icon3d("home", { size: 28 }));
   home.addEventListener("click", () => onHome?.());
   nav.append(back, el("span", "nav-title", "My Page"), home);
   root.append(nav);

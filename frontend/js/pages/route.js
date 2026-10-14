@@ -3,6 +3,7 @@
 // 저장하지 않고 열 때 라이브 재조립된 값(state.rebuildSavedRoute)을 표시한다. 선택 ≠ 방문.
 import { renderRouteCard } from "../components/route-card.js";
 import { renderRouteMap } from "../map.js";
+import { icon3d } from "../components/icons3d.js";
 
 const CHEVRON =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>';
@@ -32,7 +33,7 @@ export function renderRouteLoadingView({ onBack, onHome } = {}) {
   const home = el("button", "nav-home");
   home.type = "button";
   home.setAttribute("aria-label", "Home");
-  home.innerHTML = HOME;
+  home.append(icon3d("home", { size: 28 }));
   home.addEventListener("click", () => onHome?.());
   nav.append(back, el("span", "nav-title", "Your route"), home);
   root.append(nav);
@@ -64,7 +65,7 @@ export function renderRouteView({ data, trip, onBack, onHome } = {}) {
   const home = el("button", "nav-home");
   home.type = "button";
   home.setAttribute("aria-label", "Home");
-  home.innerHTML = HOME;
+  home.append(icon3d("home", { size: 28 }));
   home.addEventListener("click", () => onHome?.());
   nav.append(back, el("span", "nav-title", "Your route"), home);
   root.append(nav);

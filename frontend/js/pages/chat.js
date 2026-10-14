@@ -12,6 +12,7 @@ import { renderMap, renderRouteMap } from "../map.js";
 import { saveChoice, saveRoute } from "../state.js";
 import { showLoginSheet } from "../components/login-sheet.js";
 import { openSheet, el as sheetEl } from "../components/sheet.js";
+import { icon3d } from "../components/icons3d.js";
 
 const HOME_SVG =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>';
@@ -89,7 +90,7 @@ export function renderChatView({ onBack, onHome }) {
   const homeBtn = el("button", "chat-home");
   homeBtn.type = "button";
   homeBtn.setAttribute("aria-label", "Home");
-  homeBtn.innerHTML = HOME_SVG;
+  homeBtn.append(icon3d("home", { size: 28 }));
   homeBtn.addEventListener("click", () => (onHome || onBack)?.());
   header.append(back, titleWrap, homeBtn);
   root.append(header);

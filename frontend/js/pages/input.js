@@ -6,6 +6,7 @@ import { cachedCoords } from "../state.js";
 import { openConfirmSheet } from "../components/confirm-sheet.js";
 import { openLocationSheet } from "../components/location-sheet.js";
 import { openTimeSheet } from "../components/time-sheet.js";
+import { icon3d } from "../components/icons3d.js";
 
 // FR-A4 예시 칩 — 한 줄에 다 보이게(가로 스크롤 없음).
 // "I have plans later"는 "+ Add plans you already have" 링크와 겹쳐서 제외.
@@ -91,7 +92,7 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   const home = el("button", "nav-home");
   home.type = "button";
   home.setAttribute("aria-label", "Home");
-  home.append(icon("home", "nav-home-icon"));
+  home.append(icon3d("home", { size: 28 }));
   if (onHome) home.addEventListener("click", onHome);
   nav.append(back, el("span", "nav-title", "Immediate recommendation"), home);
   root.append(nav);

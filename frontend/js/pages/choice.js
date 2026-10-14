@@ -4,6 +4,7 @@
 // 선택 ≠ 방문(booking 아님) 고지를 양쪽 모두 유지. 저장 전엔 current choice로 안 보인다.
 import { isLoggedIn, saveChoice } from "../state.js";
 import { showLoginSheet } from "../components/login-sheet.js";
+import { icon3d } from "../components/icons3d.js";
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
@@ -96,7 +97,7 @@ export function renderChoiceView({
     const home = el("button", "nav-home");
     home.type = "button";
     home.setAttribute("aria-label", "Home");
-    home.innerHTML = HOME;
+    home.append(icon3d("home", { size: 28 }));
     home.addEventListener("click", () => onHome?.());
     nav.append(
       back,
