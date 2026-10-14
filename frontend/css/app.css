@@ -361,34 +361,44 @@ body {
 .icon-home .icon-3d { width: 28px; height: 28px; }
 
 /* ── W-0 · 웰컴 ──────────────────────────────────────────── */
-/* Get Started(W-0) — 상단 서울 일러스트 블록 + 하단 흰 영역(제목·설명·버튼). 꽉 채우지 않음(Figma v2). */
+/* Get Started(W-0) — Figma 218:158 규격. 히어로 일러스트 600(390×844 기준) + 하단 흰 영역.
+   브랜드·제목·버튼 색은 brand teal #007385, 태그라인 #1a2429, 부제 #3d4a4f. */
 .welcome { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--c-surface); }
 .welcome-hero {
   flex: 1 1 auto; min-height: 0; display: flex; justify-content: center;
-  padding-top: calc(13% + env(safe-area-inset-top, 0px));
+  padding-top: calc(46px + env(safe-area-inset-top, 0px));
   background: #bfe0e4 url("../assets/img/welcome-hero.png") center top / cover no-repeat;
 }
 .welcome-brand { text-align: center; }
-.welcome-logo { margin: 0; font-size: 34px; font-weight: var(--fw-bold); letter-spacing: 0.06em; color: #0b4651; }
-.welcome-tagline { margin: var(--space-8) 0 0; font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: #15606b; }
+.welcome-logo { margin: 0; font-size: 36px; font-weight: var(--fw-bold); letter-spacing: 0.04em; color: var(--c-primary); }
+.welcome-tagline { margin: var(--space-8) 0 0; font-size: 15px; font-weight: var(--fw-bold); color: var(--c-text); }
+/* 하단 흰 영역 — 제목 y28·부제 y98·버튼 y144(52px) 규격 → 상 42 / 하 34 패딩, 12 간격. */
 .welcome-foot {
   flex: 0 0 auto; background: var(--c-surface); text-align: center;
-  display: flex; flex-direction: column; gap: var(--space-10);
-  padding: var(--space-20) var(--space-20) calc(28px + env(safe-area-inset-bottom, 0px));
+  display: flex; flex-direction: column; gap: var(--space-12);
+  padding: 42px var(--space-20) calc(34px + env(safe-area-inset-bottom, 0px));
 }
-.welcome-head { margin: 0; font-size: var(--fs-display); line-height: 1.25; font-weight: var(--fw-bold); color: #0b4651; }
-.welcome-sub { margin: 0 0 var(--space-4); font-size: var(--fs-meta); color: var(--c-text-muted); line-height: 1.4; }
-.welcome-foot .btn-cta { box-shadow: 0 6px 16px rgba(13, 38, 46, 0.18); }
+.welcome-head { margin: 0; font-size: 23px; line-height: 1.26; font-weight: var(--fw-bold); color: var(--c-primary); }
+.welcome-sub { margin: 0; font-size: var(--fs-meta); color: #3d4a4f; line-height: 1.35; }
+.welcome-foot .btn-cta { min-height: 52px; border-radius: 26px; font-weight: var(--fw-bold); box-shadow: 0 6px 16px rgba(13, 38, 46, 0.18); }
 
 /* ── LF-01 · 홈 ──────────────────────────────────────────── */
 .home { position: absolute; inset: 0; overflow-y: auto; background: var(--c-bg); }
-/* 헤더 — 서울 일러스트 + teal 오버레이(Figma v2). 브랜드·인사·제목은 흰색으로 올라간다.
-   오버레이는 상단 짙게→하단 투명으로, 흰 텍스트 가독성 확보하며 페이지 배경으로 자연 전환. */
+/* 헤더(Figma 440:2750) — 250px·하단 라운드. 서울 일러스트를 흐릿하게(soft) 깔고 teal 틴트.
+   브랜드·인사는 흰색으로 올라간다(content z-index 1). */
 .home-header-bg {
-  position: absolute; top: 0; left: 0; right: 0; height: 300px; z-index: 0;
-  background:
-    linear-gradient(168deg, rgba(10, 102, 114, 0.88) 0%, rgba(43, 135, 147, 0.72) 42%, rgba(134, 188, 191, 0.5) 68%, var(--c-bg) 100%),
-    url("../assets/img/welcome-hero.png") center top / cover no-repeat;
+  position: absolute; top: 0; left: 0; right: 0; height: 250px; z-index: 0;
+  border-radius: 0 0 28px 28px; overflow: hidden;
+  background: linear-gradient(180deg, #1a7e8c 0%, #2a8a93 100%);
+}
+.home-header-bg::before {
+  content: ""; position: absolute; inset: -8px;
+  background: url("../assets/img/welcome-hero.png") center top / cover no-repeat;
+  filter: blur(3px) saturate(0.82); opacity: 0.55;
+}
+.home-header-bg::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(20, 100, 112, 0.28) 0%, rgba(20, 100, 112, 0.5) 100%);
 }
 .home-content {
   position: relative; z-index: 1; min-height: 100%;
