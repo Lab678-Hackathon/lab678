@@ -10,15 +10,23 @@ from __future__ import annotations
 
 from app.models.recommend import StartLocation
 
-# FR-A5 대표 시작점 5개 + 흔한 표기. 값은 공개된 랜드마크 좌표(lat, lng).
+# 대표 시작점 가젯티어 — 프론트 'Start from' 시트 프리셋(frontend/js/components/location-sheet.js
+# POPULAR)과 **동일한 목록을 미러링**한다. 프리셋을 고르면 좌표가 함께 전송돼 이 표가 필요 없지만,
+# 좌표 없이 라벨/프롬프트로만 위치가 들어오는 경로(챗 프롬프트의 지명·검색 자유입력)에서는 이 표로
+# 해석한다. A·B 가 같은 표를 쓰므로 둘의 위치 매칭이 일치해야 한다(불일치 시 종각 디폴트로 빠짐).
+# 값은 공개 랜드마크 좌표(lat, lng). substring 매칭이라 짧은 핵심 키를 함께 둔다.
 _QUICK_COORDS: dict[str, tuple[float, float]] = {
     "gyeongbokgung": (37.5796, 126.9770),
-    "gwanghwamun": (37.5725, 126.9769),
+    "gwanghwamun": (37.5724, 126.9769),
     "anguk": (37.5742, 126.9858),
     "insadong": (37.5740, 126.9850),
+    "bukchon": (37.5826, 126.9850),
+    "jonggak": (37.5703, 126.9830),
+    "jongmyo": (37.5745, 126.9941),
     "city hall": (37.5663, 126.9779),
     "deoksugung": (37.5658, 126.9751),
     "myeongdong": (37.5637, 126.9850),
+    "namsangol": (37.5593, 126.9942),
     "ddp": (37.5663, 127.0090),
     "dongdaemun": (37.5663, 127.0090),
 }
