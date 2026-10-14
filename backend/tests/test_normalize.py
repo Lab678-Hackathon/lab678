@@ -178,6 +178,23 @@ def test_candidate_out_of_range_coords_dropped():
     assert normalize_candidate(_item(mapx="0", mapy="0"), {}, {}) is None
 
 
+# ── 공식 링크: 영문 우선(VisitKorea) + 자체 홈페이지 보조 ──
+def test_candidate_english_official_link_primary():
+    c = normalize_candidate(_item(contentid="264337"), intro={}, common={})
+    assert c.official_links[0].label == "View official details (English)"
+    assert "english.visitkorea.or.kr" in c.official_links[0].url
+    assert "cid=264337" in c.official_links[0].url
+
+
+def test_candidate_homepage_is_secondary_website():
+    common = {"homepage": '<a href="https://example.com/">site</a>'}
+    c = normalize_candidate(_item(contentid="264337"), intro={}, common=common)
+    assert len(c.official_links) == 2
+    assert c.official_links[0].label == "View official details (English)"
+    assert c.official_links[1].label == "Official website"
+    assert c.official_links[1].url == "https://example.com/"
+
+
 def test_candidate_free_no_price_flag():
     c = normalize_candidate(_item(), intro={"usefeeculture": "Free"}, common={})
     assert c.price.status is PriceStatus.FREE

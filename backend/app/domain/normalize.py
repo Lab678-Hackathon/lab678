@@ -27,6 +27,14 @@ from app.models.recommend import (
     UnconfirmedFlag,
 )
 
+# KTO 공식 영문 포털(VisitKorea English) 상세 딥링크 템플릿.
+# EngService2 contentId = VisitKorea 영문 사이트 cid(동일 KTO 콘텐츠 DB) → 외국인 FIT
+# 대상이라 자체 홈페이지(한국어 많음)보다 이 영문 상세를 공식 링크로 우선한다.
+# (레거시 상세 엔드포인트. 유효 cid 는 영문 상세, 무효 cid 는 400 — 생성 아님·graceful.)
+_VISITKOREA_EN_DETAIL = (
+    "https://english.visitkorea.or.kr/enu/SI/SI_EN_3_1_1_1.jsp?cid={cid}"
+)
+
 # contenttypeid(EngService2) → 유형 키 (DESIGN §3.4). 미상은 default.
 _TYPE_MAP = {
     "76": ExperienceType.HISTORIC_VISIT,  # Tourist attractions (궁·역사 등)
@@ -405,10 +413,21 @@ def normalize_candidate(
     if time_info is None:
         flags.append(UnconfirmedFlag(text="Hours need checking"))
 
+    # 공식 링크: VisitKorea 영문 상세를 우선, 시설 자체 홈페이지는 있을 때만 보조로 둔다.
     links: list[OfficialLink] = []
+    content_id = item.get("contentid")
+    if content_id:
+        links.append(
+            OfficialLink(
+                label="View official details (English)",
+                url=_VISITKOREA_EN_DETAIL.format(cid=content_id),
+            )
+        )
     homepage = _href(common.get("homepage", ""))
     if homepage:
-        links.append(OfficialLink(label="View official details", url=homepage))
+        # 영문 상세가 이미 있으면 홈페이지는 'Official website' 보조, 없으면 그게 기본 상세.
+        label = "Official website" if links else "View official details"
+        links.append(OfficialLink(label=label, url=homepage))
 
     image = item.get("firstimage") or None  # 공식 이미지만, 없으면 None(제외 안 함)
 
