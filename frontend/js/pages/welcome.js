@@ -10,6 +10,7 @@ function el(tag, className, text) {
 export function renderWelcomeView({ onStart }) {
   const root = el("section", "welcome");
 
+  // 상단: 서울 일러스트 블록(브랜드 오버레이) — 화면을 꽉 채우지 않고 상단만.
   const hero = el("div", "welcome-hero");
   const brand = el("div", "welcome-brand");
   brand.append(
@@ -19,12 +20,21 @@ export function renderWelcomeView({ onStart }) {
   hero.append(brand);
   root.append(hero);
 
-  const ctaWrap = el("div", "welcome-cta");
+  // 하단: 흰 영역 — 한 줄 가치 제안 + Get started.
+  const foot = el("div", "welcome-foot");
+  foot.append(
+    el("h2", "welcome-head", "Find a cultural experience that fits your day."),
+    el(
+      "p",
+      "welcome-sub",
+      "Right now nearby, or on any day of your trip — with what to check before you go.",
+    ),
+  );
   const cta = el("button", "btn-cta", "Get started →");
   cta.type = "button";
   cta.addEventListener("click", onStart);
-  ctaWrap.append(cta);
-  root.append(ctaWrap);
+  foot.append(cta);
+  root.append(foot);
 
   return root;
 }

@@ -361,27 +361,34 @@ body {
 .icon-home .icon-3d { width: 28px; height: 28px; }
 
 /* ── W-0 · 웰컴 ──────────────────────────────────────────── */
-.welcome {
-  position: absolute; inset: 0; display: flex; flex-direction: column;
-  /* Get Started 히어로 일러스트(Figma v2) — 상단 하늘에 로고, 하단에 버튼. 색은 로드 전 폴백. */
-  background: #bfe0e4 url("../assets/img/welcome-hero.png") center / cover no-repeat;
+/* Get Started(W-0) — 상단 서울 일러스트 블록 + 하단 흰 영역(제목·설명·버튼). 꽉 채우지 않음(Figma v2). */
+.welcome { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--c-surface); }
+.welcome-hero {
+  flex: 1 1 auto; min-height: 0; display: flex; justify-content: center;
+  padding-top: calc(13% + env(safe-area-inset-top, 0px));
+  background: #bfe0e4 url("../assets/img/welcome-hero.png") center top / cover no-repeat;
 }
-.welcome-hero { flex: 1; display: flex; justify-content: center; padding-top: 26%; }
 .welcome-brand { text-align: center; }
 .welcome-logo { margin: 0; font-size: 34px; font-weight: var(--fw-bold); letter-spacing: 0.06em; color: #0b4651; }
 .welcome-tagline { margin: var(--space-8) 0 0; font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: #15606b; }
-.welcome-cta {
+.welcome-foot {
+  flex: 0 0 auto; background: var(--c-surface); text-align: center;
+  display: flex; flex-direction: column; gap: var(--space-10);
   padding: var(--space-20) var(--space-20) calc(28px + env(safe-area-inset-bottom, 0px));
 }
-.welcome-cta .btn-cta { box-shadow: 0 6px 16px rgba(13, 38, 46, 0.18); }
+.welcome-head { margin: 0; font-size: var(--fs-display); line-height: 1.25; font-weight: var(--fw-bold); color: #0b4651; }
+.welcome-sub { margin: 0 0 var(--space-4); font-size: var(--fs-meta); color: var(--c-text-muted); line-height: 1.4; }
+.welcome-foot .btn-cta { box-shadow: 0 6px 16px rgba(13, 38, 46, 0.18); }
 
 /* ── LF-01 · 홈 ──────────────────────────────────────────── */
 .home { position: absolute; inset: 0; overflow-y: auto; background: var(--c-bg); }
-/* 헤더 — 짙은 teal(디자인의 서울 일러스트 근사). 브랜드·인사·제목은 흰색으로 올라간다.
-   실제 일러스트 에셋은 추후 교체(폰트·이미지는 나중에, 느낌 우선). */
+/* 헤더 — 서울 일러스트 + teal 오버레이(Figma v2). 브랜드·인사·제목은 흰색으로 올라간다.
+   오버레이는 상단 짙게→하단 투명으로, 흰 텍스트 가독성 확보하며 페이지 배경으로 자연 전환. */
 .home-header-bg {
   position: absolute; top: 0; left: 0; right: 0; height: 300px; z-index: 0;
-  background: linear-gradient(168deg, #0a6672 0%, #2b8793 44%, #86bcbf 72%, var(--c-bg) 100%);
+  background:
+    linear-gradient(168deg, rgba(10, 102, 114, 0.88) 0%, rgba(43, 135, 147, 0.72) 42%, rgba(134, 188, 191, 0.5) 68%, var(--c-bg) 100%),
+    url("../assets/img/welcome-hero.png") center top / cover no-repeat;
 }
 .home-content {
   position: relative; z-index: 1; min-height: 100%;
@@ -1029,13 +1036,15 @@ body {
    세로선은 걷기 구간 진한 청록, 머무는 구간 연한 청록(28%). 거터 중앙 x=50. */
 .route-timeline { display: flex; flex-direction: column; }
 .route-start, .route-seg, .route-stop, .route-end { position: relative; padding-left: 60px; }
-.route-start::before, .route-seg::before, .route-stop::before, .route-end::before {
+.route-start::before, .route-seg::before, .route-end::before {
   content: ""; position: absolute; left: 48px; width: 4px; top: 0; bottom: 0; border-radius: 2px;
 }
 .route-seg::before { background: var(--c-primary); }              /* 걷는 구간 — 진하게 */
-.route-stop::before { background: rgba(0, 115, 133, 0.28); }      /* 머무는 구간 — 연하게 */
 .route-start::before { background: var(--c-primary); top: 30px; } /* 점 아래에서 시작 */
 .route-end::before { background: rgba(0, 115, 133, 0.28); bottom: auto; height: 16px; }
+/* 스톱 — 번호 원(중심 y≈30) 위쪽은 진한 청록(걷기→원 자연 연결), 원 중심 아래는 연한 청록(머무름). */
+.route-stop::before { content: ""; position: absolute; left: 48px; width: 4px; top: 0; height: 30px; background: var(--c-primary); border-radius: 2px; }
+.route-stop::after { content: ""; position: absolute; left: 48px; width: 4px; top: 30px; bottom: 0; background: rgba(0, 115, 133, 0.28); border-radius: 2px; }
 
 .route-start, .route-end { display: flex; align-items: center; gap: var(--space-8); min-height: 36px; font-size: var(--fs-body); font-weight: var(--fw-semibold); }
 .route-start { color: var(--c-text); }
