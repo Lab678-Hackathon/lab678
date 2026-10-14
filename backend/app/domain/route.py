@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import math
+import re
 from datetime import datetime, timedelta
 
 from app.models.recommend import (
@@ -28,14 +29,25 @@ _GENERIC_LABELS = ("current location", "my location", "")
 
 # 유형 기준 표준 방문시간(분) — B-T01 허용 '유형 기준' 근거(임의 per-place 숫자 아님).
 # 공식 spendtime 이 없을 때만 Planned(예상)으로 쓴다. 문서화된 유형 표준이라 근거가 명시된다.
+# (2026-10-14 Product) 항목별 표준: 동상/기념물 20 · 공원/역사 명소 45 · 박물관/전시 60.
+# 공연·예약형 체험(HANDS_ON/PERFORMANCE)은 '공식 러닝타임' 있을 때만 쓰고, 없으면 숫자를
+# 지어내지 않고 '확인 필요'로 안내(_RUNTIME_TYPES, visit_plan 참조).
 _TYPE_VISIT_MIN = {
     ExperienceType.EXHIBITION: 60,  # 박물관·미술관 관람
-    ExperienceType.HISTORIC_VISIT: 40,  # 궁·역사장소·공원 둘러보기
-    ExperienceType.HANDS_ON: 90,  # 체험 참여
+    ExperienceType.HISTORIC_VISIT: 45,  # 궁·역사장소·공원 둘러보기
     ExperienceType.FESTIVAL_EVENT: 60,
-    ExperienceType.PERFORMANCE: 90,
     ExperienceType.DEFAULT: 45,
 }
+
+# 동상·기념물 — 짧은 관람(문서화 표준 20분). 유형 체계에 별도 타입이 없어 제목 키워드로 보완.
+_MONUMENT_RE = re.compile(r"\b(statue|monument|memorial)\b", re.IGNORECASE)
+_MONUMENT_VISIT_MIN = 20
+
+# 러닝타임이 '공식값'에 달린 유형(예약형 체험·공연) — 공식값 없으면 임의 숫자 대신 '확인 필요'.
+_RUNTIME_TYPES = {ExperienceType.HANDS_ON, ExperienceType.PERFORMANCE}
+# 확인 필요 시에도 스케줄(도착·종료 체인·fit)은 계산해야 하므로 보수 버퍼만 쓴다. 이 값은
+# 표시용 사실이 아니다 — provenance=UNCONFIRMED 로 '확인 필요'를 명시한다(숫자 주장 아님).
+_RUNTIME_UNKNOWN_BUFFER = 60
 
 # 자동 루트에 넣을 수 있는 유형: '자율 방문' 가능한 것. 고정 회차형(공연·축제)은
 # 회차 미확인 시 자동 루트에서 제외(B-T01·FR-B4) — 시간충돌을 신뢰성 있게 판정 불가.
@@ -209,6 +221,14 @@ def visit_plan(cand: Candidate) -> tuple[int, Provenance]:
     임의 per-place 숫자가 아니라 '공식값 또는 문서화된 유형 표준'(B-T01)."""
     if cand.visit_minutes:
         return cand.visit_minutes, Provenance.CONFIRMED
+    # 동상·기념물(제목 키워드) → 20분 짧은 관람(공원·역사명소 45와 구분).
+    if cand.type in (ExperienceType.HISTORIC_VISIT, ExperienceType.DEFAULT) and (
+        _MONUMENT_RE.search(cand.title or "")
+    ):
+        return _MONUMENT_VISIT_MIN, Provenance.PLANNED
+    # 공연·예약형 체험 + 공식 러닝타임 없음 → 숫자 지어내지 않고 '확인 필요'(스케줄은 보수 버퍼).
+    if cand.type in _RUNTIME_TYPES:
+        return _RUNTIME_UNKNOWN_BUFFER, Provenance.UNCONFIRMED
     return _TYPE_VISIT_MIN.get(cand.type, _TYPE_VISIT_MIN[ExperienceType.DEFAULT]), (
         Provenance.PLANNED
     )

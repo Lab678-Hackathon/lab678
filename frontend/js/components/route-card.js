@@ -62,7 +62,13 @@ function stopRow(stop, onRemove) {
 
   const titleLine = el("div", "route-stop-title-line");
   titleLine.append(el("span", "route-stop-title", c.title));
-  const badge = el("span", "badge badge--sm", STATUS_LABEL[c.status] ?? c.status);
+  // 등급 라벨 — 분류 근거(signals)가 있으면 버튼으로(누르면 AI 분류 매칭 펼침, rec A 와 동일 UX).
+  const hasSignals = Array.isArray(c.signals) && c.signals.length > 0;
+  const badge = el(
+    hasSignals ? "button" : "span",
+    "badge badge--sm",
+    STATUS_LABEL[c.status] ?? c.status,
+  );
   badge.dataset.status = c.status;
   titleLine.append(
     el("span", "route-stop-glyph", `${TYPE_GLYPH[c.type] ?? TYPE_GLYPH.default}`),
@@ -71,7 +77,30 @@ function stopRow(stop, onRemove) {
   const far = farChip(c); // 반경 확대로 편입된 스톱 → 분홍 "Far" 칩
   if (far) titleLine.append(far);
   body.append(titleLine);
-  // 분류 근거(signals)는 루트 요약 아래 "✦ AI" 배지로 통합(10/8) — per-stop ✨ 제거.
+
+  // 등급 라벨 펼침 패널 — AI 분류 매칭 칩(표시 전용). 기본 접힘. ✦ AI 패널은 고지만 남긴다.
+  if (hasSignals) {
+    badge.type = "button";
+    badge.classList.add("badge-toggle");
+    badge.setAttribute("aria-expanded", "false");
+    const sigPanel = el("div", "card-signals");
+    sigPanel.hidden = true;
+    const chips = el("div", "signals");
+    for (const s of c.signals) {
+      const chip = el("span", "signal", s.label);
+      if (s.matched) chip.classList.add("is-matched");
+      chips.append(chip);
+    }
+    sigPanel.append(chips);
+    body.append(sigPanel);
+    badge.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const open = sigPanel.hidden;
+      sigPanel.hidden = !open;
+      badge.setAttribute("aria-expanded", String(open));
+      badge.classList.toggle("is-open", open);
+    });
+  }
 
   // 스톱별 이유(코스 "왜 이 장소") — teal check, 0개면 생략
   if (c.reasons?.length) {
@@ -85,16 +114,23 @@ function stopRow(stop, onRemove) {
   }
 
   // 계획 방문시간 — 공식 spendtime=Official / 유형기준=Planned (B-T01). 도보 미확인이면
-  // 절대 window 없이 소요분만. 운영시간(fact)과 별개로 분리 표기.
+  // 절대 window 없이 소요분만. 공연·예약형 체험에 공식 러닝타임이 없으면(unconfirmed) 숫자를
+  // 주장하지 않고 '확인 필요'로 안내. 운영시간(fact)과 별개로 분리 표기.
   if (stop.visit_minutes) {
     const when = el("div", "route-stop-when");
-    const label =
-      stop.arrival_at && stop.depart_at
-        ? `${fmtTime(stop.arrival_at)} – ${fmtTime(stop.depart_at)}`
-        : `≈${stop.visit_minutes} min visit`;
-    when.append(el("span", "route-stop-time", label));
-    const vb = visitBadge(stop.visit_provenance);
-    if (vb) when.append(vb);
+    if (stop.visit_provenance === "unconfirmed") {
+      when.append(
+        el("span", "route-stop-time route-stop-time--check", "Duration needs checking"),
+      );
+    } else {
+      const label =
+        stop.arrival_at && stop.depart_at
+          ? `${fmtTime(stop.arrival_at)} – ${fmtTime(stop.depart_at)}`
+          : `≈${stop.visit_minutes} min visit`;
+      when.append(el("span", "route-stop-time", label));
+      const vb = visitBadge(stop.visit_provenance);
+      if (vb) when.append(vb);
+    }
     body.append(when);
   }
 
@@ -150,7 +186,8 @@ export function renderRouteCard(route, origin, opts = {}) {
   head.append(el("p", "route-stop-summary", stopNames));
   card.append(head);
 
-  // ✦ AI 배지(요약 아래, 10/8 §3) — 탭하면 AI 고지 + 스톱별 분류 칩 펼침(통합, 밀도↓).
+  // ✦ AI 배지(요약 아래) — 탭하면 'AI로 산출된 결과'라는 고지만(rec A 와 동일, 2026-10-14).
+  // 스톱별 분류 매칭 칩은 각 스톱의 등급 라벨을 눌러 확인한다(stopRow).
   const sigStops = route.stops.filter((s) => s.candidate?.signals?.length);
   if (sigStops.length) {
     const aiWrap = el("div", "route-ai");
@@ -164,16 +201,6 @@ export function renderRouteCard(route, origin, opts = {}) {
     panel.append(
       el("p", "ai-panel-note", "AI-assisted · details may change as info updates"),
     );
-    for (const s of sigStops) {
-      panel.append(el("p", "ai-panel-sub", `${s.order}. ${s.candidate.title}`));
-      const chips = el("div", "signals");
-      for (const sig of s.candidate.signals) {
-        const chip = el("span", "signal", sig.label);
-        if (sig.matched) chip.classList.add("is-matched");
-        chips.append(chip);
-      }
-      panel.append(chips);
-    }
     aiBtn.addEventListener("click", () => {
       const open = panel.hidden;
       panel.hidden = !open;

@@ -134,15 +134,42 @@ def test_visit_plan_official_beats_type_default():
     assert visit_plan(typed) == (60, Provenance.PLANNED)  # 유형 기준(전시 60분)
 
 
+def test_visit_plan_historic_is_45():
+    # 공원·역사 명소 표준 45분(2026-10-14).
+    assert visit_plan(_c("p", 37.571, type_=ExperienceType.HISTORIC_VISIT)) == (
+        45,
+        Provenance.PLANNED,
+    )
+
+
+def test_visit_plan_monument_is_20():
+    # 동상·기념물(제목 키워드) → 20분 짧은 관람.
+    m = _c("m", 37.571, type_=ExperienceType.HISTORIC_VISIT)
+    m.title = "Admiral Yi Sun-sin Statue"
+    assert visit_plan(m) == (20, Provenance.PLANNED)
+
+
+def test_visit_plan_handson_without_official_is_unconfirmed():
+    # 예약형 체험 + 공식 러닝타임 없음 → 숫자 지어내지 않고 '확인 필요'(스케줄은 보수 버퍼).
+    _m, prov = visit_plan(_c("h", 37.571, type_=ExperienceType.HANDS_ON))
+    assert prov is Provenance.UNCONFIRMED
+
+
+def test_visit_plan_handson_with_official_is_confirmed():
+    h = _c("h", 37.571, type_=ExperienceType.HANDS_ON)
+    h.visit_minutes = 90  # 공식 러닝타임
+    assert visit_plan(h) == (90, Provenance.CONFIRMED)
+
+
 def test_fit_count_fills_to_time_window_not_count():
     # 하루 동선 — 개수 제한 대신 시간창. 누적(도보+방문)이 창 넘으면 멈춤.
-    s1 = _c("s1", 37.571, type_=ExperienceType.HISTORIC_VISIT)  # 40분 방문
+    s1 = _c("s1", 37.571, type_=ExperienceType.HISTORIC_VISIT)  # 45분 방문
     s2 = _c("s2", 37.572, type_=ExperienceType.EXHIBITION)  # 60분 방문
-    s3 = _c("s3", 37.573, type_=ExperienceType.HISTORIC_VISIT)  # 40분 방문
-    # 누적: s1=10+40=50, s2=+5+60=115, s3=+5+40=160
+    s3 = _c("s3", 37.573, type_=ExperienceType.HISTORIC_VISIT)  # 45분 방문
+    # 누적: s1=10+45=55, s2=+5+60=120, s3=+5+45=170
     assert fit_count([10, 5, 5], [s1, s2, s3], 200) == 3  # 전부 들어감(개수 제한 없음)
-    assert fit_count([10, 5, 5], [s1, s2, s3], 115) == 2  # s3(160)>115 → 2
-    assert fit_count([10, 5, 5], [s1, s2, s3], 40) == 0  # s1(50)>40 → 0(강제 채움 없음)
+    assert fit_count([10, 5, 5], [s1, s2, s3], 120) == 2  # s3(170)>120 → 2
+    assert fit_count([10, 5, 5], [s1, s2, s3], 54) == 0  # s1(55)>54 → 0(강제 채움 없음)
 
 
 def test_fit_count_stops_at_unknown_walk():
@@ -153,16 +180,16 @@ def test_fit_count_stops_at_unknown_walk():
 
 def test_build_schedule_chains_arrival_and_finish():
     start = datetime(2026, 10, 10, 14, 0)
-    s1 = _c("s1", 37.571, type_=ExperienceType.HISTORIC_VISIT)  # 40분 planned
+    s1 = _c("s1", 37.571, type_=ExperienceType.HISTORIC_VISIT)  # 45분 planned
     s2 = _c("s2", 37.572, type_=ExperienceType.EXHIBITION)  # 60분 planned
     sched, finish = build_schedule(start, [10, 5], [s1, s2])
     a1, d1, m1, p1 = sched[0]
     a2, d2, m2, _p2 = sched[1]
-    assert (a1.hour, a1.minute) == (14, 10) and (d1.hour, d1.minute) == (14, 50)
-    assert m1 == 40 and p1 is Provenance.PLANNED
+    assert (a1.hour, a1.minute) == (14, 10) and (d1.hour, d1.minute) == (14, 55)
+    assert m1 == 45 and p1 is Provenance.PLANNED
     assert m2 == 60
-    assert (a2.hour, a2.minute) == (14, 55) and (d2.hour, d2.minute) == (15, 55)
-    assert (finish.hour, finish.minute) == (15, 55)
+    assert (a2.hour, a2.minute) == (15, 0) and (d2.hour, d2.minute) == (16, 0)
+    assert (finish.hour, finish.minute) == (16, 0)
 
 
 def test_build_schedule_unknown_walk_drops_absolute_times():

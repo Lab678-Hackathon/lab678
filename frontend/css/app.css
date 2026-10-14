@@ -264,12 +264,12 @@ body {
 .official-link { color: var(--c-primary); font-size: var(--fs-body); font-weight: var(--fw-semibold); text-decoration: none; }
 .official-link:hover { text-decoration: underline; }
 
+/* Select experience — 등급과 무관하게 모두 같은 연한 teal(tint) 디자인(2026-10-14, A·B 공통). */
 .btn-select {
   border: 0; cursor: pointer; padding: 9px var(--space-14); border-radius: var(--r-pill);
   font-size: var(--fs-body); font-weight: var(--fw-bold);
-  background: var(--c-primary); color: var(--c-on-primary);
+  background: var(--c-primary-tint); color: var(--c-primary);
 }
-.btn-select[data-status="check_needed"], .btn-select[data-status="alternative"] { background: var(--c-primary-tint); color: var(--c-primary); }
 
 .toast {
   position: absolute; left: 50%; bottom: var(--space-20); transform: translateX(-50%);
@@ -909,12 +909,42 @@ body {
 .chat { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--c-bg); }
 .chat-header { flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-10); padding: var(--space-12) var(--space-14) var(--space-6); }
 .chat-title { font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); }
-.chat-clear { margin-left: auto; background: transparent; border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-4) var(--space-12); font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); cursor: pointer; }
+/* 헤더 우측 Home 아이콘 버튼(옛 Clear 자리). */
+.chat-home { margin-left: auto; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: transparent; border: 0; border-radius: var(--r-full); color: var(--c-text-muted); cursor: pointer; }
+.chat-home:hover { color: var(--c-text); background: var(--c-surface); }
+/* 상단 바 — Clear 버튼(옛 location 칩 자리, 좌측). */
+.chat-topbar { flex: 0 0 auto; display: flex; padding: 0 var(--space-14) var(--space-6); }
+.chat-clear { background: transparent; border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-4) var(--space-12); font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); cursor: pointer; }
 .chat-clear:hover { color: var(--c-text); border-color: var(--c-text-muted); }
-.chat-trip { flex: 0 0 auto; display: flex; gap: var(--space-6); padding: 0 var(--space-14) var(--space-6); flex-wrap: wrap; }
+/* 필수 입력 3폼 — 하단 입력창 바로 위(구분선 아래). */
+.chat-trip { flex: 0 0 auto; display: flex; gap: var(--space-6); padding: var(--space-8) var(--space-14); flex-wrap: wrap; border-top: 1px solid var(--c-border); }
 .trip-chip { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-4) var(--space-10); font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text); cursor: pointer; }
-.chat-planday { margin-left: auto; background: var(--c-primary); color: var(--c-on-primary); border: 0; border-radius: var(--r-full); padding: var(--space-4) var(--space-12); font-size: var(--fs-badge); font-weight: var(--fw-bold); cursor: pointer; }
-.chat-planday:hover { opacity: 0.92; }
+.trip-chip--cal { display: inline-flex; align-items: center; gap: var(--space-4); }
+/* 위치 칩 — 긴 지역명은 '…'로 생략(2줄 방지). 아이콘 + 라벨(말줄임). */
+.trip-chip--loc { display: inline-flex; align-items: center; gap: var(--space-4); max-width: 42vw; min-width: 0; }
+.trip-chip-ico { flex: 0 0 auto; }
+.trip-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+/* 날짜 선택 바텀시트 — "Pick a date"(빠른 칩 + 월 그리드). */
+.date-sheet { display: flex; flex-direction: column; gap: var(--space-12); }
+.date-quick { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.date-quick-chip { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-6) var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--c-text); cursor: pointer; }
+.date-quick-chip.is-active { background: var(--c-primary-tint); border-color: var(--c-primary); color: var(--c-primary); }
+.date-month-row { display: flex; align-items: center; justify-content: space-between; }
+.date-month-label { font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); }
+.date-navs { display: flex; gap: var(--space-4); }
+.date-nav { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; border-radius: var(--r-full); background: transparent; color: var(--c-text); cursor: pointer; }
+.date-nav:hover { background: var(--c-surface); }
+.date-nav:disabled { color: var(--c-border); cursor: default; }
+.date-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-4); }
+.date-dow { margin-bottom: calc(-1 * var(--space-6)); }
+.date-dow-cell { text-align: center; font-size: var(--fs-badge); font-weight: var(--fw-bold); color: var(--c-text-muted); padding: var(--space-4) 0; }
+.date-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; border-radius: var(--r-full); font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: var(--c-text); cursor: pointer; }
+.date-cell.is-empty { visibility: hidden; cursor: default; }
+.date-cell.is-past { color: var(--c-border); cursor: default; }
+.date-cell.is-today { outline: 1.5px solid var(--c-primary); outline-offset: -1.5px; }
+.date-cell.is-selected { background: var(--c-primary); color: var(--c-on-primary); outline: 0; }
+.date-selected { margin: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-primary); }
 .chat-ai-notice { flex: 0 0 auto; margin: 0; padding: 0 var(--space-14) var(--space-6); font-size: var(--fs-badge); color: var(--c-text-muted); }
 
 .chat-log { flex: 1 1 auto; overflow-y: auto; padding: var(--space-8) var(--space-14) var(--space-12); display: flex; flex-direction: column; gap: var(--space-10); }
@@ -936,15 +966,16 @@ body {
 .chat-map { height: 180px; border-radius: var(--r-card); overflow: hidden; background: var(--c-border); margin-bottom: var(--space-8); }
 .chat-weather { display: flex; align-items: flex-start; gap: var(--space-8); background: var(--c-check-bg); color: var(--c-text); border-radius: var(--r-card); padding: var(--space-8) var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-medium); line-height: 1.35; }
 .chat-weather-icon { flex: 0 0 auto; }
-.chat .btn-select { display: none; } /* 선택 확정은 챗봇 범위 밖(이후 AG-3) */
+.chat .btn-select { display: inline-block; } /* 챗 추천 결과도 저장(Select) 가능 */
 .chat .card { max-width: 100%; }
 
 .chat-suggest { display: flex; flex-direction: column; gap: var(--space-6); align-items: flex-start; margin-top: auto; }
 .chat-suggest-chip { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-6) var(--space-12); font-size: var(--fs-body); color: var(--c-text); cursor: pointer; text-align: left; }
 .chat-suggest-chip:hover { border-color: var(--c-primary); color: var(--c-primary); }
 
-.chat-input-bar { flex: 0 0 auto; display: flex; align-items: flex-end; gap: var(--space-8); padding: var(--space-8) var(--space-14) calc(var(--space-12) + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--c-border); background: var(--c-bg); }
-.chat-textarea { flex: 1 1 auto; font-family: inherit; font-size: var(--fs-input); color: var(--c-text); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-card); padding: var(--space-8) var(--space-12); resize: none; outline: none; max-height: 120px; }
+.chat-input-bar { flex: 0 0 auto; display: flex; align-items: flex-end; gap: var(--space-8); padding: var(--space-8) var(--space-14) calc(var(--space-12) + env(safe-area-inset-bottom, 0px)); background: var(--c-bg); }
+/* 폰트 14px — 입력 placeholder 가 한 줄에 다 보이도록(16px 에서 잘리던 문제, 2026-10-14). */
+.chat-textarea { flex: 1 1 auto; font-family: inherit; font-size: 14px; color: var(--c-text); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-card); padding: var(--space-8) var(--space-12); resize: none; outline: none; max-height: 120px; }
 .chat-textarea:focus { border-color: var(--c-primary); }
 .chat-send { flex: 0 0 auto; width: 40px; height: 40px; border-radius: var(--r-full); border: 0; background: var(--c-primary); color: var(--c-on-primary); font-size: 18px; font-weight: var(--fw-bold); cursor: pointer; }
 .chat-send:hover { opacity: 0.92; }
@@ -994,6 +1025,8 @@ body {
 .route-stop-reasons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .route-stop-when { display: flex; align-items: center; gap: var(--space-6); }
 .route-stop-time { font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-primary); }
+/* 공식 러닝타임 미확인(공연·예약형) — 숫자 대신 '확인 필요' 톤(앰버 flag 색). */
+.route-stop-time--check { color: var(--c-flag-text); }
 .route-visit-badge { font-size: 10px; font-weight: var(--fw-bold); border-radius: var(--r-full); padding: 1px var(--space-6); }
 .route-visit-badge[data-prov="confirmed"] { background: var(--c-fits-bg); color: var(--c-fits-text); }
 .route-visit-badge[data-prov="planned"] { background: var(--c-check-bg); color: var(--c-check-text); }

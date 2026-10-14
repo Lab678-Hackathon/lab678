@@ -56,7 +56,7 @@ export function showHome() {
 
 // AG-4 단일 챗봇 — FAQ(RAG)·즉시추천·문화루트를 하나의 대화 흐름으로.
 export function showChat() {
-  mount(renderChatView({ onBack: showHome }), { fullBleed: true });
+  mount(renderChatView({ onBack: showHome, onHome: showHome }), { fullBleed: true });
 }
 
 // 추천 B(Plan a route) 진입 — 비로그인이면 '로그인 필요' 안내 + 로그인 여부를 묻는다.

@@ -5,11 +5,18 @@ import { postChat, getChatHistory, clearChatHistory } from "../api.js";
 import { ready as authReady, isSignedIn } from "../auth.js";
 import { openLocationSheet } from "../components/location-sheet.js";
 import { openTimeSheet } from "../components/time-sheet.js";
+import { openDateSheet } from "../components/date-sheet.js";
 import { renderResultCard } from "../components/result-card.js";
 import { renderRouteCard } from "../components/route-card.js";
 import { renderMap, renderRouteMap } from "../map.js";
-import { saveRoute } from "../state.js";
+import { saveChoice, saveRoute } from "../state.js";
 import { showLoginSheet } from "../components/login-sheet.js";
+import { openSheet, el as sheetEl } from "../components/sheet.js";
+
+const HOME_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>';
+const CAL_SVG =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>';
 
 function el(tag, className, text) {
   const n = document.createElement(tag);
@@ -21,9 +28,6 @@ function el(tag, className, text) {
 function localValue(d) {
   const off = d.getTimezoneOffset();
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
-}
-function fmtTime(iso) {
-  return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
 const SUGGESTIONS = [
@@ -43,7 +47,7 @@ const PROGRESS = [
 ];
 const PROGRESS_INTERVAL_MS = 1800;
 
-export function renderChatView({ onBack }) {
+export function renderChatView({ onBack, onHome }) {
   const root = el("section", "view chat");
 
   // ── Trip 맥락(추천·루트 tool 이 쓰는 사실). 기본 = 현재 위치·지금~+4h. 편집 가능. ──
@@ -81,26 +85,74 @@ export function renderChatView({ onBack }) {
   if (onBack) back.addEventListener("click", onBack);
   const titleWrap = el("div", "chat-title-wrap");
   titleWrap.append(el("span", "chat-title", "KONNECT chat"));
-  // Clear chat(초기화, L4) — 로컬 로그 비우고, 로그인 사용자면 저장 대화도 삭제.
+  // 헤더 우측(옛 Clear 자리) → Home 버튼. 메인으로 이동(2026-10-14 재배치).
+  const homeBtn = el("button", "chat-home");
+  homeBtn.type = "button";
+  homeBtn.setAttribute("aria-label", "Home");
+  homeBtn.innerHTML = HOME_SVG;
+  homeBtn.addEventListener("click", () => (onHome || onBack)?.());
+  header.append(back, titleWrap, homeBtn);
+  root.append(header);
+
+  // 상단 바 — 옛 'current location' 칩 자리에 Clear 버튼(대화 초기화, L4). 확인 후에만 삭제.
+  const topBar = el("div", "chat-topbar");
   const clearBtn = el("button", "chat-clear", "Clear");
   clearBtn.type = "button";
   clearBtn.setAttribute("aria-label", "Clear chat");
   clearBtn.addEventListener("click", () => clearChat());
-  header.append(back, titleWrap, clearBtn);
-  root.append(header);
+  topBar.append(clearBtn);
+  root.append(topBar);
 
+  // 필수 입력 3폼(날짜·위치·시간) — 하단 채팅 입력창 바로 위(root 끝에서 append).
+  // 칩 = [📅 날짜] [📍 위치(긴 이름 … 생략)] [🕑 시작–종료]. 날짜 칩은 날짜 시트를 연다.
   const tripBar = el("div", "chat-trip");
-  const locChip = el("button", "trip-chip");
+  const dateChip = el("button", "trip-chip trip-chip--cal");
+  dateChip.type = "button";
+  const locChip = el("button", "trip-chip trip-chip--loc");
   locChip.type = "button";
-  const startChip = el("button", "trip-chip");
-  startChip.type = "button";
-  const endChip = el("button", "trip-chip");
-  endChip.type = "button";
-  function refreshTrip() {
-    locChip.textContent = `📍 ${locationLabel}`;
-    startChip.textContent = `🕑 ${fmtTime(startValue)}`;
-    endChip.textContent = `🏁 by ${fmtTime(endValue)}`;
+  const locLabel = el("span", "trip-chip-label");
+  locChip.append(el("span", "trip-chip-ico", "📍"), locLabel);
+  const timeChip = el("button", "trip-chip");
+  timeChip.type = "button";
+
+  // "2–7 PM" 같은 컴팩트 범위. 분이 0이면 생략, 같은 오전/오후면 시작쪽 AM/PM 생략.
+  const hhmm = (d) => {
+    const h = d.getHours() % 12 || 12;
+    const m = d.getMinutes();
+    return m ? `${h}:${String(m).padStart(2, "0")}` : `${h}`;
+  };
+  const mer = (d) => (d.getHours() < 12 ? "AM" : "PM");
+  function fmtRange(sIso, eIso) {
+    const s = new Date(`${sIso}:00`);
+    const e = new Date(`${eIso}:00`);
+    const sTxt = mer(s) === mer(e) ? hhmm(s) : `${hhmm(s)} ${mer(s)}`;
+    return `${sTxt}–${hhmm(e)} ${mer(e)}`;
   }
+  function refreshTrip() {
+    const d = new Date(`${startValue}:00`);
+    const dateLabel = d.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+    dateChip.innerHTML = `${CAL_SVG}<span>${dateLabel}</span>`;
+    // 위치는 7자 넘으면 '…'로 잘라 2줄 방지(예: "Namsang…").
+    locLabel.textContent =
+      locationLabel.length > 7 ? `${locationLabel.slice(0, 7).trimEnd()}…` : locationLabel;
+    timeChip.textContent = `🕑 ${fmtRange(startValue, endValue)}`;
+  }
+
+  // 날짜 — 날짜 시트(Today/Tomorrow/This Sat/This Sun + 월 그리드). 시각은 유지, 날짜만 교체.
+  dateChip.addEventListener("click", () =>
+    openDateSheet({
+      current: startValue.slice(0, 10),
+      onPick: (ymd) => {
+        startValue = `${ymd}T${startValue.slice(11, 16)}`;
+        endValue = `${ymd}T${endValue.slice(11, 16)}`;
+        refreshTrip();
+      },
+    }),
+  );
   locChip.addEventListener("click", () =>
     openLocationSheet({
       currentLabel: locationLabel,
@@ -111,7 +163,18 @@ export function renderChatView({ onBack }) {
       },
     }),
   );
-  startChip.addEventListener("click", () =>
+  const openEnd = () =>
+    openTimeSheet({
+      kind: "end",
+      startValue,
+      endValue,
+      onDone: (v) => {
+        endValue = v;
+        refreshTrip();
+      },
+    });
+  // 시간 칩 → 먼저 시작시간, Done 누르면 바로 'Done by'(종료) 시트로 이어진다(한 흐름).
+  const openStart = () =>
     openTimeSheet({
       kind: "start",
       startValue,
@@ -121,33 +184,22 @@ export function renderChatView({ onBack }) {
         if (new Date(`${endValue}:00`) <= new Date(`${v}:00`))
           endValue = endForStart(v); // 종료가 시작 이하가 되면 재설정
         refreshTrip();
+        openEnd(); // 시작 확정 → 종료 시트로 자동 연결
       },
-    }),
-  );
-  endChip.addEventListener("click", () =>
-    openTimeSheet({
-      kind: "end",
-      startValue,
-      endValue,
-      onDone: (v) => {
-        endValue = v;
-        refreshTrip();
-      },
-    }),
-  );
-  // "Plan a day" — 특정 시각까지가 아니라 오늘 전체(시작일 저녁까지)로 루트. 길이는 시간창이 정함.
-  const planDayBtn = el("button", "chat-planday", "Plan a day");
-  planDayBtn.type = "button";
-  planDayBtn.addEventListener("click", () => {
-    const d = new Date(`${startValue}:00`);
-    d.setHours(21, 0, 0, 0); // 문화장소 운영 끝물까지 — 실제 길이는 백엔드 시간창 트림
-    endValue = localValue(d);
-    refreshTrip();
-    send("Plan a culture route for the rest of today");
-  });
+    });
+  timeChip.addEventListener("click", openStart);
+  // [주석 보존] "Plan a day" — 현재 미사용(2026-10-14). 이후 기능으로 재사용 가능해 코드만 유지.
+  // const planDayBtn = el("button", "chat-planday", "Plan a day");
+  // planDayBtn.addEventListener("click", () => {
+  //   const d = new Date(`${startValue}:00`);
+  //   d.setHours(21, 0, 0, 0);
+  //   endValue = localValue(d);
+  //   refreshTrip();
+  //   send("Plan a culture route for the rest of today");
+  // });
   refreshTrip();
-  tripBar.append(locChip, startChip, endChip, planDayBtn);
-  root.append(tripBar);
+  // [📍 위치] [📅 날짜] [🕑 시간] 순. tripBar 는 하단 입력창 바로 위에 append(아래).
+  tripBar.append(locChip, dateChip, timeChip);
 
   // AI 관여 고지(1회, NFR-05)
   root.append(
@@ -231,10 +283,38 @@ export function renderChatView({ onBack }) {
     assistantBlock(mapEl);
     const list = el("div", "chat-cards");
     const cardById = {};
+    // 챗에서 추천 A 기능을 쓴 결과도 저장 가능 — 각 카드의 'Select' 를 rec A 처럼 저장에 연결.
+    function selectPick(cand) {
+      if (!isSignedIn()) {
+        showLoginSheet({
+          title: "Sign in to save your pick",
+          subtitle:
+            "Saving keeps this as your current choice across devices. Would you like to sign in now?",
+        });
+        return;
+      }
+      saveChoice(tripContext(), { ok: true, data }, cand.id);
+      for (const [cid, card] of Object.entries(cardById)) {
+        const b = card.querySelector(".btn-select");
+        const isSel = cid === cand.id;
+        card.classList.toggle("is-choice", isSel);
+        if (b) b.textContent = isSel ? "Saved ✓" : "Select experience";
+      }
+      bubble(
+        "assistant",
+        `Saved “${cand.title}” to your picks — find it on Home or My Page.`,
+      );
+    }
     cands.forEach((c, i) => {
       const card = renderResultCard(c, data.origin, i);
       card.dataset.id = c.id;
       cardById[c.id] = card;
+      const selBtn = card.querySelector(".btn-select");
+      if (selBtn)
+        selBtn.addEventListener("click", (e) => {
+          e.stopPropagation(); // 카드 포커스(지도)로 버블링 막고 저장만
+          selectPick(c);
+        });
       list.append(card);
     });
     assistantBlock(list);
@@ -250,7 +330,9 @@ export function renderChatView({ onBack }) {
         for (const c of cands)
           cardById[c.id].addEventListener("click", () => focus(c.id));
         ctrl.onPinClick(focus);
-        focus(cands[0].id); // 초기: 첫 후보 경로 표시
+        // 초기엔 첫 후보의 경로선만 지도에 그리고, 카드 아웃라인(.is-focused)은 넣지 않는다 —
+        // 안 그러면 특히 'recommend one'(결과 1개)에서 첫 카드가 자동 선택된 것처럼 보인다.
+        ctrl.focus(cands[0].id);
       })
       .catch(() => mapEl.remove());
   }
@@ -374,7 +456,7 @@ export function renderChatView({ onBack }) {
   const inputBar = el("div", "chat-input-bar");
   const ta = el("textarea", "chat-textarea");
   ta.rows = 1;
-  ta.placeholder = "Ask a question, or say what you'd like to do…";
+  ta.placeholder = "Ask a question, or what you'd like to do…";
   const sendBtn = el("button", "chat-send");
   sendBtn.type = "button";
   sendBtn.setAttribute("aria-label", "Send");
@@ -468,18 +550,35 @@ export function renderChatView({ onBack }) {
     return wrap;
   }
 
-  // Clear chat(L4) — 로컬 로그·맥락 비우고, 로그인 사용자면 저장 대화도 삭제(graceful).
-  async function clearChat() {
+  // Clear chat(L4) — '정말 지우시겠습니까?' 확인 시트 → Yes 일 때만 로컬 로그·맥락 비우고,
+  // 로그인 사용자면 저장 대화도 삭제(graceful).
+  function clearChat() {
     if (busy) return;
     if (!history.length && !log.querySelector(".chat-row")) return;
-    if (!window.confirm("Clear this conversation?")) return;
-    history.length = 0;
-    log.replaceChildren(suggest); // 로그 비우고 첫 화면 제안 복원
-    try {
-      await clearChatHistory(); // 익명/비로그인은 서버 no-op — 실패해도 로컬은 이미 정리.
-    } catch {
-      /* 저장 삭제 실패가 로컬 초기화를 막지 않게 */
-    }
+    openSheet((close) => {
+      const c = sheetEl("div", "reset-confirm");
+      c.append(
+        sheetEl("h2", "sheet-title", "Clear this conversation?"),
+        sheetEl("p", "sheet-sub", "This removes the whole chat. It can't be undone."),
+      );
+      const yes = sheetEl("button", "btn-cta", "Yes, clear");
+      yes.type = "button";
+      yes.addEventListener("click", async () => {
+        history.length = 0;
+        log.replaceChildren(suggest); // 로그 비우고 첫 화면 제안 복원
+        close();
+        try {
+          await clearChatHistory(); // 익명/비로그인은 서버 no-op — 실패해도 로컬은 이미 정리.
+        } catch {
+          /* 저장 삭제 실패가 로컬 초기화를 막지 않게 */
+        }
+      });
+      const no = sheetEl("button", "sheet-dismiss", "Keep it");
+      no.type = "button";
+      no.addEventListener("click", close);
+      c.append(yes, no);
+      return c;
+    });
   }
 
   // 재진입 복구(L4) — 정식 로그인 사용자의 전체 누적 대화를 트랜스크립트로 재생 +
@@ -505,6 +604,8 @@ export function renderChatView({ onBack }) {
     scrollDown();
   })();
 
+  // 필수 입력 3폼 → 입력창 바로 위(구분선 아래). 그 아래 입력 바.
+  root.append(tripBar);
   root.append(inputBar);
   return root;
 }
