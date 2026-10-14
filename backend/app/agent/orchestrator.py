@@ -744,14 +744,30 @@ async def recommend_a(
     with_path = sum(1 for c in candidates if c.movement and c.movement.path)
     trace.step("route", with_path=with_path, total=len(candidates))
 
-    # [explain] 확정 근거 기반 Reason 선택(0~2개). 최근접 1개만 M03.
-    for i, (cand, timing, budget) in enumerate(kept):
+    # [explain] 확정 근거 기반 Reason 선택(0~2개). "Shortest trip" M03 은 실제로 가장 가까운
+    # 1개에만 — '보이는 거리'(도보, 없으면 직선) 기준. kept 순서(풀/관련도순)는 거리순이 아니라
+    # 과거엔 엉뚱한 카드에 붙었다(확대 편입분 혼입). 가장 가까운 후보조차 기본 반경 밖
+    # (from_widened_search)이면 '최단'을 내세우지 않는다('Far' 칩과 모순 방지).
+    def _eff_dist(c: Candidate) -> float:
+        if c.movement and c.movement.distance_m is not None:
+            return float(c.movement.distance_m)
+        return float(c.distance_m) if c.distance_m is not None else float("inf")
+
+    nearest = min(candidates, key=_eff_dist) if len(candidates) > 1 else None
+    nearest_id = (
+        nearest.id
+        if nearest is not None
+        and not nearest.from_widened_search
+        and _eff_dist(nearest) != float("inf")
+        else None
+    )
+    for cand, timing, budget in kept:
         cand.reasons = select_reasons(
-            cand, cond, timing, budget, is_nearest=(i == 0 and len(kept) > 1)
+            cand, cond, timing, budget, is_nearest=(cand.id == nearest_id)
         )
     trace.step("explain", with_reasons=sum(1 for c in candidates if c.reasons))
 
-    # [compose] 표시 순서: 등급(fits→alternative→check_needed) 우선, 같은 등급 안에서
+    # [compose] 표시 순서: 등급(fits→check_needed→alternative) 우선, 같은 등급 안에서
     # 관심사 선호↑·비선호↓(Soft, 제외 아님), 그다음 거리순. candidates 는 이미 거리순 →
     # display_sort_key 로 '안정 정렬'하면 같은 키 안에서 거리순이 유지된다(domain/ranking).
     candidates.sort(

@@ -7,6 +7,8 @@ from app.domain.status import resolve_status
 from app.domain.timing import TimingVerdict
 from app.models.recommend import (
     Candidate,
+    ExperienceType,
+    InterestCode,
     ParsedConditions,
     PriceInfo,
     PriceStatus,
@@ -15,10 +17,13 @@ from app.models.recommend import (
 )
 
 
-def _cand(price_status: PriceStatus) -> Candidate:
+def _cand(
+    price_status: PriceStatus, etype: ExperienceType = ExperienceType.DEFAULT
+) -> Candidate:
     return Candidate(
         id="c1",
         title="X",
+        type=etype,
         status=ResultStatus.CHECK_NEEDED,
         price=PriceInfo(
             status=price_status,
@@ -32,8 +37,10 @@ def _cand(price_status: PriceStatus) -> Candidate:
     )
 
 
-def R(price, timing, budget=BudgetVerdict.OK, cond=None):
-    return resolve_status(_cand(price), timing, budget, cond or ParsedConditions())
+def R(price, timing, budget=BudgetVerdict.OK, cond=None, etype=ExperienceType.DEFAULT):
+    return resolve_status(
+        _cand(price, etype), timing, budget, cond or ParsedConditions()
+    )
 
 
 def test_closed_is_excluded():
@@ -98,3 +105,61 @@ def test_unknown_budget_is_not_fits():
     # 예산 설정됐으나 가격 미확인 → 비교 불가 → fits 아님
     status, _flags = R(PriceStatus.UNKNOWN, TimingVerdict.OPEN, BudgetVerdict.UNKNOWN)
     assert status is ResultStatus.CHECK_NEEDED
+
+
+# ── (2026-10-14) 관심사/요청 선호도 Fits 조건 ──
+def test_interest_match_is_fits():
+    # 요청 관심사(ART)와 유형(EXHIBITION) 일치 + 사실 OK → fits
+    status, flags = R(
+        PriceStatus.FREE,
+        TimingVerdict.OPEN,
+        cond=ParsedConditions(interests=[InterestCode.ART_EXHIBITIONS]),
+        etype=ExperienceType.EXHIBITION,
+    )
+    assert status is ResultStatus.FITS
+    assert flags == []
+
+
+def test_interest_mismatch_is_alternative():
+    # 사실은 다 맞지만 요청 관심사(ART)와 유형(HISTORIC_VISIT)이 다름 → alternative(조건 밖)
+    status, flags = R(
+        PriceStatus.FREE,
+        TimingVerdict.OPEN,
+        cond=ParsedConditions(interests=[InterestCode.ART_EXHIBITIONS]),
+        etype=ExperienceType.HISTORIC_VISIT,
+    )
+    assert status is ResultStatus.ALTERNATIVE
+    assert "Outside your interests" in [f.text for f in flags]
+
+
+def test_interest_mismatch_keeps_fact_flags():
+    # 관심사 불일치 + 가격 미확인 → alternative 지만 '가격 확인' flag 는 보존(투명)
+    status, flags = R(
+        PriceStatus.UNKNOWN,
+        TimingVerdict.OPEN,
+        cond=ParsedConditions(interests=[InterestCode.ART_EXHIBITIONS]),
+        etype=ExperienceType.HISTORIC_VISIT,
+    )
+    texts = [f.text for f in flags]
+    assert status is ResultStatus.ALTERNATIVE
+    assert "Outside your interests" in texts and "Price needs checking" in texts
+
+
+def test_avoided_type_is_alternative():
+    # 비선호(공연) 유형 → 사실 OK 여도 조건 밖 대안
+    status, _flags = R(
+        PriceStatus.FREE,
+        TimingVerdict.OPEN,
+        cond=ParsedConditions(avoid_interests=[InterestCode.LIVE_PERFORMANCES]),
+        etype=ExperienceType.PERFORMANCE,
+    )
+    assert status is ResultStatus.ALTERNATIVE
+
+
+def test_no_interest_request_keeps_fact_based_fits():
+    # 관심사 요청이 없으면(프롬프트 없음) 기존대로 사실만으로 fits — 유형 무관
+    status, flags = R(
+        PriceStatus.FREE, TimingVerdict.OPEN, etype=ExperienceType.HISTORIC_VISIT
+    )
+    assert status is ResultStatus.FITS
+    assert flags == []

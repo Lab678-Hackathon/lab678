@@ -34,11 +34,13 @@ TYPE_INTERESTS: dict[ExperienceType, set[InterestCode]] = {
     ExperienceType.DEFAULT: set(),
 }
 
-# 표시 순서 우선도: 조건 충족 > 완화 대안 > 추가 확인 필요.
+# 표시 순서 우선도(등급): Fits > Partially(확인 필요) > Alternative.
+# (2026-10-14 Product) 추천 A는 등급 순서를 1차 정렬로 — 사용자가 "조건에 맞는 것 →
+# 확인 필요 → 대안" 순으로 읽도록. 등급 안에서는 관심사·거리 등 Soft 선호로 2차 정렬.
 _STATUS_RANK = {
     ResultStatus.FITS: 0,
-    ResultStatus.ALTERNATIVE: 1,
-    ResultStatus.CHECK_NEEDED: 2,
+    ResultStatus.CHECK_NEEDED: 1,
+    ResultStatus.ALTERNATIVE: 2,
 }
 
 # 야외 노출형(휴리스틱, 사실 아님) — 악천후·실내외 선호 Soft 강등용. 전시·체험은 대개
@@ -67,6 +69,19 @@ def type_preference_rank(etype: ExperienceType, cond: ParsedConditions) -> int:
 def preference_rank(cand: Candidate, cond: ParsedConditions) -> int:
     """후보의 관심사 순위(0/1/2). type_preference_rank 를 후보 유형에 적용."""
     return type_preference_rank(cand.type, cond)
+
+
+def interest_matched(cand: Candidate, cond: ParsedConditions) -> bool:
+    """후보가 사용자가 명시한 관심사 조건을 충족하는가(유형 기준, 등급 판정용).
+
+    - 요청 관심사가 있으면 그중 하나 이상 충족해야 True(liked=0). 요청에 없는 중립 유형은 False.
+    - 요청 관심사가 없으면: 비선호(avoid) 유형만 아니면 True(조건 없음=매칭).
+    선호·비선호 동시 매칭은 선호 우선(type_preference_rank 가 0 반환).
+    """
+    rank = type_preference_rank(cand.type, cond)
+    if cond.interests:
+        return rank == 0
+    return rank != 2
 
 
 def io_rank(etype: ExperienceType, cond: ParsedConditions) -> int:
@@ -113,14 +128,28 @@ def display_sort_key(
     adverse: bool = False,
     io_verdicts: dict[str, str] | None = None,
     vibe_ranks: dict[str, int] | None = None,
-) -> tuple[int, int, int, int, int]:
-    """(관심사, 실내외 선호, 정성선호, 날씨, 상태등급). 명시 선호(관심사·실내외·정성)가
-    먼저 → 악천후면 실내 소폭 우선 → 상태등급. 안정 정렬이면 같은 키 안에서 거리순 유지.
-    io_verdicts(LLM 실내외 {id:setting})·vibe_ranks(개방형 선호 적합 {id:0/1})는 Soft only."""
+) -> tuple[int, ...]:
+    """(상태등급, -만족조건수, 관심사, 실내외, 정성선호, 날씨). 등급(Fits>Partially>Alternative)이
+    1차 → 같은 등급 안에서는 '만족한 명시 조건 개수'가 많은 후보가 먼저(2026-10-14 Product) →
+    그다음 관심사·실내외·정성 세부 순위 → 악천후면 실내 소폭 우선. 안정 정렬이면 같은 키 안에서
+    거리순 유지. io_verdicts(LLM 실내외 {id:setting})·vibe_ranks(개방형 선호 {id:0/1})는 Soft only."""
+    io_v = (io_verdicts or {}).get(cand.id)
+    pr = preference_rank(cand, cond)
+    ior = io_rank_with_verdict(cand, cond, io_v)
+    vibe = (vibe_ranks or {}).get(cand.id, 0)  # 0=적합/중립, 1=부적합(Soft 강등)
+    # 사용자가 '명시한' 조건 중 이 후보가 만족하는 개수(많을수록 앞) — 같은 등급 내 2차 키.
+    satisfied = 0
+    if cond.interests and pr == 0:
+        satisfied += 1
+    if cond.indoor_outdoor and ior == 0:
+        satisfied += 1
+    if cond.open_preferences and vibe == 0:
+        satisfied += 1
     return (
-        preference_rank(cand, cond),
-        io_rank_with_verdict(cand, cond, (io_verdicts or {}).get(cand.id)),
-        (vibe_ranks or {}).get(cand.id, 0),  # 0=적합/중립, 1=부적합(Soft 강등)
-        weather_rank(cand, adverse),
         _STATUS_RANK.get(cand.status, 99),
+        -satisfied,
+        pr,
+        ior,
+        vibe,
+        weather_rank(cand, adverse),
     )

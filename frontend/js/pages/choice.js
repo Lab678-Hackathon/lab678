@@ -7,7 +7,7 @@ import { showLoginSheet } from "../components/login-sheet.js";
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
-  check_needed: "Partly confirmed",
+  check_needed: "Partially confirmed",
   alternative: "Alternative",
 };
 

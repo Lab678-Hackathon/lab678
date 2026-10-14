@@ -3,7 +3,7 @@
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
-  check_needed: "Partly confirmed", // 10/8: 화면 라벨만 변경(상태키 check_needed 유지)
+  check_needed: "Partially confirmed", // 화면 라벨만(상태키 check_needed 유지)
   alternative: "Alternative",
 };
 
@@ -89,15 +89,46 @@ export function renderResultCard(c, origin, index = 0) {
   else thumb.append(el("span", "card-thumb-glyph", TYPE_GLYPH[c.type] ?? TYPE_GLYPH.default));
   thumb.append(el("span", "card-num", String(index + 1)));
   const headText = el("div", "card-head-text");
-  const badge = el("span", "badge", STATUS_LABEL[c.status] ?? c.status);
+  // 등급 라벨(배지)을 누르면 이 후보의 AI 분류 매칭(signals)을 펼친다 — "왜 이 등급/추천인지"를
+  // 라벨에서 바로 확인(2026-10-14). 분류 신호가 없으면 평범한 라벨(span)로 둔다.
+  const hasSignals = Array.isArray(c.signals) && c.signals.length > 0;
+  const badge = el(
+    hasSignals ? "button" : "span",
+    "badge",
+    STATUS_LABEL[c.status] ?? c.status,
+  );
   badge.dataset.status = c.status;
   headText.append(badge);
   const far = farChip(c); // 반경 확대 편입 시 분홍 "Far" 칩
   if (far) headText.append(far);
   headText.append(el("h2", "card-title", c.title));
   head.append(thumb, headText);
-  // 분류 근거(signals)는 결과 상단 "✦ AI" 배지로 통합(10/8) — per-card ✨ 버튼 제거.
   card.append(head);
+
+  // 등급 라벨 펼침 패널 — AI 분류 매칭 칩(표시 전용, §6 — 사실 생성 아님). 기본 접힘.
+  if (hasSignals) {
+    badge.type = "button";
+    badge.classList.add("badge-toggle");
+    badge.setAttribute("aria-expanded", "false");
+    const sigPanel = el("div", "card-signals");
+    sigPanel.hidden = true;
+    const chips = el("div", "signals");
+    for (const s of c.signals) {
+      const chip = el("span", "signal", s.label);
+      if (s.matched) chip.classList.add("is-matched"); // 요청 매칭=녹색, 기본=흰색
+      chips.append(chip);
+    }
+    sigPanel.append(chips);
+    card.append(sigPanel);
+    badge.addEventListener("click", (e) => {
+      // 카드 포커스/스크롤 핸들러로 버블링되지 않게 — 라벨 토글만 수행.
+      e.stopPropagation();
+      const open = sigPanel.hidden;
+      sigPanel.hidden = !open;
+      badge.setAttribute("aria-expanded", String(open));
+      badge.classList.toggle("is-open", open);
+    });
+  }
 
   // 2. Reasons (0~2) — teal check. 0개면 영역 생략.
   if (c.reasons?.length) {

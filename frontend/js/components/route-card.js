@@ -6,12 +6,12 @@ import { TYPE_GLYPH, farChip } from "./result-card.js";
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
-  check_needed: "Partly confirmed", // 10/8: 화면 라벨만(상태키 check_needed 유지)
+  check_needed: "Partially confirmed", // 화면 라벨만(상태키 check_needed 유지)
   alternative: "Alternative",
 };
 const ROUTE_STATUS = {
   fits: "Ready to go (route)",
-  check_needed: "Partly confirmed (route)",
+  check_needed: "Partially confirmed (route)",
   alternative: "Alternative route",
 };
 

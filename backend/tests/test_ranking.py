@@ -57,21 +57,29 @@ def test_liked_beats_avoided_when_both_match():
     assert preference_rank(c, cond) == 0
 
 
-def test_preference_outranks_status_b_plan():
-    # B안(관심사 우선): 원하는 유형이면 check_needed 라도 중립 fits 보다 먼저.
-    # (사실은 안 바뀜 — 각 카드의 상태 배지는 그대로 fits/check 로 표기)
+def test_status_outranks_preference():
+    # (2026-10-14 Product) 등급 우선: 중립 fits 가 원하는 유형 check_needed 보다 먼저.
+    # 사실은 안 바뀜 — 각 카드의 상태 배지는 그대로 fits/check 로 표기.
     cond = ParsedConditions(interests=[InterestCode.LIVE_PERFORMANCES])
     liked_check = _cand(ExperienceType.PERFORMANCE, ResultStatus.CHECK_NEEDED)
     neutral_fit = _cand(ExperienceType.HISTORIC_VISIT, ResultStatus.FITS)
-    assert display_sort_key(liked_check, cond) < display_sort_key(neutral_fit, cond)
+    assert display_sort_key(neutral_fit, cond) < display_sort_key(liked_check, cond)
 
 
-def test_status_breaks_tie_within_same_interest():
-    # 같은 관심사 안에서는 상태가 2차 키 — fits 가 check 앞.
+def test_check_needed_outranks_alternative():
+    # 등급 순서 Fits > Partially(check_needed) > Alternative — 관심사 매칭과 무관하게.
+    cond = ParsedConditions(interests=[InterestCode.ART_EXHIBITIONS])
+    liked_check = _cand(ExperienceType.EXHIBITION, ResultStatus.CHECK_NEEDED)
+    liked_alt = _cand(ExperienceType.EXHIBITION, ResultStatus.ALTERNATIVE)
+    assert display_sort_key(liked_check, cond) < display_sort_key(liked_alt, cond)
+
+
+def test_preference_breaks_tie_within_same_status():
+    # 같은 등급 안에서는 관심사가 2차 키 — 선호 유형이 중립보다 앞.
     cond = ParsedConditions(interests=[InterestCode.ART_EXHIBITIONS])
     liked_fit = _cand(ExperienceType.EXHIBITION, ResultStatus.FITS)
-    liked_check = _cand(ExperienceType.EXHIBITION, ResultStatus.CHECK_NEEDED)
-    assert display_sort_key(liked_fit, cond) < display_sort_key(liked_check, cond)
+    neutral_fit = _cand(ExperienceType.HISTORIC_VISIT, ResultStatus.FITS)
+    assert display_sort_key(liked_fit, cond) < display_sort_key(neutral_fit, cond)
 
 
 def test_sort_stable_keeps_distance_within_grade():

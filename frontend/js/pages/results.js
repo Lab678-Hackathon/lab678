@@ -62,9 +62,8 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
   const data = env.data;
   const cands = data.candidates;
 
-  // "✦ AI" 배지 펼침 패널 — AI 관여 고지 한 줄 + 현재 포커스 카드의 분류 근거 칩(10/8 통합).
-  // 분류 신호(signals)는 per-card ✨ 대신 여기로 접근(AI 아이콘 하나, 밀도↓). 캐러셀은
-  // 한 번에 한 카드 포커스라 포커스 카드 기준으로 보여준다(스와이프 시 갱신).
+  // "✦ AI" 배지 펼침 패널 — 이 결과 전체가 AI로 산출됐다는 관여 고지 한 줄만(2026-10-14).
+  // 후보별 분류 근거 칩(signals)은 각 카드의 등급 라벨을 눌러 확인한다(result-card.js).
   let aiPanelEl = null;
   function renderAiPanel() {
     if (!aiPanelEl) return;
@@ -72,17 +71,6 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
     aiPanelEl.append(
       el("p", "ai-panel-note", "AI-assisted · details may change as info updates"),
     );
-    const f = cands.find((c) => c.id === state.focusedId) || cands[0];
-    if (f?.signals?.length) {
-      aiPanelEl.append(el("p", "ai-panel-sub", `How we read “${f.title}”`));
-      const chips = el("div", "signals");
-      for (const s of f.signals) {
-        const chip = el("span", "signal", s.label);
-        if (s.matched) chip.classList.add("is-matched"); // 요청 매칭=녹색, 기본=흰색
-        chips.append(chip);
-      }
-      aiPanelEl.append(chips);
-    }
   }
 
   // ── 상단 바: 뒤로 + 조건 pill (+ 이해한 조건) ──
