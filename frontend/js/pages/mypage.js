@@ -6,8 +6,7 @@ import { getPreferences, putPreferences } from "../api.js";
 import { createPreferenceForm, INTERESTS } from "../components/preference-form.js";
 import { openPrefConfirm } from "../components/pref-confirm.js";
 import { openSheet, el as sheetEl } from "../components/sheet.js";
-import { clearRoute, loadChoice, loadRoute, rebuildSavedRoute } from "../state.js";
-import { renderSavedRouteCard } from "../components/saved-route-card.js";
+import { loadChoice, loadRoute } from "../state.js";
 
 const LABEL = Object.fromEntries(INTERESTS); // code → 표시 라벨
 const CHEVRON =
@@ -22,14 +21,7 @@ function el(tag, className, text) {
   return n;
 }
 
-function fmtTime(iso) {
-  return new Date(iso).toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-export function renderMyPageView({ onBack, onHome, onViewChoice, onViewRoute } = {}) {
+export function renderMyPageView({ onBack, onHome, onViewPick, onViewRoute } = {}) {
   const root = el("section", "mypage");
 
   // Nav — chevron Back · My Page · Home(우상단).
@@ -71,33 +63,79 @@ export function renderMyPageView({ onBack, onHome, onViewChoice, onViewRoute } =
     return s;
   }
 
-  // 현재 선택 — 있으면 teal 테두리 카드(→ 상세), 없으면 빈 상태(Explore → 홈).
-  function renderCurrentChoice() {
+  // 저장 결과 바로가기 — "My Pick"(저장 추천 A) · "My Route"(저장 추천 B) 동일 디자인 버튼.
+  // 누르면 최초 추천과 같은 톤(지도 + 결과)으로 렌더. 사실·경로선은 저장 안 하고 열 때 라이브
+  // 재조회(캐시 금지 규약 준수) — My Pick 은 저장된 request/env 로 결과 뷰, My Route 는 라이브 재조립.
+  function savedButton({ title, sub, enabled, loading, onClick }) {
+    const btn = el("button", "mypage-cc");
+    btn.type = "button";
+    const texts = el("div", "mypage-cc-texts");
+    texts.append(el("span", "mypage-cc-title", title));
+    const subEl = el("span", "mypage-cc-sub", sub);
+    texts.append(subEl);
+    btn.append(texts);
+    if (enabled) {
+      btn.classList.add("has-choice");
+      btn.append(el("span", "mypage-cc-arrow", loading ? "…" : "→"));
+      btn.disabled = !!loading;
+      btn.addEventListener("click", onClick);
+    } else {
+      subEl.classList.add("is-empty");
+      btn.disabled = true;
+    }
+    return btn;
+  }
+
+  function renderPickButton() {
     const saved = loadChoice();
     const cand = saved?.env?.data?.candidates?.find(
       (c) => c.id === saved.candidateId,
     );
-    const card = el("button", "mypage-cc");
-    card.type = "button";
-    const texts = el("div", "mypage-cc-texts");
-    texts.append(el("span", "mypage-cc-label", "YOUR CURRENT CHOICE"));
-    if (cand) {
-      card.classList.add("has-choice");
-      texts.append(
-        el("span", "mypage-cc-title", cand.title),
-        el("span", "mypage-cc-sub", `Today · ${fmtTime(saved.request.start_at)} session`),
-      );
-      card.append(texts, el("span", "mypage-cc-arrow", "→"));
-      card.addEventListener("click", () => onViewChoice?.());
-    } else {
-      texts.append(
-        el("span", "mypage-cc-title", "Nothing chosen yet"),
-        el("span", "mypage-cc-sub", "Find something to do now or plan a day"),
-      );
-      card.append(texts, el("span", "mypage-cc-explore", "Explore →"));
-      card.addEventListener("click", () => onBack?.());
+    return savedButton({
+      title: "My Pick",
+      sub: cand ? cand.title : "Nothing saved yet",
+      enabled: !!cand,
+      onClick: () => onViewPick?.(),
+    });
+  }
+
+  // My Route 버튼 — 저장 ref 존재 여부를 비동기 확인(DB)해 활성화. 누르면 ref 를 넘겨
+  // showSavedRoute 가 스플래시 전환 + 라이브 재조립을 처리(여기선 무거운 조회를 하지 않는다).
+  let routeChecked = false;
+  let savedRouteRef = null;
+  const routeSlot = el("div", "mypage-route-slot");
+  function paintRouteButton() {
+    const hasRoute = !!savedRouteRef?.stops?.length;
+    const sub = !routeChecked
+      ? "Checking…"
+      : hasRoute
+        ? (savedRouteRef.stops || []).join(" → ")
+        : "Nothing saved yet";
+    routeSlot.replaceChildren(
+      savedButton({
+        title: "My Route",
+        sub,
+        enabled: routeChecked && hasRoute,
+        onClick: () => onViewRoute?.(savedRouteRef),
+      }),
+    );
+  }
+  function renderRouteButton() {
+    if (!routeChecked) {
+      loadRoute().then((ref) => {
+        routeChecked = true;
+        savedRouteRef = ref;
+        paintRouteButton();
+      });
     }
-    return card;
+    paintRouteButton();
+    return routeSlot;
+  }
+
+  function renderSavedButtons() {
+    const wrap = el("div", "mypage-saved");
+    wrap.append(renderPickButton(), renderRouteButton());
+    return wrap;
   }
 
   // 선호 보기 — 관심사 칩 + "Also" 추가선호 + Edit/Add·Reset 링크(MP-1b).
@@ -239,62 +277,10 @@ export function renderMyPageView({ onBack, onHome, onViewChoice, onViewRoute } =
     return btn;
   }
 
-  // 저장된 B 문화루트 슬롯 — DB에서 참조 로드 → 라이브 재조립해 표시. 한 번만 네트워크 조회하고
-  // 결과(savedRouteData)를 캐시해, render() 가 여러 번 불려도 카드가 사라지지 않게 다시 그린다.
-  let routeChecked = false;
-  let savedRouteData = null;
-  let savedRouteRef = null;
-  function renderRouteSlot() {
-    const slot = el("div", "mypage-route-slot");
-    // 저장 ref 의 시계시간(start_hm/end_hm)을 오늘 날짜 ISO 로 → 루트 카드의 날짜·시간 표기용.
-    // 없으면 null(카드가 시간 줄을 생략). 사실(운영시간 등)과 별개인 '계획 창' 표시값.
-    const tripFromRef = (ref) => {
-      if (!ref?.start_hm || !ref?.end_hm) return null;
-      const d = new Date();
-      const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-      return { start_at: `${ymd}T${ref.start_hm}:00`, end_at: `${ymd}T${ref.end_hm}:00` };
-    };
-    const paint = () => {
-      slot.replaceChildren();
-      if (!savedRouteRef) return;
-      const card = renderSavedRouteCard(savedRouteData, savedRouteRef, {
-        onClear: () => {
-          clearRoute();
-          savedRouteData = null;
-          savedRouteRef = null;
-          slot.replaceChildren();
-        },
-        // View → 경로선 지도 + 루트 카드 상세. 재조립이 캐시에 없거나 비면 한 번 더 시도해
-        // 신선한 RouteData 로 연다(저장은 참조만 — 사실·경로선은 매번 라이브 조회).
-        onView: async () => {
-          let data = savedRouteData;
-          if (!data?.routes?.length) {
-            data = await rebuildSavedRoute(savedRouteRef);
-            savedRouteData = data;
-          }
-          onViewRoute?.({ data, trip: tripFromRef(savedRouteRef) });
-        },
-      });
-      if (card) slot.append(card);
-    };
-    if (!routeChecked) {
-      routeChecked = true;
-      loadRoute().then(async (ref) => {
-        savedRouteRef = ref;
-        if (ref) savedRouteData = await rebuildSavedRoute(ref);
-        paint();
-      });
-    } else {
-      paint();
-    }
-    return slot;
-  }
-
   function render() {
     body.replaceChildren();
     body.append(renderAccount());
-    body.append(renderCurrentChoice());
-    body.append(renderRouteSlot());
+    body.append(renderSavedButtons());
     body.append(mode === "edit" ? renderPreferencesEdit() : renderPreferencesView());
     body.append(renderSignOut());
   }

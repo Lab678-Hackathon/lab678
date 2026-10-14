@@ -872,6 +872,10 @@ body {
 .mypage-cc-sub { font-size: var(--fs-badge); color: var(--c-text-muted); }
 .mypage-cc-arrow { flex: 0 0 auto; color: var(--c-primary); font-size: var(--fs-title); font-weight: var(--fw-bold); }
 .mypage-cc-explore { flex: 0 0 auto; color: var(--c-primary); font-size: var(--fs-meta); font-weight: var(--fw-bold); }
+/* My Pick · My Route 바로가기 — 동일 디자인(.mypage-cc 재사용) 버튼 2개 스택. */
+.mypage-saved { display: flex; flex-direction: column; gap: var(--space-8); }
+.mypage-cc:disabled { cursor: default; opacity: 0.65; }
+.mypage-cc-sub.is-empty { font-style: italic; color: var(--c-text-muted); }
 
 /* 선호 카드 */
 .mypage-prefs { background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-14); display: flex; flex-direction: column; gap: var(--space-8); }

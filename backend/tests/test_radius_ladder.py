@@ -172,6 +172,41 @@ def test_no_expand_when_enough(monkeypatch):
     assert calls["fetch"] == 0  # 확장 재조회 없음(밀집 → 지연 불변)
 
 
+def test_priority_titles_forces_pin_into_batch(monkeypatch):
+    # 회귀: 저장 루트 재조립 — enrich 배치(상위 K) 밖으로 밀린 pin 스톱이 판정 누락돼
+    # 'feasible 부족 → 재조립 실패'하던 문제. priority_titles 로 선두에 올려 반드시 판정되게.
+    first_pool = [
+        {"contentid": "a", "title": "Alpha"},
+        {"contentid": "b", "title": "Beta"},
+        {"contentid": "pin", "title": "Gamma Hall"},
+    ]
+
+    async def fake_enrich(item, ctx, cond, trace):
+        return _valid(item["contentid"])
+
+    monkeypatch.setattr(orch, "semantic_similarities", _zeros)
+    monkeypatch.setattr(orch, "_enrich", fake_enrich)
+
+    # 기본(priority 없음): 상위 2개(a,b)만 판정 → pin 누락(base 최대라 확장도 없음).
+    judged, _h, _u = asyncio.run(
+        orch.collect_judged(
+            37.57, 126.98, _ctx(), ParsedConditions(), Trace(),
+            first_pool=[dict(it) for it in first_pool], enrich_pool=2, base=3000,
+        )
+    )
+    assert "pin" not in {c.id for (c, *_) in judged}
+
+    # priority_titles 지정: pin 이 배치 선두로 → 판정됨.
+    judged2, _h2, _u2 = asyncio.run(
+        orch.collect_judged(
+            37.57, 126.98, _ctx(), ParsedConditions(), Trace(),
+            first_pool=[dict(it) for it in first_pool], enrich_pool=2, base=3000,
+            priority_titles={"gamma hall"},
+        )
+    )
+    assert "pin" in {c.id for (c, *_) in judged2}
+
+
 def test_base_radius_by_walking_pref():
     # Product: 싫음 1km · 미언급 2km · 좋음 3km(최대 반경).
     assert orch.base_radius(True) == 1000

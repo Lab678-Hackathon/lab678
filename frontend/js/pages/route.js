@@ -16,6 +16,39 @@ function el(tag, className, text) {
   return n;
 }
 
+const SPARKLE_SVG =
+  '<svg viewBox="0 0 24 24" fill="currentColor" width="26" height="26" aria-hidden="true"><path d="M12 2l1.9 5.6L19.5 9.5l-5.6 1.9L12 17l-1.9-5.6L4.5 9.5l5.6-1.9z"/></svg>';
+
+// 저장 루트 '다시보기' 스플래시 — View 를 누르면 즉시 이 화면으로 전환하고, 뒤에서 라이브
+// 재조립(사실·경로선)을 돌린다. 완료되면 app 이 renderRouteView 로 교체한다(자연스러운 전환).
+export function renderRouteLoadingView({ onBack, onHome } = {}) {
+  const root = el("section", "mypage route-view loading-view");
+  const nav = el("div", "input-nav");
+  const back = el("button", "nav-back");
+  back.type = "button";
+  back.setAttribute("aria-label", "Back");
+  back.innerHTML = CHEVRON;
+  back.addEventListener("click", () => onBack?.());
+  const home = el("button", "nav-home");
+  home.type = "button";
+  home.setAttribute("aria-label", "Home");
+  home.innerHTML = HOME;
+  home.addEventListener("click", () => onHome?.());
+  nav.append(back, el("span", "nav-title", "Your route"), home);
+  root.append(nav);
+
+  const center = el("div", "loading-center");
+  const spark = el("div", "loading-spark");
+  spark.innerHTML = SPARKLE_SVG;
+  center.append(
+    spark,
+    el("h2", "loading-headline", "Rebuilding your route"),
+    el("p", "loading-sub", "Checking today's hours and walking path…"),
+  );
+  root.append(center);
+  return root;
+}
+
 // renderRouteView({ data, trip, onBack, onHome })
 // data: 재조립된 RouteData(routes/origin). trip: { start_at, end_at } ISO(카드 날짜·시간용) | null.
 export function renderRouteView({ data, trip, onBack, onHome } = {}) {

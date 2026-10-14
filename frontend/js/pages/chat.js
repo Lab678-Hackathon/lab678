@@ -303,8 +303,10 @@ export function renderChatView({ onBack }) {
       const ok = await saveRoute({
         stops: route.stops.map((s) => s.candidate.title),
         origin,
-        start_hm: startValue,
-        end_hm: endValue,
+        // 시작/종료는 'HH:MM' 시계시각만 저장(startValue 는 "YYYY-MM-DDTHH:MM" 형식) — 재조립이
+        // 오늘 날짜에 이 시각을 붙여 ISO 로 만든다. 날짜까지 넣으면 start_at 이 깨져 재조립 실패.
+        start_hm: startValue.slice(11, 16),
+        end_hm: endValue.slice(11, 16),
       });
       btn.textContent = ok ? "Saved ✓" : "Couldn't save — try again";
       if (!ok) btn.disabled = false;

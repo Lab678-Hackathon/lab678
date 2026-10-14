@@ -154,10 +154,19 @@ export async function clearRoute() {
 // 쓴다 — 시간 판정은 '지금'이 아니라 '창 대비 운영시간'이라, 지금이 몇 시든 저장한 방문 시간대
 // (예: 14:00–18:00) 기준으로 판정돼 루트가 유지된다(now 기준 창은 심야엔 전부 closed 가 됨).
 // pin_titles 로 저장 스톱을 고정 복원하고, 못 찾은 스톱은 조용히 빠진다. 실패/빈결과는 null.
+// 저장된 시작/종료를 'HH:MM' 로 정규화. 과거 저장분은 datetime-local("YYYY-MM-DDTHH:MM")로
+// 들어가 있을 수 있어(구 chat 저장 버그), 'T' 뒤 시각만 뽑아 ISO 재조립 시 start_at 오염을 막는다.
+export function hmOf(value, fallback) {
+  const s = String(value ?? "");
+  const t = s.includes("T") ? s.split("T")[1] : s;
+  const m = t.match(/^(\d{1,2}):(\d{2})/);
+  return m ? `${m[1].padStart(2, "0")}:${m[2]}` : fallback;
+}
+
 export async function rebuildSavedRoute(ref) {
   if (!ref?.stops?.length) return null;
-  const sh = String(ref.start_hm || "10:00");
-  let eh = String(ref.end_hm || "18:00");
+  const sh = hmOf(ref.start_hm, "10:00");
+  let eh = hmOf(ref.end_hm, "18:00");
   // 종료가 시작 이하(비정상)면 안전하게 시작+4시간으로.
   if (eh <= sh) {
     const [h, m] = sh.split(":").map(Number);
@@ -167,15 +176,23 @@ export async function rebuildSavedRoute(ref) {
   }
   const d = new Date();
   const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  try {
-    const env = await postRoute({
-      start_location: ref.origin || { label: "Current location" },
-      start_at: `${ymd}T${sh}:00`,
-      end_at: `${ymd}T${eh}:00`,
-      pin_titles: ref.stops,
-    });
-    return env?.ok ? (env.data ?? null) : null;
-  } catch {
-    return null;
+  const payload = {
+    start_location: ref.origin || { label: "Current location" },
+    start_at: `${ymd}T${sh}:00`,
+    end_at: `${ymd}T${eh}:00`,
+    pin_titles: ref.stops,
+  };
+  // 라이브 재조회라 한 번은 일시적 실패(네트워크·외부 API 지연)가 날 수 있다 → 1회 재시도.
+  // 결과가 실제로 비는 경우(스톱 마감 등)는 재시도해도 같으므로 '루트 있음'일 때만 성공으로 본다.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const env = await postRoute(payload);
+      const data = env?.ok ? (env.data ?? null) : null;
+      if (data?.routes?.length) return data; // 성공(스톱 있음)
+      if (attempt === 1) return data; // 마지막 시도 결과(빈 루트/ null — 투명 안내용)
+    } catch {
+      if (attempt === 1) return null;
+    }
   }
+  return null;
 }

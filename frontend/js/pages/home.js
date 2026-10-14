@@ -9,7 +9,6 @@ import {
   isLoggedIn,
   loadChoice,
   loadRoute,
-  rebuildSavedRoute,
 } from "../state.js";
 import { renderSavedRouteCard } from "../components/saved-route-card.js";
 
@@ -179,25 +178,16 @@ export function renderHomeView({
   const routeSlot = el("div", "home-route-slot");
   content.append(routeSlot);
   (async () => {
+    // 참조(ref)만 로드해 카드를 즉시 렌더 — 라이브 재조립은 View 누르는 순간(showSavedRoute)
+    // 에서 스플래시와 함께 수행한다(홈 로드 시 선재조립 → 카드가 뒤늦게 뜨던 문제 해소).
     const ref = await loadRoute();
     if (!ref) return;
-    const data = await rebuildSavedRoute(ref); // 비면 ref 스톱으로 폴백 렌더
-    const cardEl = renderSavedRouteCard(data, ref, {
+    const cardEl = renderSavedRouteCard(null, ref, {
       onClear: () => {
         clearRoute();
         routeSlot.replaceChildren();
       },
-      onView: () => {
-        const trip =
-          ref.start_hm && ref.end_hm
-            ? (() => {
-                const d = new Date();
-                const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-                return { start_at: `${ymd}T${ref.start_hm}:00`, end_at: `${ymd}T${ref.end_hm}:00` };
-              })()
-            : null;
-        onViewRoute?.({ data, trip });
-      },
+      onView: () => onViewRoute?.(ref),
     });
     if (cardEl) routeSlot.append(cardEl);
   })();

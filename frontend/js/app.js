@@ -13,13 +13,15 @@ import { renderChatView } from "./pages/chat.js";
 import { renderOnboardingView } from "./pages/onboarding.js";
 import { renderMyPageView } from "./pages/mypage.js";
 import { renderChoiceView } from "./pages/choice.js";
-import { renderRouteView } from "./pages/route.js";
+import { renderRouteLoadingView, renderRouteView } from "./pages/route.js";
 import {
   clearLocalChoice,
   guestRecommendUsed,
+  hmOf,
   isLoggedIn,
   loadChoice,
   markGuestRecommended,
+  rebuildSavedRoute,
   restoreChoiceFromServer,
   setResults,
 } from "./state.js";
@@ -46,7 +48,7 @@ export function showHome() {
       onOpenChat: openRouteB,
       onViewChoice: showSavedChoice,
       onOpenMyPage: showMyPage,
-      onViewRoute: (p) => showSavedRoute({ ...p, onBack: showHome }),
+      onViewRoute: (ref) => showSavedRoute({ ref, onBack: showHome }),
     }),
     { fullBleed: true },
   );
@@ -77,23 +79,34 @@ export function showMyPage() {
     renderMyPageView({
       onBack: showHome,
       onHome: showHome,
-      onViewChoice: showSavedChoice,
-      onViewRoute: (p) => showSavedRoute({ ...p, onBack: showMyPage }),
+      // My Pick → 'Select' 눌렀을 때와 같은 선택 상세(LF-09, 지도 풀스크린 아님) — 저장된 선택 보기.
+      onViewPick: showSavedChoice,
+      onViewRoute: (ref) => showSavedRoute({ ref, onBack: showMyPage }),
     }),
   );
 }
 
-// 저장된 B 문화루트 상세 — 재조립된 RouteData 를 경로선 지도 + 루트 카드로 렌더(홈·My Page → View).
-// 뒤로=온 곳(기본 홈), 홈=메인.
-export function showSavedRoute({ data, trip, onBack } = {}) {
-  mount(
-    renderRouteView({
-      data,
-      trip,
-      onBack: onBack || showHome,
-      onHome: showHome,
-    }),
-  );
+// 저장된 B 문화루트 상세 — View 누르는 '순간' 이 함수로 전환하고, 스플래시를 띄운 뒤 라이브
+// 재조립(사실·경로선)을 백그라운드로 돌려 완료되면 결과로 교체한다(홈 로드 시 선재조립 → 카드가
+// 뒤늦게 뜨던 문제 해소). trip(날짜·시간 표기)은 저장 ref 의 시계시각으로 계산. 뒤로=온 곳(기본 홈).
+export function showSavedRoute({ ref, onBack } = {}) {
+  const back = onBack || showHome;
+  const d = new Date();
+  const ymd = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const trip =
+    ref?.start_hm && ref?.end_hm
+      ? {
+          start_at: `${ymd}T${hmOf(ref.start_hm, "10:00")}:00`,
+          end_at: `${ymd}T${hmOf(ref.end_hm, "18:00")}:00`,
+        }
+      : null;
+  // 즉시 스플래시로 전환 → 뒤에서 재조립 → 완료 시 결과(또는 투명 안내)로 교체.
+  mount(renderRouteLoadingView({ onBack: back, onHome: showHome }));
+  rebuildSavedRoute(ref)
+    .catch(() => null)
+    .then((data) =>
+      mount(renderRouteView({ data, trip, onBack: back, onHome: showHome })),
+    );
 }
 
 // LF-09 선택 상세. saved=false(저장 전, Select 직후) / true(저장됨, 홈·마이페이지 진입).

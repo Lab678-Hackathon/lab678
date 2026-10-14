@@ -372,6 +372,12 @@ def _pool_item_key(it: dict) -> str:
     return f"tour:{it.get('contentid')}"
 
 
+def _pool_title(it: dict) -> str:
+    """풀 아이템의 표시 제목(정규화 비교용). 소스별 필드가 달라 한 지점으로 모은다."""
+    raw = it.get("title") or it.get("TITLE") or ""
+    return raw.strip().lower()
+
+
 def _etype_of(it: dict) -> Any:
     """풀 아이템 유형(fetch 단계 _etype, 없으면 contenttypeid 유추). 선호 랭킹용."""
     return it.get("_etype") or type_from_contenttype(it.get("contenttypeid"))
@@ -470,11 +476,14 @@ async def _rerank_and_judge(
     cond: ParsedConditions,
     trace: Trace,
     enrich_pool: int,
+    priority_titles: set[str] | None = None,
 ) -> tuple[list[EnrichResult], int, set[str]]:
     """[select+judge] 풀을 (관심사 enum→의미유사도→실내외→거리)로 재정렬 후 상위 K 판정.
 
     P2 의미 재정렬(selection 전)을 단일 지점으로 모은 헬퍼 — A·B·반경 ladder 가 공용한다.
-    반환: (유효 판정결과, Hard 제외 수, 판정에 소비한 아이템 키 집합). 사실·가용성은 _enrich 소유.
+    priority_titles(저장 루트 재조립의 pin 제목)가 있으면 해당 아이템을 **배치 맨 앞으로** 올려
+    판정 상위 K 밖으로 밀려 'feasible 누락 → 재조립 실패'하던 문제를 막는다(판정 자체는 불변 —
+    닫힌 스톱은 여전히 Hard 제외돼 조용히 빠진다, §6). 반환: (유효 판정결과, Hard 제외 수, 소비 키).
     """
     if not pool:
         return [], 0, set()
@@ -493,6 +502,9 @@ async def _rerank_and_judge(
             ),
         )
         pool = [pool[i] for i in order]
+    # pin 제목 매칭 아이템을 선두로(안정 정렬 — 나머지 순서 보존). 저장 스톱이 반드시 판정되게.
+    if priority_titles:
+        pool = sorted(pool, key=lambda it: 0 if _pool_title(it) in priority_titles else 1)
     batch = pool[:enrich_pool]
     seen = {_pool_item_key(it) for it in batch}
     results = await asyncio.gather(*(_enrich(it, ctx, cond, trace) for it in batch))
@@ -512,6 +524,7 @@ async def collect_judged(
     enrich_pool: int,
     min_viable: int = _MIN_VIABLE,
     base: int = _SEARCH_RADIUS_M,
+    priority_titles: set[str] | None = None,
 ) -> tuple[list[EnrichResult], int, int]:
     """[P1 적응형 반경] 1단계 풀로 판정 → 유효가 min_viable 미만이면 반경 ladder 로 확대 재조회.
 
@@ -521,7 +534,7 @@ async def collect_judged(
     반환: (유효 판정결과, Hard 제외 수, 최종 사용 반경).
     """
     judged, hard, seen = await _rerank_and_judge(
-        first_pool, ctx, cond, trace, enrich_pool
+        first_pool, ctx, cond, trace, enrich_pool, priority_titles
     )
     # 확장은 base(걷기 선호가 정한 기본 반경)보다 큰 단계만 — base 가 3km 면 확장 없음.
     used_radius = base
@@ -530,7 +543,9 @@ async def collect_judged(
             break
         pool = await _fetch_pool(lat, lng, trace, ctx.start_at.date(), radius)
         pool = [it for it in pool if _pool_item_key(it) not in seen]
-        j2, h2, seen2 = await _rerank_and_judge(pool, ctx, cond, trace, enrich_pool)
+        j2, h2, seen2 = await _rerank_and_judge(
+            pool, ctx, cond, trace, enrich_pool, priority_titles
+        )
         for cand, *_ in j2:  # 확대로 편입된 후보 표시 → 프론트 거리 라벨(투명)
             # 'far' 는 '언제 판정됐나'(확대 라운드)가 아니라 '실제로 base 밖인가'로 판단한다.
             # 밀집 지역에선 base 안 후보가 1차 top-K 컷오프 밖으로 밀려 확대 라운드에서야

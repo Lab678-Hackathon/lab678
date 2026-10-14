@@ -60,6 +60,7 @@ from app.models.recommend import (
     Candidate,
     InterestCode,
     MovementInfo,
+    ParsedConditions,
     Provenance,
     StartLocation,
     UnconfirmedFlag,
@@ -246,6 +247,17 @@ async def recommend_route(
     # [keyword] 특정 주제 키워드 검색 결과 병합(P4, A 와 동일) — 발견 범위만 확장, 사실 불변.
     pool = await _augment_with_keywords(pool, lat, lng, base, cond, trace)
 
+    # [저장 루트 재조립] pin 스톱을 '제목 키워드'로 직접 조회해 풀에 보강한다. 원래 관심사·키워드로
+    # 발굴됐던 스톱(또는 타입별 10건 컷에 밀린 스톱)은 일반 위치조회 풀엔 없을 수 있어, 그러면
+    # priority_titles 재정렬도 소용없다(풀에 없으니) → feasible 누락 → 재조립 실패. 이름으로 끌어와
+    # 반드시 판정 후보에 넣는다(발견 범위만 확장 — 사실·가용성 불변·반경 밖은 _fetch 가 drop, §6).
+    if pin_titles:
+        # 재조립은 저장 당시 스톱을 최대한 복원해야 하므로 base 가 아니라 최대 발견 반경(3km)으로
+        # 끌어온다 — 원래 루트에 확대 편입(base 밖)됐던 스톱도 drop 되지 않게.
+        pool = await _augment_with_keywords(
+            pool, lat, lng, 3000, ParsedConditions(keywords=list(pin_titles)), trace
+        )
+
     # [select+judge] 의미 관련도 선발(P2) + 적응형 반경(P1) — A 와 동일 정책을 공용 헬퍼로.
     # feasible 가 부족하면 반경을 넓혀 재조회(루트 'unmet' 감소, 강제 채움 아님). '더' 요청 시
     # 목표를 _MORE_VIABLE 로 올려 더 넓게 발굴(문제1).
@@ -260,6 +272,10 @@ async def recommend_route(
         base=base,
         # '더/추가'면 목표(prev+N)까지 feasible 를 모으도록 min_viable 을 올려 반경 확장을 유도.
         min_viable=max(_MORE_VIABLE, max_stops or 0) if want_more else _MIN_VIABLE,
+        # 저장 루트 재조립: pin 스톱 제목을 판정 배치 선두로 올려 feasible 누락(→ 재조립 실패)을 막는다.
+        priority_titles=(
+            {(t or "").strip().lower() for t in pin_titles} if pin_titles else None
+        ),
     )
     # 반경 확대 안내는 '확대 트리거' 가 아니라 '실제로 base 밖 스톱이 루트에 들어갔나' 로
     # 결정한다(최종 route.stops 기준, 아래 성공 반환 직전) — A 와 동일 정책.
