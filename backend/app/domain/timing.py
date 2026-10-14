@@ -315,7 +315,9 @@ def effective_end_at(
     end, source = min(candidates, key=lambda c: c[0])
     if end >= form_end_at:  # 폼보다 넓히지 않음(보수적)
         return form_end_at, None
-    if end - start_at < _MIN_WINDOW:  # 30분 미만/역전 → 무시(지어내지 않음, raise 안 함)
+    if (
+        end - start_at < _MIN_WINDOW
+    ):  # 30분 미만/역전 → 무시(지어내지 않음, raise 안 함)
         return form_end_at, None
     return end, source
 

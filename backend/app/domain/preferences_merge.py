@@ -47,9 +47,7 @@ def merge_saved_open_preferences(
         return cond
     if not saved_open_preferences:
         return cond
-    return cond.model_copy(
-        update={"open_preferences": list(saved_open_preferences)}
-    )
+    return cond.model_copy(update={"open_preferences": list(saved_open_preferences)})
 
 
 def merge_saved_walks(
