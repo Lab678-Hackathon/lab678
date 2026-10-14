@@ -1019,21 +1019,41 @@ body {
 .route-legend-item.lg-official { color: var(--c-fits-text); border-color: var(--c-fits-text); }
 .route-legend-item.lg-check { color: var(--c-check-text); border-color: var(--c-check-text); }
 
-/* 타임라인 */
-.route-timeline { display: flex; flex-direction: column; gap: var(--space-2); }
-.route-start, .route-end { display: flex; align-items: center; gap: var(--space-8); font-size: var(--fs-body); font-weight: var(--fw-semibold); }
-.route-start { color: var(--c-primary); }
+/* 타임라인 (Figma v2) — 좌측 거터: 걷는사람·남색점·번호원28·세로선 / 우측: 장소 카드.
+   세로선은 걷기 구간 진한 청록, 머무는 구간 연한 청록(28%). 거터 중앙 x=50. */
+.route-timeline { display: flex; flex-direction: column; }
+.route-start, .route-seg, .route-stop, .route-end { position: relative; padding-left: 60px; }
+.route-start::before, .route-seg::before, .route-stop::before, .route-end::before {
+  content: ""; position: absolute; left: 48px; width: 4px; top: 0; bottom: 0; border-radius: 2px;
+}
+.route-seg::before { background: var(--c-primary); }              /* 걷는 구간 — 진하게 */
+.route-stop::before { background: rgba(0, 115, 133, 0.28); }      /* 머무는 구간 — 연하게 */
+.route-start::before { background: var(--c-primary); top: 30px; } /* 점 아래에서 시작 */
+.route-end::before { background: rgba(0, 115, 133, 0.28); bottom: auto; height: 16px; }
+
+.route-start, .route-end { display: flex; align-items: center; gap: var(--space-8); min-height: 36px; font-size: var(--fs-body); font-weight: var(--fw-semibold); }
+.route-start { color: var(--c-text); }
 .route-end { color: var(--c-text-muted); }
 .route-start-time { margin-left: auto; font-size: var(--fs-badge); color: var(--c-text-muted); }
-.route-seg { display: flex; align-items: center; gap: var(--space-8); padding-left: 3px; min-height: 22px; }
-.route-seg-rail { width: 2px; align-self: stretch; margin-left: 8px; background: var(--c-border); }
-.route-seg-text { font-size: var(--fs-badge); color: var(--c-text-muted); }
-.route-stop { display: flex; gap: var(--space-10); align-items: flex-start; padding: var(--space-6) 0; }
-.route-stop-num { flex: 0 0 auto; width: 22px; height: 22px; border-radius: var(--r-full); background: var(--c-primary); color: var(--c-on-primary); font-size: var(--fs-badge); font-weight: var(--fw-bold); display: flex; align-items: center; justify-content: center; }
-.route-stop-body { flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--space-4); min-width: 0; }
-.route-stop-title-line { display: flex; align-items: center; gap: var(--space-6); flex-wrap: wrap; }
-.route-stop-glyph { font-size: 15px; }
-.route-stop-title { font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-text); }
+.route-start-walker { position: absolute; left: 2px; top: 50%; transform: translateY(-50%); }
+.route-start-dot { position: absolute; left: 41px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; background: var(--c-ink-pin); border: 3px solid #fff; box-shadow: var(--shadow-pin); z-index: 1; }
+.route-end-flag { position: absolute; left: 38px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--c-primary-ink); z-index: 1; }
+
+/* 걷는 구간 글자 — 청록 13 SemiBold(이모지 없이). */
+.route-seg { min-height: 30px; display: flex; align-items: center; }
+.route-seg-text { font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: var(--c-primary-ink); }
+
+/* 번호 원 28 — 세로선 위(거터 중앙). */
+.route-stop { padding-top: var(--space-8); padding-bottom: var(--space-8); }
+.route-stop-num { position: absolute; left: 36px; top: 16px; width: 28px; height: 28px; border-radius: 50%; background: var(--c-primary); color: var(--c-on-primary); font-size: var(--fs-meta); font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid var(--c-surface); z-index: 1; }
+/* 장소 카드 — 흰 카드·테두리·radius·패딩 16. */
+.route-stop-body { display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md); padding: var(--space-14); }
+.route-stop-title-line { display: flex; align-items: flex-start; gap: var(--space-6); flex-wrap: wrap; }
+.route-stop-title { flex: 1 1 auto; font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); line-height: 1.25; }
+/* 유형 태그 — 3D 아이콘 24 + 이름 13 SemiBold. 높이 30, 좌6·우10. */
+.route-stop-type { display: inline-flex; align-items: center; gap: var(--space-4); height: 30px; padding: 0 var(--space-10) 0 var(--space-6); border-radius: var(--r-full); background: var(--c-primary-tint); border: 0; flex: 0 0 auto; }
+.route-stop-type.is-toggle { cursor: pointer; }
+.route-stop-type-label { font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: var(--c-primary-ink); white-space: nowrap; }
 .route-stop-reasons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .route-stop-when { display: flex; align-items: center; gap: var(--space-6); }
 .route-stop-time { font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-primary); }

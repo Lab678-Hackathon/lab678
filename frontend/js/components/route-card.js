@@ -2,13 +2,9 @@
 // 헤드라인·날짜/시간 → WHY THIS ROUTE(루트 상태) → 확인필요 요약 → 범례 →
 // 타임라인(Start→구간→스톱, 스톱별 이유·사실·Remove) → 종료 → 총계.
 // 체류시간은 주장하지 않는다(B-T01) — 각 스톱 '예정 분'은 표기 안 함.
-import { TYPE_GLYPH, farChip } from "./result-card.js";
+import { farChip } from "./result-card.js";
+import { typeIcon3d, TYPE_LABEL_3D, icon3d } from "./icons3d.js";
 
-const STATUS_LABEL = {
-  fits: "Fits your conditions",
-  check_needed: "Partially confirmed", // 화면 라벨만(상태키 check_needed 유지)
-  alternative: "Alternative",
-};
 const ROUTE_STATUS = {
   fits: "Ready to go (route)",
   check_needed: "Partially confirmed (route)",
@@ -33,10 +29,10 @@ function fmtDate(iso) {
 }
 
 function segmentRow(seg) {
+  // 걷는 구간 — 세로선은 진한 청록(CSS). 이동 글자는 청록 13 SemiBold(이모지 없이).
   const row = el("div", "route-seg");
-  row.append(el("span", "route-seg-rail"));
   const parts = [];
-  if (seg.movement?.display) parts.push(`🚶 ${seg.movement.display}`);
+  if (seg.movement?.display) parts.push(seg.movement.display);
   if (seg.movement?.distance_m)
     parts.push(`${(seg.movement.distance_m / 1000).toFixed(seg.movement.distance_m >= 1000 ? 1 : 2)} km`);
   row.append(el("span", "route-seg-text", parts.join(" · ")));
@@ -62,27 +58,25 @@ function stopRow(stop, onRemove) {
 
   const titleLine = el("div", "route-stop-title-line");
   titleLine.append(el("span", "route-stop-title", c.title));
-  // 등급 라벨 — 분류 근거(signals)가 있으면 버튼으로(누르면 AI 분류 매칭 펼침, rec A 와 동일 UX).
+  // 유형 태그 — 3D 유형 아이콘 24 + 유형 이름(Figma v2, 상태 배지 대신). 분류 근거(signals)가
+  // 있으면 태그를 눌러 AI 분류 매칭 칩을 펼친다(기존 투명 UX 유지). 미확인 구분은 flags·Planned 로.
   const hasSignals = Array.isArray(c.signals) && c.signals.length > 0;
-  const badge = el(
-    hasSignals ? "button" : "span",
-    "badge badge--sm",
-    STATUS_LABEL[c.status] ?? c.status,
+  const typeTag = el(hasSignals ? "button" : "span", "route-stop-type");
+  if (hasSignals) typeTag.type = "button";
+  typeTag.append(
+    typeIcon3d(c.type, { size: 24 }),
+    el("span", "route-stop-type-label", TYPE_LABEL_3D[c.type] || "Place"),
   );
-  badge.dataset.status = c.status;
-  titleLine.append(
-    el("span", "route-stop-glyph", `${TYPE_GLYPH[c.type] ?? TYPE_GLYPH.default}`),
-    badge,
-  );
+  titleLine.append(typeTag);
   const far = farChip(c); // 반경 확대로 편입된 스톱 → 분홍 "Far" 칩
   if (far) titleLine.append(far);
   body.append(titleLine);
 
-  // 등급 라벨 펼침 패널 — AI 분류 매칭 칩(표시 전용). 기본 접힘. ✦ AI 패널은 고지만 남긴다.
+  // 유형 태그 펼침 패널 — AI 분류 매칭 칩(표시 전용). 기본 접힘. ✦ AI 패널은 고지만 남긴다.
   if (hasSignals) {
-    badge.type = "button";
-    badge.classList.add("badge-toggle");
-    badge.setAttribute("aria-expanded", "false");
+    typeTag.classList.add("is-toggle");
+    typeTag.setAttribute("aria-expanded", "false");
+    typeTag.setAttribute("aria-label", "Show AI classification keywords");
     const sigPanel = el("div", "card-signals");
     sigPanel.hidden = true;
     const chips = el("div", "signals");
@@ -93,12 +87,12 @@ function stopRow(stop, onRemove) {
     }
     sigPanel.append(chips);
     body.append(sigPanel);
-    badge.addEventListener("click", (e) => {
+    typeTag.addEventListener("click", (e) => {
       e.stopPropagation();
       const open = sigPanel.hidden;
       sigPanel.hidden = !open;
-      badge.setAttribute("aria-expanded", String(open));
-      badge.classList.toggle("is-open", open);
+      typeTag.setAttribute("aria-expanded", String(open));
+      typeTag.classList.toggle("is-open", open);
     });
   }
 
@@ -253,10 +247,13 @@ export function renderRouteCard(route, origin, opts = {}) {
 
   // ── 타임라인: Start → (seg) → stop1 … ──
   const timeline = el("div", "route-timeline");
+  // 출발 — 남색 점 + 왼쪽 3D 걷는 사람(36). 세로선은 점 아래에서 시작(Figma v2).
   const startRow = el("div", "route-start");
-  startRow.append(el("span", "route-start-dot", "◉"));
-  const startText = el("span", "route-start-label", `Start · ${origin?.label ?? "Your start"}`);
-  startRow.append(startText);
+  startRow.append(
+    icon3d("walking", { size: 36, className: "route-start-walker" }),
+    el("span", "route-start-dot"),
+    el("span", "route-start-label", `Start · ${origin?.label ?? "Your start"}`),
+  );
   if (trip?.start_at)
     startRow.append(el("span", "route-start-time", fmtTime(trip.start_at)));
   timeline.append(startRow);
