@@ -4,8 +4,7 @@
 //   임의 직선 금지 — 실제 Tmap path 가 있을 때만 그린다(PRD §7).
 // - SDK 로드 실패(도메인 미등록 등) 시 지도 컨테이너를 숨긴다(카드는 그대로).
 import { API_BASE } from "./config.js";
-import { TYPE_GLYPH } from "./components/result-card.js";
-import { icon3dSrc } from "./components/icons3d.js";
+import { icon3dSrc, type3dSrc } from "./components/icons3d.js";
 
 const TEAL = "#007385";
 const WHITE = "#ffffff";
@@ -67,11 +66,12 @@ function drawRouteLines(maps, map, latlngs, outer, inner) {
   });
 }
 
-// 번호+유형 핀. 선택 상태/걷기 라벨은 포커스 때 DOM 클래스/텍스트로 갱신.
-function numPinHTML(glyph, n) {
+// A 결과 지도 핀 — 흰 원(40) + 3D 유형 아이콘(28), 번호는 우상단 청록 원(18).
+// 선택 시 CSS 로 원 48·아이콘 34·청록 테두리 3 로 확대. 걷기 라벨은 포커스 때 텍스트 갱신.
+function typePinHTML(type, n) {
   return (
     '<div class="map-pin">' +
-    `<div class="map-pin-body"><span class="map-pin-glyph">${glyph}</span></div>` +
+    `<div class="map-pin-body"><img class="map-pin-icon" src="${type3dSrc(type)}" width="28" height="28" alt="" aria-hidden="true" draggable="false" /></div>` +
     `<span class="map-pin-num">${n}</span>` +
     '<span class="map-pin-walk"></span>' +
     "</div>"
@@ -102,7 +102,8 @@ export async function renderMap(container, origin, candidates) {
   new maps.Marker({
     position: new maps.LatLng(origin.lat, origin.lng),
     map,
-    icon: { content: startPinHTML(), anchor: new maps.Point(9, 9) },
+    // 출발 걷는 사람(왼쪽) + 남색 점 — 점 중심이 좌표에.
+    icon: { content: startPinWalkHTML(), anchor: new maps.Point(47, 18) },
     zIndex: 50,
   });
 
@@ -115,11 +116,10 @@ export async function renderMap(container, origin, candidates) {
   candidates.forEach((c, i) => {
     if (c.lat == null || c.lng == null) return;
     const pos = new maps.LatLng(c.lat, c.lng);
-    const glyph = TYPE_GLYPH[c.type] ?? TYPE_GLYPH.default;
     const marker = new maps.Marker({
       position: pos,
       map,
-      icon: { content: numPinHTML(glyph, i + 1), anchor: new maps.Point(16, 16) },
+      icon: { content: typePinHTML(c.type, i + 1), anchor: new maps.Point(20, 20) },
     });
     maps.Event.addListener(marker, "click", () => pinClickCb && pinClickCb(c.id));
     entries[c.id] = { marker, index: i, cand: c };
@@ -307,11 +307,10 @@ export async function renderMiniMap(container, origin, candidate) {
     icon: { content: startPinHTML(), anchor: new maps.Point(9, 9) },
     zIndex: 50,
   });
-  const glyph = TYPE_GLYPH[candidate.type] ?? TYPE_GLYPH.default;
   new maps.Marker({
     position: new maps.LatLng(candidate.lat, candidate.lng),
     map,
-    icon: { content: numPinHTML(glyph, 1), anchor: new maps.Point(16, 16) },
+    icon: { content: typePinHTML(candidate.type, 1), anchor: new maps.Point(20, 20) },
     zIndex: 100,
   });
   const path = candidate.movement?.path;

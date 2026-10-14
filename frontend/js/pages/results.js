@@ -4,6 +4,7 @@
 import { directionsUrl, renderResultCard } from "../components/result-card.js";
 import { openDirectionsOverlay } from "../components/directions-overlay.js";
 import { showLoginSheet } from "../components/login-sheet.js";
+import { icon3d } from "../components/icons3d.js";
 import { renderMap } from "../map.js";
 import { isLoggedIn, loadChoice, state } from "../state.js";
 
@@ -105,8 +106,7 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
   const home = el("button", "icon-home");
   home.type = "button";
   home.setAttribute("aria-label", "Home");
-  home.innerHTML =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>';
+  home.append(icon3d("home", { size: 28 })); // 3D 집 28 (흰 원 40 안) — Figma v2
   if (onHome) home.addEventListener("click", onHome);
   const topRow = el("div", "results-top-row");
   topRow.append(back, condPill, home);
