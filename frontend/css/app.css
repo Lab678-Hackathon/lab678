@@ -775,7 +775,7 @@ body {
 
 /* ── 시간 시트 (휠 피커) ── */
 .time-sheet { display: flex; flex-direction: column; gap: var(--space-14); }
-.time-quick { display: flex; gap: var(--space-8); }
+.time-quick { display: flex; flex-wrap: wrap; gap: var(--space-8); }
 .time-wheel { position: relative; display: flex; justify-content: center; gap: var(--space-20); padding: var(--space-4) 0; }
 .wheel-center { position: absolute; top: 50%; left: var(--space-14); right: var(--space-14); height: 40px; transform: translateY(-50%); background: var(--c-bg); border-radius: var(--r-flag); pointer-events: none; }
 .wheel-col { position: relative; z-index: 1; height: 120px; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; text-align: center; }

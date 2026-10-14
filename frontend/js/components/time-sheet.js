@@ -94,6 +94,7 @@ export function openTimeSheet({ kind, startValue, endValue, onDone }) {
           { label: "In 1 hr", date: () => new Date(startDate.getTime() + 3600000) },
           { label: "In 2 hr", date: () => new Date(startDate.getTime() + 2 * 3600000) },
           { label: "In 3 hr", date: () => new Date(startDate.getTime() + 3 * 3600000) },
+          { label: "In 4 hr", date: () => new Date(startDate.getTime() + 4 * 3600000) },
         ];
 
     // 휠
