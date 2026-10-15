@@ -103,7 +103,7 @@ def test_rollup_budget():
         "See each stop for its price"
     )
     unknown = _c("u", 37.571, price=PriceStatus.UNKNOWN)
-    assert rollup_budget([_A, unknown]) == "Total cost needs checking"
+    assert rollup_budget([_A, unknown]) == "Can't confirm yet · check total cost"
 
 
 def test_route_name():
