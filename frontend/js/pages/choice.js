@@ -1,7 +1,7 @@
 // LF-09 · 선택 상세 (저장 전/후). 10/8 멘토링 "저장 동작 명확하게".
-//  - 저장 전(9-1a/b/c): 제목 "Your pick", "Not saved yet", 버튼 "Save choice".
-//  - 저장 후(9-1·9-1s): 제목 "Your current choice", 버튼 "See on map", toast.
-// 선택 ≠ 방문(booking 아님) 고지를 양쪽 모두 유지. 저장 전엔 current choice로 안 보인다.
+//  - 저장 전(9-1a/b/c): 제목 "Save to My Pick?", "Not saved yet", 버튼 "Save to My Pick".
+//  - 저장 후(9-1·9-1s): 제목 "My Pick", 버튼 "See on map", toast "Saved to My Pick".
+// 선택 ≠ 방문(booking 아님) 고지를 양쪽 모두 유지. 저장 전엔 My Pick으로 안 보인다.
 import { isLoggedIn, saveChoice } from "../state.js";
 import { showLoginSheet } from "../components/login-sheet.js";
 import { icon3d } from "../components/icons3d.js";
@@ -48,7 +48,7 @@ function showSaveToast() {
   toast.append(el("span", "toast-check", "✓"));
   const t = el("div", "toast-text");
   t.append(
-    el("strong", null, "Saved as your current choice"),
+    el("strong", null, "Saved to My Pick"),
     el("span", null, "Not a booking — check official details before you go."),
   );
   toast.append(t);
@@ -101,7 +101,7 @@ export function renderChoiceView({
     home.addEventListener("click", () => onHome?.());
     nav.append(
       back,
-      el("span", "nav-title", isSaved ? "Your current choice" : "Your pick"),
+      el("span", "nav-title", isSaved ? "My Pick" : "Save to My Pick?"),
       home,
     );
     root.append(nav);
@@ -136,7 +136,7 @@ export function renderChoiceView({
     facts.append(
       factRow(
         "Price",
-        candidate.price?.raw || candidate.price?.display || "Price needs checking",
+        candidate.price?.raw || candidate.price?.display || "Price to check",
       ),
     );
     if (candidate.movement?.display) {
@@ -166,11 +166,11 @@ export function renderChoiceView({
         "choice-note",
         isSaved
           ? "This is your saved choice — not a booking or visit record. Check official details before you go."
-          : "Not saved yet. Save it to keep it as your current choice. Saving isn't a booking.",
+          : "Not saved yet. Save it to keep it as My Pick. Saving isn't a booking.",
       ),
     );
 
-    // 버튼 — 저장 전: Save choice / Official details / Back to results.
+    // 버튼 — 저장 전: Save to My Pick / Official details / Back to results.
     //        저장 후: See on map / Official details / Find other options.
     const actions = el("div", "choice-actions");
     if (isSaved) {
@@ -179,15 +179,15 @@ export function renderChoiceView({
       map.addEventListener("click", () => onSeeMap?.());
       actions.append(map);
     } else {
-      const save = el("button", "btn-cta", "Save choice");
+      const save = el("button", "btn-cta", "Save to My Pick");
       save.type = "button";
       save.addEventListener("click", () => {
         // 비회원이 저장 시도 → 로그인 유도(저장은 계정에 영속되므로). 로그인 후 다시 저장.
         if (!isLoggedIn()) {
           showLoginSheet({
-            title: "Sign in to save your pick",
+            title: "Sign in to save to My Pick",
             subtitle:
-              "Saving keeps this as your current choice across devices. Would you like to sign in now?",
+              "Saving keeps this as My Pick across devices. Would you like to sign in now?",
           });
           return;
         }

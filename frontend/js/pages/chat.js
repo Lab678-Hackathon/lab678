@@ -288,9 +288,9 @@ export function renderChatView({ onBack, onHome }) {
     function selectPick(cand) {
       if (!isSignedIn()) {
         showLoginSheet({
-          title: "Sign in to save your pick",
+          title: "Sign in to save to My Pick",
           subtitle:
-            "Saving keeps this as your current choice across devices. Would you like to sign in now?",
+            "Saving keeps this as My Pick across devices. Would you like to sign in now?",
         });
         return;
       }
@@ -303,7 +303,7 @@ export function renderChatView({ onBack, onHome }) {
       }
       bubble(
         "assistant",
-        `Saved “${cand.title}” to your picks — find it on Home or My Page.`,
+        `Saved “${cand.title}” to My Pick — find it on Home or My Page.`,
       );
     }
     cands.forEach((c, i) => {
@@ -375,9 +375,9 @@ export function renderChatView({ onBack, onHome }) {
       // 비회원이 저장 시도 → 로그인 유도(DB 영속). 로그인 후 다시 저장.
       if (!isSignedIn()) {
         showLoginSheet({
-          title: "Sign in to save your route",
+          title: "Sign in to save to My Route",
           subtitle:
-            "Saving keeps this route on your home & My Page. Would you like to sign in now?",
+            "Saving keeps this as My Route on your home & My Page. Would you like to sign in now?",
         });
         return;
       }

@@ -114,7 +114,7 @@ function stopRow(stop, onRemove) {
     const when = el("div", "route-stop-when");
     if (stop.visit_provenance === "unconfirmed") {
       when.append(
-        el("span", "route-stop-time route-stop-time--check", "Duration needs checking"),
+        el("span", "route-stop-time route-stop-time--check", "Check visit time"),
       );
     } else {
       const label =
@@ -240,7 +240,7 @@ export function renderRouteCard(route, origin, opts = {}) {
   for (const [cls, label] of [
     ["lg-estimate", "≈ Estimated"],
     ["lg-planned", "Planned"],
-    ["lg-check", "needs checking"],
+    ["lg-check", "To check"],
   ])
     legend.append(el("span", `route-legend-item ${cls}`, label));
   card.append(legend);

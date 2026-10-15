@@ -176,7 +176,7 @@ def rollup_budget(stops: list[Candidate]) -> str:
     if any(
         st in (PriceStatus.UNKNOWN, PriceStatus.PARTIAL_OR_AMBIGUOUS) for st in statuses
     ):
-        return "Total cost needs checking"
+        return "Can't confirm yet · check total cost"
     if all(st == PriceStatus.FREE for st in statuses):
         return "All stops are free"
     return "See each stop for its price"

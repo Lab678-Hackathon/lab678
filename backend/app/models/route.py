@@ -57,7 +57,7 @@ class Route(BaseModel):
     # 루트 전체 도보 이동시간(알려진 구간 합, estimate). 한 구간이라도 미확인이면 None.
     total_walk_minutes: int | None = None
     walk_provenance: Provenance = Provenance.ESTIMATE
-    budget_note: str  # 예: "Total cost needs checking" / "All stops free"
+    budget_note: str  # 예: "Can't confirm yet · check total cost" / "All stops are free"
     stay_note: str  # 계획 방문시간 안내(예상/공식 구분)
     # 전체 종료 예상 시각(도보+방문 체인). 도보 미확인이면 None.
     finish_at: datetime | None = None

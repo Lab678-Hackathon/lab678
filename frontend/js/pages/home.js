@@ -155,7 +155,7 @@ export function renderHomeView({
     coreAction({
       kicker: "CHOOSE A DATE",
       title: "Plan a route",
-      sub: "2–3 experiences for a date you choose.",
+      sub: "2+ cultural experiences for a date you choose.",
       cta: "Create a route",
       image: "card-b-plan-a-route.png",
       disabled: false,
@@ -171,12 +171,12 @@ export function renderHomeView({
     const choice = el("div", "choice-card");
     const head = el("div", "choice-card-head");
     head.append(
-      el("span", "choice-tag", "Your current choice"),
+      el("span", "choice-tag", "My Pick"),
       el("span", "choice-when", "Today"),
     );
     const clear = el("button", "choice-clear", "✕");
     clear.type = "button";
-    clear.title = "Clear current choice";
+    clear.title = "Clear My Pick";
     clear.addEventListener("click", (e) => {
       e.stopPropagation();
       clearChoice();

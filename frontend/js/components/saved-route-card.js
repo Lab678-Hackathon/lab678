@@ -22,7 +22,7 @@ export function renderSavedRouteCard(routeData, ref, { onClear, onView } = {}) {
   const card = el("div", "choice-card route-choice-card");
   const head = el("div", "choice-card-head");
   head.append(
-    el("span", "choice-tag", "Your current route"),
+    el("span", "choice-tag", "My Route"),
     el("span", "choice-when", r ? "Refreshed" : "Saved"),
   );
   if (onClear) {
