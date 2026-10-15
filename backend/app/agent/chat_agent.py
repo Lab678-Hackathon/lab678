@@ -166,22 +166,22 @@ async def dispatch_tool(
             )
             or None
         )
-        # [프롬프트 우선 — 시간창] 프롬프트가 명시한 시작/종료 시각을 폼/칩 기본값보다 '먼저' 반영한
-        # 뒤에 경계(30분·자정)를 검증한다 — 유효한 프롬프트 창이 짧은 기본 폼 창 때문에 거부되지 않게
-        # (프롬프트 > 폼, §6 Request 우선). 날짜 shift 는 orchestrator 가 수행.
-        start_at, end_at, cond = context.start_at, context.end_at, None
-        if note:
-            cond = await parse_note(note)
-            ps, pe, applied = resolve_prose_window(
-                start_at, end_at, cond.start_time, cond.end_time, cond.duration_minutes
+        # [프롬프트 우선 — 시간창] 프롬프트가 명시한 시작/종료 시각을 '먼저' 반영한 창으로 경계
+        # (30분·자정)를 검증한다 — 유효한 프롬프트 창이 짧은 기본 폼 창 때문에 거부되지 않게
+        # (프롬프트 > 폼, §6 Request 우선). 단 검증은 '임시' 창으로만 하고, 실제 적용·프론트 반환은
+        # orchestrator 가 단일 지점에서 수행한다(ctx 는 원래 폼 창 유지 — 여기서 미리 바꾸면
+        # orchestrator 가 window 를 안 돌려줘 trip 칩 미동기화). 날짜 shift 도 orchestrator 담당.
+        cond = await parse_note(note) if note else None
+        vs, ve = context.start_at, context.end_at
+        if cond is not None:
+            vs, ve, _ = resolve_prose_window(
+                vs, ve, cond.start_time, cond.end_time, cond.duration_minutes
             )
-            if applied is not None:
-                start_at, end_at = ps, pe
-        validate_available_time(start_at, end_at)
+        validate_available_time(vs, ve)
         ctx = RequestContext(
             start_location=context.start_location,
-            start_at=start_at,
-            end_at=end_at,
+            start_at=context.start_at,
+            end_at=context.end_at,
             note=note,
             conditions=cond,  # 이미 파싱했으면 재사용(orchestrator 가 재파싱 안 함)
         )

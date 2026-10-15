@@ -256,8 +256,9 @@ def test_empty_route_without_unmet_uses_no_results(monkeypatch):
 
 
 def test_prompt_window_overrides_short_form_window(monkeypatch):
-    # 폼/칩 기본 창이 짧아도(25분) 프롬프트가 1–5 PM 을 명시하면 거부되지 않고 루트가 돈다.
-    # 검증(30분)이 프롬프트 창 반영 '후'에 돌아야 함 — 프롬프트 > 폼(§6 Request 우선).
+    # 폼/칩 기본 창이 짧아도(25분) 프롬프트가 1–5 PM 을 명시하면 '30분 미만'으로 거부되지 않고
+    # 루트 경로가 실행된다 — 검증이 프롬프트 창 반영 '후'에 돌기 때문(프롬프트 > 폼, §6 Request 우선).
+    # (실제 창 적용·available_minutes 산정은 orchestrator 가 하므로 여기선 호출 성사만 확인.)
     from app.agent import route_orchestrator as ro
     from app.models.recommend import ParsedConditions
 
@@ -275,7 +276,7 @@ def test_prompt_window_overrides_short_form_window(monkeypatch):
     captured: dict = {}
 
     async def fake_route(ctx, trace, *a, **kw):
-        captured["available"] = ctx.available_minutes
+        captured["called"] = True
         return RouteData(routes=[], origin=None, unmet="x")
 
     monkeypatch.setattr(al, "parse_note", fake_parse)
@@ -287,6 +288,55 @@ def test_prompt_window_overrides_short_form_window(monkeypatch):
         end_at=datetime(2026, 10, 8, 12, 0),  # 25분(<30) — 프롬프트 없으면 거부됐을 창
     )
     resp = _run("plan a cultural route from 1pm to 5pm", short_form)
-    # 30분 미만 clarify 가 아니라 실제 루트 경로가 실행됐어야 한다.
+    # 30분 미만 clarify 가 아니라 실제 루트 경로가 실행됐어야 한다(검증이 프롬프트 창으로 통과).
     assert "30 minutes" not in (resp.message or "")
-    assert captured.get("available") == 240  # 프롬프트 창(13:00–17:00)이 반영됨
+    assert captured.get("called") is True
+
+
+def test_fresh_request_with_origin_resets_accumulation(monkeypatch):
+    # 독립된 새 요청('starting at …')은 이전 대화와 합쳐지지 않고 '이 메시지'만 파싱된다 —
+    # 2번째 요청(Anguk)이 1번째(Gwanghwamun) 결과로 고정 렌더되는 버그 방지.
+    from app.agent import route_orchestrator as ro
+    from app.models.chat import ChatTurn
+    from app.models.recommend import ParsedConditions
+
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("PlanCultureRoute", {"when": "Oct 16 from 2pm to 10pm"}),
+            _final("Route from Anguk."),
+        ],
+    )
+
+    seen: dict = {}
+
+    async def fake_parse(text, today=None):
+        seen["text"] = text
+        return ParsedConditions()
+
+    captured: dict = {}
+
+    async def fake_route(ctx, trace, *a, **kw):
+        captured["origin"] = ctx.start_location.label
+        return RouteData(routes=[], origin=None, unmet="x")
+
+    monkeypatch.setattr(al, "parse_note", fake_parse)
+    monkeypatch.setattr(ro, "recommend_route", fake_route)
+
+    history = [
+        ChatTurn(
+            role="user",
+            content="create a route from 1pm to 5pm starting at Gwanghwamun",
+        ),
+        ChatTurn(role="assistant", content="Planned a route: A → B"),
+    ]
+    _run(
+        "create any cultural route for Oct 16 from 2pm to 10pm, starting at Anguk.",
+        _ctx(),
+        history=history,
+    )
+    # 현재 메시지만 파싱됐어야 한다(이전 Gwanghwamun 요청이 섞이지 않음).
+    assert "Gwanghwamun" not in seen["text"]
+    assert "Anguk" in seen["text"]
+    # origin 도 긴 지명 우선매칭(gwanghwamun>anguk)에 고정되지 않고 현재 메시지의 Anguk 로 해석.
+    assert captured["origin"].lower().startswith("anguk")

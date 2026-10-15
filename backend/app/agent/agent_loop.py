@@ -324,6 +324,14 @@ _REMOVE_MARKS = (
 )
 
 
+# 명시적 출발지 선언('starting at …', 'start from …', 'begin at …') — '독립된 새 요청' 신호.
+# 정제 턴('park 빼줘', 'museum 하나 더')은 출발지를 다시 말하지 않으므로 이 패턴이 안 걸린다.
+_FRESH_ORIGIN_RE = re.compile(
+    r"\b(?:start(?:ing)?|begin(?:ning)?|depart(?:ing)?|leav(?:e|ing))\s+(?:at|from)\b",
+    re.IGNORECASE,
+)
+
+
 def _wants_removal(message: str) -> bool:
     """현재 턴이 '무언가 빼달라'는 제거/제외 의도인가(정제 턴 — 나머지는 유지)."""
     return any(w in message.lower() for w in _REMOVE_MARKS)
@@ -427,26 +435,39 @@ async def _run_recommend_or_route(
     # 라우팅 LLM 의 매턴 preferences 요약이 이전 제외를 흘려도, 사용자가 실제로 말한 조건을
     # 직접 누적하므로 제거한 장소가 다시 안 나오고 위치도 유지된다(route_orchestrator 가
     # exclude_places/concepts 를 하드 필터로 적용). 첫 턴은 현재 메시지만 → 기존과 동일.
-    convo_text = accumulated_user_text(state.history, state.message)
+    #
+    # [독립 새 요청 리셋] 단, 현재 턴이 출발지를 명시적으로 선언하면('starting at …') 이는 '새 요청'
+    # 이므로 과거 대화와 섞지 않고 이 메시지만 파싱한다. 누적은 '추가/제거' 정제 턴의 조건 유실
+    # 방지용이지 독립 요청을 과거 요청과 합치기 위한 게 아니다 — 안 그러면 위치가 긴 지명 우선매칭
+    # (gwanghwamun>anguk)으로, 시간창이 첫 요청으로 '고정'되어 2번째 요청이 1번째 결과로 렌더된다.
+    fresh_request = bool(_FRESH_ORIGIN_RE.search(state.message))
+    convo_text = (
+        state.message.strip()
+        if fresh_request
+        else accumulated_user_text(state.history, state.message)
+    )
+    if fresh_request:
+        trace.step("fresh_request", reason="explicit_origin")
     cond = await parse_note(convo_text) if convo_text.strip() else ParsedConditions()
 
     # [프롬프트 우선 — 시간창] 프롬프트가 시작/종료 시각을 명시했으면 폼/칩 기본값보다 '먼저' 반영한
     # 뒤에 경계(30분·자정)를 검증한다. 그래야 '1–5 PM' 같은 유효한 프롬프트 창이 짧은 기본 폼 창
     # (예: 지금이 23:35 라 25분 남음) 때문에 거부되지 않는다(프롬프트 > 폼 — §6 Request 우선). 날짜
     # shift 는 orchestrator 가 수행하므로 여기선 시각만 반영(창 길이=검증 대상은 날짜와 무관).
-    ps, pe, applied_window = resolve_prose_window(
+    # 검증만을 위해 프롬프트 창을 '임시' 계산한다 — context/ctx 자체는 바꾸지 않는다. 실제 적용과
+    # 프론트 반환(window_start/end)은 orchestrator 가 '단일 지점'에서 수행해야 한다: 여기서 미리
+    # context 를 바꾸면 orchestrator 가 delta 0 으로 보고 window 를 안 돌려줘 trip 칩이 갱신 안 됨.
+    vs, ve, _ = resolve_prose_window(
         context.start_at,
         context.end_at,
         cond.start_time,
         cond.end_time,
         cond.duration_minutes,
     )
-    if applied_window is not None:
-        context = context.model_copy(update={"start_at": ps, "end_at": pe})
     # 시간 경계 위반(예: 30분 미만)은 사용자-facing 메시지를 그대로 되묻는다 — 루프의 generic
     # tool-error 핸들러가 삼켜 모호한 문구로 바뀌지 않게 여기서 잡는다(프롬프트 창 반영 '후' 검증).
     try:
-        validate_available_time(context.start_at, context.end_at)
+        validate_available_time(vs, ve)
     except ValidationFailure as e:
         trace.step("loop_clarify", reason="invalid_time", tool=name)
         state.clarify = ChatResponse(
@@ -521,7 +542,8 @@ async def _run_recommend_or_route(
     prev = latest_route_summary(state.history)
     prev_stops = [t.strip() for t in prev.split("→") if t.strip()] if prev else []
     add_n = _parse_add_count(state.message) if want_more else 0
-    refine = want_more or _wants_removal(state.message)
+    # 독립 새 요청(출발지 명시)이면 이전 루트 스톱을 pin 하지 않는다 — 처음부터 재구성.
+    refine = (want_more or _wants_removal(state.message)) and not fresh_request
     pin_titles = prev_stops if (refine and prev_stops) else None
 
     from app.agent.route_orchestrator import recommend_route
