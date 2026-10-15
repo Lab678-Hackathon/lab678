@@ -53,7 +53,9 @@ _SYSTEM = (
     "hours, availability). This is a continuing conversation: when the user refines an earlier "
     "request ('exclude museums', 'make it shorter', 'only free ones', 'more traditional'), "
     "call the SAME tool again and carry ALL still-relevant earlier conditions into the "
-    "preferences plus the new one. Location and time come from the app context."
+    "preferences plus the new one. Location and time-of-day come from the app context; if the "
+    "user names a day or date (e.g. 'tomorrow', 'this Saturday', 'October 20'), put only their "
+    "wording in the tool's `when` field — do not resolve it to a calendar date yourself."
 )
 _PROMPT = ChatPromptTemplate.from_messages(
     [
@@ -151,13 +153,23 @@ async def dispatch_tool(
         ):
             trace.step("chat_clarify", reason="no_preferences", tool=name)
             return ChatResponse(kind=ChatKind.CLARIFY, tool=name, message=_ASK_PREFS)
-        # 사실(위치·시간)은 context 에서, 선호 표현만 LLM args 에서. 경계 검증은 domain.
+        # 사실(위치·시각창)은 context 에서, 선호·날짜 '표현'만 LLM args 에서. 경계 검증은 domain.
+        # 날짜 표현(when)을 note 앞에 합쳐 parse_note→shift_to_request_date 가 상대·명시 날짜를
+        # 결정론으로 해석하게 한다(채팅 자연어 날짜도 A·B 동일하게 반영). 날짜 숫자 생성은 코드가.
         validate_available_time(context.start_at, context.end_at)
+        note = (
+            " ".join(
+                p.strip()
+                for p in (args.get("when"), args.get("preferences"))
+                if p and p.strip()
+            )
+            or None
+        )
         ctx = RequestContext(
             start_location=context.start_location,
             start_at=context.start_at,
             end_at=context.end_at,
-            note=(args.get("preferences") or None),
+            note=note,
             conditions=None,
         )
         # 지연 import: 무거운 소스 체인을 끌어오므로 호출 시점에만.
@@ -165,7 +177,11 @@ async def dispatch_tool(
             from app.agent.orchestrator import recommend_a
 
             data = await recommend_a(
-                ctx, trace, saved_interests, prefer_shorter_walks, saved_open_preferences
+                ctx,
+                trace,
+                saved_interests,
+                prefer_shorter_walks,
+                saved_open_preferences,
             )
             return ChatResponse(
                 kind=ChatKind.RECOMMENDATION, tool=name, recommendation=data

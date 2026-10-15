@@ -37,19 +37,34 @@ class RecommendExperiences(BaseModel):
         description="The user's own words about preferences or conditions (interests, "
         "budget, things to avoid or exclude). Empty string if they stated none.",
     )
+    when: str = Field(
+        default="",
+        description="The user's own words naming the DAY or DATE they want, if any — e.g. "
+        "'tomorrow', 'tonight', 'this Saturday', 'next Monday', 'October 20', 'the 20th', "
+        "'in 3 days'. Copy their wording; do NOT resolve it to a calendar date yourself. "
+        "Empty string if they did not name a day.",
+    )
 
 
 class PlanCultureRoute(BaseModel):
     """Plan ONE day culture route — a walking course of 2–3 cultural stops in order — near
     the traveler within their time window. Use when the user wants an itinerary / route /
     plan / course connecting several places, rather than a flat list of separate suggestions.
-    Location, date, and time come from the app context and official data, not from you.
+    Location and time-of-day come from the app context and official data, not from you. If the
+    user names a DAY or DATE for the plan, capture only their wording in `when`.
     """
 
     preferences: str = Field(
         default="",
         description="The user's own words about preferences or conditions for the route "
         "(interests, budget, things to avoid). Empty string if they stated none.",
+    )
+    when: str = Field(
+        default="",
+        description="The user's own words naming the DAY or DATE they want, if any — e.g. "
+        "'tomorrow', 'tonight', 'this Saturday', 'next Monday', 'October 20', 'the 20th', "
+        "'in 3 days'. Copy their wording; do NOT resolve it to a calendar date yourself. "
+        "Empty string if they did not name a day.",
     )
 
 

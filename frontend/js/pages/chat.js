@@ -354,9 +354,16 @@ export function renderChatView({ onBack, onHome }) {
       const mapEl = el("div", "chat-map");
       assistantBlock(mapEl);
       renderRouteMap(mapEl, data.origin, r).catch(() => mapEl.remove());
+      // 날짜는 백엔드가 실제로 '짠 날'(프롬프트 'tomorrow'/명시 날짜 반영분)을 따른다 —
+      // 트립바(오늘)가 아니라 스케줄된 스톱 시각의 날짜. 시각창(HH:MM)은 사용자 입력 유지.
+      const sched = (r.stops || []).map((s) => s.arrival_at).find(Boolean);
+      const dateStr = sched ? sched.slice(0, 10) : startValue.slice(0, 10);
       assistantBlock(
         renderRouteCard(r, data.origin, {
-          trip: { start_at: `${startValue}:00`, end_at: `${endValue}:00` },
+          trip: {
+            start_at: `${dateStr}T${startValue.slice(11, 16)}:00`,
+            end_at: `${dateStr}T${endValue.slice(11, 16)}:00`,
+          },
           onRemove: (title) => send(`Remove ${title} from the route`),
         }),
       );
