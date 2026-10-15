@@ -57,7 +57,7 @@ from app.domain.route import (
     route_status,
 )
 from app.domain.signals import classification_signals
-from app.domain.timing import TimingVerdict
+from app.domain.timing import TimingVerdict, shift_to_request_date
 from app.models.recommend import (
     Candidate,
     InterestCode,
@@ -230,6 +230,11 @@ async def recommend_route(
 
     # [조건 먼저] 걷기 선호가 기본 탐색 반경을 정하므로 조회 전에 구조화(A 와 동일 순서).
     cond = ctx.conditions if ctx.conditions is not None else await parse_note(ctx.note)
+    # [조회 날짜, #2a] 프롬프트 날짜가 오면 시각 유지·그 날로 이동(프론트가 이미 옮겼으면 무변경).
+    new_start, new_end = shift_to_request_date(ctx.start_at, ctx.end_at, cond.date)
+    if new_start != ctx.start_at:
+        ctx = ctx.model_copy(update={"start_at": new_start, "end_at": new_end})
+        trace.step("request_date", date=cond.date)
     cond = merge_saved_interests(cond, saved_interests)
     cond = merge_saved_open_preferences(cond, saved_open_preferences)
     cond = merge_saved_walks(cond, prefer_shorter_walks)

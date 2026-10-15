@@ -128,15 +128,58 @@ def test_english_display_strips_leading_korean_run():
     assert english_display("경복궁 Gyeongbokgung") == "Gyeongbokgung"
 
 
-def test_english_display_all_korean_keeps_original():
-    # 전부 한글(서울 행사 등)은 영문 이름이 없어 영문화 불가 → 원문 유지(지우지 않음).
-    assert english_display("서울서예박물관") == "서울서예박물관"
+def test_english_display_all_korean_romanized():
+    # 전부 한글(서울 행사 등)은 영문 이름이 없어 발음 보존 로마자화(의미 번역 아님).
+    out = english_display("서울서예박물관")
+    assert out == "Seoulseoyebakmulgwan"
+    assert not _has_hangul(out)
 
 
-def test_english_display_korean_name_with_year_keeps_original():
-    # 축제명이 한글 + 연도 숫자뿐이면 '2026'으로 지우지 않고 원문(한글) 유지.
-    assert english_display("서울빛초롱축제 2026") == "서울빛초롱축제 2026"
-    assert english_display("2026 서울거리공연") == "2026 서울거리공연"
+def test_english_display_korean_name_with_year_romanized():
+    # 한글 + 연도 숫자 — 한글은 로마자화하고 숫자는 보존(발음 살려 읽을 수 있게).
+    assert english_display("서울빛초롱축제 2026") == "Seoulbitchorongchukje 2026"
+    assert english_display("2026 서울거리공연") == "2026 Seoulgeorigongyeon"
+
+
+def _has_hangul(s: str) -> bool:
+    return any("가" <= c <= "힣" for c in s)
+
+
+def test_english_display_mixed_inline_korean_romanized():
+    # 혼합 제목에서도 인라인 한글은 발음 보존 로마자화(지우지 않음).
+    assert english_display("서울 K-POP Festival") == "Seoul K-POP Festival"
+    # 한글이 옆 영문의 중복이면 로마자화 후 인접 중복어로 접힌다(1개로).
+    assert english_display("경복궁 Gyeongbokgung") == "Gyeongbokgung"
+    assert english_display("Gyeongbokgung 경복궁") == "Gyeongbokgung"
+    assert english_display("경복궁 (Gyeongbokgung)") == "Gyeongbokgung"
+
+
+def test_english_display_romanization_familiar_forms():
+    # 발음 보존 + 익숙한 표기(음절 기반 RR) — 사용자 예시 '한글날'→'Hangeulnal'.
+    assert english_display("한글날") == "Hangeulnal"
+    assert english_display("경복궁") == "Gyeongbokgung"
+    assert english_display("북촌") == "Bukchon"
+    assert english_display("서울") == "Seoul"
+    assert english_display("인사동") == "Insadong"
+
+
+def test_english_display_british_to_american():
+    # 공식 영문 API 가 영국식으로 줄 때 미국영어로 통일(대소문자 보존).
+    assert english_display("Sejong Centre") == "Sejong Center"
+    assert english_display("National Theatre of Korea") == "National Theater of Korea"
+    # 한글 괄호 제거 + 영국식 철자 교정이 함께 적용.
+    assert english_display("Seoul Arts Centre (예술의전당)") == "Seoul Arts Center"
+
+
+def test_to_american_preserves_case_and_non_matches():
+    from app.domain.normalize import to_american
+
+    assert to_american("centre") == "center"
+    assert to_american("Centre") == "Center"
+    assert to_american("CENTRE") == "CENTER"
+    assert to_american("Grand Theatre Hall") == "Grand Theater Hall"
+    assert to_american("Museum Hall") == "Museum Hall"  # 매칭 없으면 그대로
+    assert to_american("") == ""
 
 
 def test_english_display_empty():

@@ -64,6 +64,7 @@ from app.domain.timing import (
     judge_extracted_hours,
     judge_timing,
     operating_hours_text,
+    shift_to_request_date,
     should_retry_hours_with_llm,
 )
 from app.models.recommend import (
@@ -633,6 +634,12 @@ async def recommend_a(
     # [structure] 조건을 먼저 구조화 — 걷기 선호가 '기본 탐색 반경'을 정하므로 조회 전에 필요.
     # 확인 시트/챗에서 교정한 조건(ctx.conditions)이 오면 재파싱 없이 그대로(사용자 교정 우선).
     cond = ctx.conditions if ctx.conditions is not None else await parse_note(ctx.note)
+    # [조회 날짜, #2a] 프롬프트가 지정한 날짜가 오면 시각은 유지하고 그 날로 이동(없으면 오늘).
+    # 프론트가 이미 start_at 을 옮겨 보냈으면 무변경(idempotent). 직접 API 호출도 일관되게.
+    new_start, new_end = shift_to_request_date(ctx.start_at, ctx.end_at, cond.date)
+    if new_start != ctx.start_at:
+        ctx = ctx.model_copy(update={"start_at": new_start, "end_at": new_end})
+        trace.step("request_date", date=cond.date)
     # 저장 선호를 Request 우선으로 병합(note 침묵 시에만 Soft 채움, FR-L5).
     filled_from_saved = not cond.interests and bool(saved_interests)
     cond = merge_saved_interests(cond, saved_interests)

@@ -68,6 +68,16 @@ class ParsedConditions(BaseModel):
         "written. For a specific place only — a general type goes in exclude_concepts. "
         "Empty if none named.",
     )
+    date: str | None = Field(
+        default=None,
+        description="A specific calendar DATE the user asked to search for, as 'YYYY-MM-DD'. "
+        "Resolve relative expressions against the provided today's date: 'today'/'tonight' -> "
+        "today; 'tomorrow' -> +1 day; 'the day after tomorrow' -> +2 days; 'in 3 days'/'3 days "
+        "later' -> +3 days; a weekday like 'this Saturday'/'next Monday' -> that date; an "
+        "explicit date like 'October 20' or 'the 20th' -> that date (this year, or next year "
+        "only if it already passed). Must be today or a FUTURE date — never a past date. Null if "
+        "the user did not name a day. Never invent a date.",
+    )
     free_only: bool = Field(
         default=False,
         description="True ONLY if the user explicitly asked for free experiences only.",

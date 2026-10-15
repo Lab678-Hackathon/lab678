@@ -352,6 +352,12 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
       cta.textContent = "Find experiences";
       validate();
     }
+    // 프롬프트에서 날짜("tomorrow"/"in 3 days"/특정 날짜)가 읽혔으면 시각은 유지하고 날짜만 교체.
+    // start_at/end_at 이 단일 진실원천 — 백엔드는 start_at.date() 로 그날 기준 조회한다.
+    if (conditions?.date && /^\d{4}-\d{2}-\d{2}$/.test(conditions.date)) {
+      startValue = `${conditions.date}T${startValue.slice(11, 16)}`;
+      if (endValue) endValue = `${conditions.date}T${endValue.slice(11, 16)}`;
+    }
     openConfirmSheet({
       request: basePayload(),
       conditions,

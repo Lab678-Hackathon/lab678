@@ -19,11 +19,22 @@ function fmtTime(iso) {
   return new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 }
 
+// 날짜 라벨 — 오늘/내일은 말로, 그 외는 요일·월·일. 프롬프트로 날짜가 바뀌면 여기서 확인된다.
+function fmtDay(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const tomorrow = new Date(today.getTime() + 86400000);
+  if (d.toDateString() === today.toDateString()) return "Today";
+  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow";
+  return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+}
+
 export function openConfirmSheet({ request, conditions, onShow, onEdit }) {
   const edited = JSON.parse(JSON.stringify(conditions || {}));
   edited.interests = edited.interests || [];
   edited.avoid_interests = edited.avoid_interests || [];
   edited.exclude_concepts = edited.exclude_concepts || [];
+  edited.exclude_places = edited.exclude_places || [];
   edited.open_preferences = edited.open_preferences || [];
   const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 
@@ -43,7 +54,7 @@ export function openConfirmSheet({ request, conditions, onShow, onEdit }) {
       el(
         "p",
         "confirm-where",
-        `${request.start_location.label} · ${fmtTime(request.start_at)}–${fmtTime(request.end_at)}`,
+        `${request.start_location.label} · ${fmtDay(request.start_at)} · ${fmtTime(request.start_at)}–${fmtTime(request.end_at)}`,
       ),
     );
 
@@ -84,6 +95,12 @@ export function openConfirmSheet({ request, conditions, onShow, onEdit }) {
         edited.exclude_concepts = edited.exclude_concepts.filter(
           (c) => c !== concept,
         );
+      });
+    }
+    // 명시 장소 배제 — "remove X" 또는 "이미 가기로 한 X"(방문 예정/완료). 이번 요청만, ✕ 해제.
+    for (const place of edited.exclude_places.slice()) {
+      addChip(`Skip: ${place}`, () => {
+        edited.exclude_places = edited.exclude_places.filter((p) => p !== place);
       });
     }
     // 개방형 분위기 선호(예: 'quiet') — 이해한 것을 투명 노출(✕로 이번 요청에서 해제).

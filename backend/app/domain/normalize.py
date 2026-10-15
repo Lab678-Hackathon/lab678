@@ -125,31 +125,209 @@ _HANGUL_RUN_RE = re.compile(f"[{_HANGUL}]+(?:[\\s·]+[{_HANGUL}]+)*")
 _LATIN_LETTER_RE = re.compile(r"[A-Za-z]")
 
 
+# ── 로마자화(국어의 로마자 표기법, 음절 기반·음절 간 음운동화 없음) ──
+# 외국인 FIT 대상이라 한글만 있는 공식 명칭(서울 행사 등)을 '발음 보존'해 읽을 수 있게 바꾼다.
+# 의미 번역이 아니다: '한글날' → 'Hangeulnal'(X 'A Day of Hangeul'). 결정론·오프라인
+# (LLM/네트워크 호출 없음). 설치형 lib(hangul-romanize 0.1.0)는 '서울'을 'seo-ul',
+# '북촌'을 'bugchon'으로 내는 등 표기가 낯설어 쓰지 않고 표준 RR 매핑을 직접 둔다.
+_RR_CHO = [
+    "g",
+    "kk",
+    "n",
+    "d",
+    "tt",
+    "r",
+    "m",
+    "b",
+    "pp",
+    "s",
+    "ss",
+    "",
+    "j",
+    "jj",
+    "ch",
+    "k",
+    "t",
+    "p",
+    "h",
+]
+_RR_JUNG = [
+    "a",
+    "ae",
+    "ya",
+    "yae",
+    "eo",
+    "e",
+    "yeo",
+    "ye",
+    "o",
+    "wa",
+    "wae",
+    "oe",
+    "yo",
+    "u",
+    "wo",
+    "we",
+    "wi",
+    "yu",
+    "eu",
+    "ui",
+    "i",
+]
+_RR_JONG = [
+    "",
+    "k",
+    "k",
+    "k",
+    "n",
+    "n",
+    "n",
+    "t",
+    "l",
+    "k",
+    "m",
+    "p",
+    "l",
+    "l",
+    "l",
+    "l",
+    "m",
+    "p",
+    "p",
+    "t",
+    "t",
+    "ng",
+    "t",
+    "t",
+    "k",
+    "t",
+    "p",
+    "t",
+]
+_HANGUL_SYL_RUN_RE = re.compile(r"[가-힣]+")
+
+
+def _romanize_syllable(ch: str) -> str:
+    """완성형 한글 음절 1자 → RR. 초성+중성+종성 조합. 비음절 문자는 그대로 둔다."""
+    code = ord(ch) - 0xAC00
+    if 0 <= code < 11172:
+        return _RR_CHO[code // 588] + _RR_JUNG[(code % 588) // 28] + _RR_JONG[code % 28]
+    return ch
+
+
+def _romanize(text: str) -> str:
+    """문자열 속 한글 음절 런을 RR 로(런별 첫 글자 대문자). 비한글(영문·숫자·기호)은 보존."""
+
+    def repl(m: re.Match[str]) -> str:
+        r = "".join(_romanize_syllable(c) for c in m.group())
+        return r[:1].upper() + r[1:] if r else r
+
+    return _HANGUL_SYL_RUN_RE.sub(repl, text or "")
+
+
+# 영국식 → 미국식 철자(관광 영문 텍스트 빈출 — 공식 영문 API 가 영국식으로 주는 경우 통일).
+_BRITISH_TO_AMERICAN = {
+    "centre": "center",
+    "centres": "centers",
+    "theatre": "theater",
+    "theatres": "theaters",
+    "colour": "color",
+    "colours": "colors",
+    "favour": "favor",
+    "favourite": "favorite",
+    "honour": "honor",
+    "harbour": "harbor",
+    "neighbour": "neighbor",
+    "programme": "program",
+    "catalogue": "catalog",
+    "organisation": "organization",
+    "organised": "organized",
+    "recognised": "recognized",
+    "metre": "meter",
+    "metres": "meters",
+    "litre": "liter",
+    "defence": "defense",
+    "licence": "license",
+    "traveller": "traveler",
+    "travelling": "traveling",
+    "jewellery": "jewelry",
+    "artefact": "artifact",
+    "storey": "story",
+    "grey": "gray",
+    "cosy": "cozy",
+    "moustache": "mustache",
+    "sceptical": "skeptical",
+    "kerb": "curb",
+}
+_BRITISH_RE = re.compile(
+    r"\b(" + "|".join(sorted(_BRITISH_TO_AMERICAN, key=len, reverse=True)) + r")\b",
+    re.IGNORECASE,
+)
+
+
+def _match_case(src: str, dst: str) -> str:
+    """원 단어의 대소문자 꼴을 치환어에 입힌다(ALLCAPS/첫글자대문자/소문자)."""
+    if src.isupper():
+        return dst.upper()
+    if src[:1].isupper():
+        return dst[:1].upper() + dst[1:]
+    return dst
+
+
+def to_american(text: str) -> str:
+    """영국식 철자를 미국식으로(단어 단위·대소문자 보존). 매칭 없으면 원문 그대로."""
+    if not text:
+        return text
+    return _BRITISH_RE.sub(
+        lambda m: _match_case(m.group(), _BRITISH_TO_AMERICAN[m.group().lower()]), text
+    )
+
+
+def _dedup_adjacent_words(text: str) -> str:
+    """인접한 동일 단어(대소문자 무시)를 1개로 축약한다. 한글 로마자화가 바로 옆 영문과
+    겹칠 때를 정리한다 — '경복궁 Gyeongbokgung' → 'Gyeongbokgung Gyeongbokgung' →
+    'Gyeongbokgung'. 'X (X)' 괄호 메아리도 함께 접는다. 'K-POP' 처럼 서로 다른 단어는 보존."""
+    # 'word (word)' → 'word'
+    text = re.sub(r"\b(\w+)\b\s*\(\s*\1\s*\)", r"\1", text, flags=re.IGNORECASE)
+    # 'word word [word …]' → 'word'
+    text = re.sub(r"\b(\w+)\b(?:\s+\1\b)+", r"\1", text, flags=re.IGNORECASE)
+    return text
+
+
 def english_display(text: str | None) -> str:
-    """표시 문자열에서 한글을 정확히 제거해 영문 우선 표기로 만든다(정규식, 생성 아님).
+    """표시 문자열을 외국인 FIT 가 읽을 영문 표기로(정규식·로마자화, 사실 생성 아님).
 
     예: 'Alive Museum (Insa-dong Branch) [박물관은 살아있다(인사동점)]'
-        → 'Alive Museum (Insa-dong Branch)'.
-    1) 한글이 든 괄호 묶음 제거(영문만 든 괄호는 보존), 2) 남은 한글 런 제거,
-    3) 빈 괄호·중복 공백·양끝 구분자 정리. 결과에 **영문 글자(A-Z)** 가 남지 않으면
-    (한글 이름 + 연도 숫자만 남는 '2026' 같은 경우 포함) 원문을 그대로 유지한다 — 이름을
-    숫자·빈칸으로 지워버리지 않는다(사용자 요청: 적절히 지울 수 없으면 한글 그대로).
+        → 'Alive Museum (Insa-dong Branch)'; '서울서예박물관' → 'Seoulseoyebakmulgwan';
+        '서울 K-POP Festival' → 'Seoul K-POP Festival'.
+    1) 한글이 든 괄호 묶음 제거 — 괄호 속 한글은 보통 '전체 명칭의 번역 중복'이라(예 영문
+       'Dongdaemun Design Plaza' + '(동대문디자인플라자)') 로마자화하면 'Dongdaemundijainpeullaja'
+       같은 소음이 되므로 제거한다. 영문만 든 괄호는 보존.
+    2) 괄호 밖 인라인 한글은 **발음 보존 로마자화**(혼합 제목에서도 한글을 지우지 않고 읽게 —
+       '한글날'→'Hangeulnal', 의미 번역 아님). 결정론·오프라인(LLM 없음).
+    3) 인접 중복어 축약으로 '경복궁 Gyeongbokgung' 같은 로마자화-영문 중복을 접고, 미국영어로
+       통일(centre→center). 모두 비면(괄호 제거로 사라짐) 원문 전체를 로마자화해 이름을 살린다.
     """
     t = text or ""
     # 1) 한글 포함 괄호 묶음 제거(2회 반복 — 중첩 잔여 대응). 영문만 든 괄호는 유지.
     for _ in range(2):
         for pat in _BRACKET_PATS:
             t = pat.sub(lambda m: "" if _HANGUL_RE.search(m.group()) else m.group(), t)
-    # 2) 괄호 밖에 남은 한글 런 제거.
-    t = _HANGUL_RUN_RE.sub(" ", t)
+    # 2) 괄호 밖 인라인 한글을 로마자화(제거하지 않는다 — 혼합 제목의 한글도 발음 보존).
+    t = _romanize(t)
     # 3) 정리: 빈 괄호·중복 공백·괄호 안쪽 공백·양끝 구분자.
     t = re.sub(r"[\(\[\{<「『]\s*[\)\]\}>」』]", "", t)
     t = re.sub(r"\s+([)\]\}>」』])", r"\1", t)
     t = re.sub(r"([(\[\{<「『])\s+", r"\1", t)
     t = re.sub(r"\s{2,}", " ", t).strip(" \t-·,/|")
-    t = t.strip()
-    # 영문 이름이 남지 않으면(한글 제목·숫자만 남는 경우 포함) 원문 유지(이름을 지우지 않음).
-    return t if _LATIN_LETTER_RE.search(t) else (text or "").strip()
+    t = _dedup_adjacent_words(t).strip()
+    if _LATIN_LETTER_RE.search(t):
+        return to_american(t)
+    # 괄호 제거로 이름이 사라진 경우 등 — 원문 전체를 로마자화(이름을 지우지 않는다).
+    romanized = _dedup_adjacent_words(
+        re.sub(r"\s{2,}", " ", _romanize(text or "")).strip(" \t-·,/|").strip()
+    )
+    return to_american(romanized)
 
 
 def _strip_html(s: str | None) -> str:

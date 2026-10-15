@@ -16,6 +16,16 @@ function fmtTime(iso) {
   });
 }
 
+// 오늘이 아니면 날짜 라벨 prefix(프롬프트로 지정한 날짜 투명 표시).
+function dayPrefix(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const tomorrow = new Date(today.getTime() + 86400000);
+  if (d.toDateString() === today.toDateString()) return "";
+  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow · ";
+  return `${d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · `;
+}
+
 // 이해한 조건을 사람이 읽을 라벨 배열로(결과 뷰 conditionChips 와 동일 규칙).
 function conditionLabels(cond) {
   if (!cond) return [];
@@ -23,6 +33,7 @@ function conditionLabels(cond) {
   for (const i of cond.avoid_interests ?? [])
     labels.push(`Not: ${INTEREST_LABEL[i] ?? i}`);
   for (const c of cond.exclude_concepts ?? []) labels.push(`Without: ${c}`);
+  for (const p of cond.exclude_places ?? []) labels.push(`Without: ${p}`);
   if (cond.free_only) labels.push("Free only");
   if (cond.budget_krw) labels.push(`Under ₩${cond.budget_krw.toLocaleString()}`);
   if (cond.indoor_outdoor)
@@ -37,9 +48,9 @@ export function renderConditionSummary(request, conditions) {
 
   const where = document.createElement("p");
   where.className = "cond-summary-where";
-  where.textContent = `${request.start_location.label} · ${fmtTime(
+  where.textContent = `${request.start_location.label} · ${dayPrefix(
     request.start_at,
-  )}–${fmtTime(request.end_at)}`;
+  )}${fmtTime(request.start_at)}–${fmtTime(request.end_at)}`;
   box.append(where);
 
   const labels = conditionLabels(conditions);

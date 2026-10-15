@@ -23,6 +23,16 @@ function fmtTime(iso) {
   });
 }
 
+// 오늘이 아니면 날짜 라벨을 앞에 붙인다(프롬프트로 지정한 날짜 투명 표시). 오늘은 생략.
+function dayPrefix(iso) {
+  const d = new Date(iso);
+  const today = new Date();
+  const tomorrow = new Date(today.getTime() + 86400000);
+  if (d.toDateString() === today.toDateString()) return "";
+  if (d.toDateString() === tomorrow.toDateString()) return "Tomorrow · ";
+  return `${d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })} · `;
+}
+
 const INTEREST_LABEL = {
   traditional_culture: "Traditional culture",
   palaces_historic: "Palaces & historic",
@@ -39,6 +49,7 @@ function conditionChips(cond) {
   for (const i of cond.avoid_interests ?? [])
     labels.push(`Not: ${INTEREST_LABEL[i] ?? i}`);
   for (const c of cond.exclude_concepts ?? []) labels.push(`Skip: ${c}`);
+  for (const p of cond.exclude_places ?? []) labels.push(`Skip: ${p}`);
   if (cond.free_only) labels.push("Free only");
   if (cond.budget_krw) labels.push(`≤ ₩${cond.budget_krw.toLocaleString()}`);
   if (cond.indoor_outdoor)
@@ -87,7 +98,7 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
     el(
       "span",
       "cond-text",
-      `${request.start_location.label} · ${fmtTime(request.start_at)}–${fmtTime(request.end_at)}`,
+      `${request.start_location.label} · ${dayPrefix(request.start_at)}${fmtTime(request.start_at)}–${fmtTime(request.end_at)}`,
     ),
   );
   // 비회원이 조건을 고치는 건 사실상 재추천(FR-L1) → 로그인 유도. 로그인 시 바로 편집.

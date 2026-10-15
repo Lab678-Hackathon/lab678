@@ -92,10 +92,11 @@ def test_source_badge_and_hours_unconfirmed():
     assert cand.id.startswith("seoul-")
 
 
-def test_korean_title_kept_as_is():
-    # E1 — 영문화는 롤아웃 4단계. 지금은 국문 제목 그대로.
+def test_korean_title_romanized():
+    # 한글만 있는 서울 행사 제목은 발음 보존 로마자화(#3 — 외국인 FIT 가 읽을 수 있게).
     cand = normalize_seoul_event(_row(TITLE="남산골한옥마을 공연"))
-    assert cand.title == "남산골한옥마을 공연"
+    assert cand.title == "Namsangolhanokmaeul Gongyeon"
+    assert not any("가" <= c <= "힣" for c in cand.title)
 
 
 def test_no_title_is_dropped():

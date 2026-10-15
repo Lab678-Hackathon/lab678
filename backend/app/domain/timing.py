@@ -287,6 +287,26 @@ def _hhmm(s: str | None) -> time | None:
 _MIN_WINDOW = timedelta(minutes=30)
 
 
+def shift_to_request_date(
+    start_at: datetime, end_at: datetime, request_date: str | None
+) -> tuple[datetime, datetime]:
+    """조회 날짜(cond.date, 'YYYY-MM-DD')가 오면 시각은 유지하고 날짜만 그 날로 이동한다(#2a).
+
+    두 시각을 같은 일수만큼 평행이동 → 창 길이·시작/종료 관계 보존. 과거 날짜·형식오류는 무시
+    (추정으로 바꾸지 않는다). 프론트가 이미 start_at 을 옮겨 보낸 경우엔 delta=0 이라 무변경.
+    """
+    if not request_date:
+        return start_at, end_at
+    try:
+        target = date.fromisoformat(request_date.strip())
+    except (ValueError, AttributeError):
+        return start_at, end_at
+    delta = (target - start_at.date()).days
+    if delta <= 0:  # 같은 날이거나 과거면 그대로(과거로 끌어가지 않음)
+        return start_at, end_at
+    return start_at + timedelta(days=delta), end_at + timedelta(days=delta)
+
+
 def effective_end_at(
     start_at: datetime,
     form_end_at: datetime,

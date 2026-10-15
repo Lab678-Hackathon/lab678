@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import logging
 import re
+from datetime import date, timedelta
+from zoneinfo import ZoneInfo
 
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
@@ -18,6 +20,15 @@ from app.config import settings
 from app.models.recommend import ParsedConditions
 
 logger = logging.getLogger("konnect.agent")
+
+SEOUL_TZ = ZoneInfo("Asia/Seoul")
+
+
+def _today() -> date:
+    """조회 기준 '오늘' — 서울 기준(외국인 사용자는 현지 날짜로 계획)."""
+    from datetime import datetime
+
+    return datetime.now(SEOUL_TZ).date()
 
 # '한 체험당 ≤₩30,000' = 우리 서비스의 'cheap' 기준(Product 결정). "free or cheap"은
 # 무료만이 아니라 저렴함까지 포함 → budget_krw 로 매핑(free_only 아님). 결정론 안전망.
@@ -39,9 +50,15 @@ _SYSTEM = (
     "'skip temples' -> 'temples', 'avoid anything religious' -> 'religious sites'). "
     "exclude_concepts is open-ended and need not map to the enum. If the user names a SPECIFIC "
     "place to remove or skip (e.g. 'remove Tapgol Park', 'not the belfry', 'drop X'), put that "
-    "place name in 'exclude_places' (not exclude_concepts). If the user names a specific "
+    "place name in 'exclude_places' (not exclude_concepts). A place the user says they have "
+    "ALREADY planned, booked, or seen also goes in 'exclude_places' — they don't want it "
+    "recommended again (e.g. 'I'm already visiting Gyeongbokgung tomorrow', 'we're seeing "
+    "Bukchon later', 'already been to the N Seoul Tower', 'skip the ones I've done'). Such an "
+    "already-planned/visited place must NOT also go in 'keywords' or 'interests' (that would "
+    "re-surface it). If the user names a specific "
     "searchable thing — a concrete activity, craft, landmark, or subject (e.g. 'calligraphy', "
-    "'hanbok', 'ceramics', 'Bukchon', 'lantern festival') — also put it in 'keywords' as a short "
+    "'hanbok', 'ceramics', 'Bukchon', 'lantern festival') — AND is not excluding or already "
+    "planning it, put it in 'keywords' as a short "
     "English noun (this is for search; vibe adjectives like 'quiet' stay in open_preferences). "
     "Never place the same thing "
     "in both 'interests' and an avoid/exclude field. "
@@ -79,6 +96,9 @@ _SYSTEM = (
     "- 'less walking please' -> prefer_shorter_walks:true\n"
     "- 'long walks are totally fine' -> prefer_shorter_walks:false\n"
     "- 'I love to walk' -> prefer_shorter_walks:false\n"
+    "- 'things to do tomorrow near Insadong' -> keywords:['Insadong'], date:(today + 1 day)\n"
+    "- 'free exhibitions in 3 days' -> interests:[art_exhibitions], free_only:true, "
+    "date:(today + 3 days)\n"
     "- 'something near Insadong until 5pm' -> keywords:['Insadong'], end_time:'17:00'\n"
     "- 'I only have about 2 hours' -> duration_minutes:120\n"
     "- 'free galleries this afternoon' -> interests:[art_exhibitions], free_only:true "
@@ -87,6 +107,8 @@ _SYSTEM = (
     "indoor_outdoor:indoor, open_preferences:['quiet'], exclude_concepts:['temples']\n"
     "- 'try calligraphy near Bukchon, but not Gyeongbokgung' -> interests:[hands_on], "
     "keywords:['calligraphy','Bukchon'], exclude_places:['Gyeongbokgung']\n"
+    "- 'I'm already visiting Gyeongbokgung tomorrow, show me other things' -> "
+    "exclude_places:['Gyeongbokgung'] (NOT keywords — they've already planned it)\n"
     "- 'outdoor only, free palaces' -> interests:[palaces_historic], indoor_outdoor:outdoor, "
     "indoor_outdoor_strict:true, free_only:true\n"
     "- 'free exhibitions, then dinner at 7 in Myeongdong' -> interests:[art_exhibitions], "
@@ -96,11 +118,12 @@ _SYSTEM = (
 )
 
 _PROMPT = ChatPromptTemplate.from_messages(
-    [("system", _SYSTEM), ("human", "Note: {note}")]
+    [("system", _SYSTEM), ("human", "Today is {today}. Note: {note}")]
 )
 
 
-async def parse_note(note: str | None) -> ParsedConditions:
+async def parse_note(note: str | None, today: date | None = None) -> ParsedConditions:
+    today = today or _today()
     if not note or not note.strip():
         return ParsedConditions()
     try:
@@ -111,11 +134,13 @@ async def parse_note(note: str | None) -> ParsedConditions:
             timeout=20,
         )
         chain = _PROMPT | llm.with_structured_output(ParsedConditions)
-        cond = await chain.ainvoke({"note": note.strip()})
+        cond = await chain.ainvoke(
+            {"note": note.strip(), "today": today.isoformat()}
+        )
     except Exception as e:  # noqa: BLE001 — LLM/네트워크 어떤 실패든 추천을 막지 않는다
         logger.warning("note parse failed: %s", type(e).__name__)
         cond = ParsedConditions()
-    return _apply_cheap_rule(note, cond)
+    return _apply_date_rule(note, _apply_cheap_rule(note, cond), today)
 
 
 def _apply_cheap_rule(note: str, cond: ParsedConditions) -> ParsedConditions:
@@ -123,4 +148,57 @@ def _apply_cheap_rule(note: str, cond: ParsedConditions) -> ParsedConditions:
     놓치거나 free_only 로 과도하게 좁혀도 교정한다. 구체 금액이 이미 있으면 건드리지 않는다."""
     if cond.budget_krw is None and _CHEAP_RE.search(note):
         return cond.model_copy(update={"budget_krw": CHEAP_KRW, "free_only": False})
+    return cond
+
+
+# 단순 상대 날짜(오늘/내일/모레/N일 후) — 결정론으로 계산해 LLM 산술 오류를 보정한다.
+# 명시 날짜·요일 같은 복잡 표현은 여기서 다루지 않고 LLM 결과(cond.date)를 검증만 한다.
+_DAY_AFTER_RE = re.compile(r"\bday after tomorrow\b", re.IGNORECASE)
+_TOMORROW_RE = re.compile(r"\btomorrow\b", re.IGNORECASE)
+_TODAY_RE = re.compile(r"\b(today|tonight)\b", re.IGNORECASE)
+_IN_N_DAYS_RE = re.compile(
+    r"\b(?:in|after)\s+(\d{1,2})\s+days?\b|\b(\d{1,2})\s+days?\s+(?:later|from now)\b",
+    re.IGNORECASE,
+)
+
+
+def _resolve_offset_phrase(note: str, today: date) -> date | None:
+    """note 에서 '오늘/내일/모레/N일 후'만 결정론으로 → 절대 날짜. 아니면 None(LLM 에 맡김).
+
+    더 구체적인 표현을 먼저 본다(day after tomorrow → tomorrow). N 은 0~60 으로 제한.
+    """
+    if _DAY_AFTER_RE.search(note):
+        return today + timedelta(days=2)
+    m = _IN_N_DAYS_RE.search(note)
+    if m:
+        n = int(m.group(1) or m.group(2))
+        if 1 <= n <= 60:
+            return today + timedelta(days=n)
+    if _TOMORROW_RE.search(note):
+        return today + timedelta(days=1)
+    if _TODAY_RE.search(note):
+        return today
+    return None
+
+
+def _valid_future_date(value: str | None, today: date) -> str | None:
+    """LLM 이 준 날짜 문자열을 검증 — 'YYYY-MM-DD' 이고 과거가 아니면 통과, 아니면 None(→ 오늘)."""
+    if not value:
+        return None
+    try:
+        d = date.fromisoformat(value.strip())
+    except (ValueError, AttributeError):
+        return None
+    return value.strip() if d >= today else None
+
+
+def _apply_date_rule(note: str, cond: ParsedConditions, today: date) -> ParsedConditions:
+    """조회 날짜 확정 — 단순 상대표현은 코드가 계산(안전망), 그 외는 LLM 날짜를 검증.
+
+    과거 날짜·형식 오류는 버린다(None → 호출부에서 '오늘'로 기본 처리). 추정으로 채우지 않는다.
+    """
+    resolved = _resolve_offset_phrase(note, today)
+    new_date = resolved.isoformat() if resolved else _valid_future_date(cond.date, today)
+    if new_date != cond.date:
+        return cond.model_copy(update={"date": new_date})
     return cond

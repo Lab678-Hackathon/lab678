@@ -15,6 +15,7 @@ from app.domain.timing import (
     parse_closed_weekdays,
     parse_last_admission,
     parse_time_ranges,
+    shift_to_request_date,
     should_retry_hours_with_llm,
 )
 
@@ -255,3 +256,24 @@ def test_effective_none_when_not_stated():
     assert effective_end_at(_S, _FORM_END, None, None) == (_FORM_END, None)
     # 잘못된 형식도 안전하게 무시.
     assert effective_end_at(_S, _FORM_END, "nonsense", None) == (_FORM_END, None)
+
+
+# ── shift_to_request_date (#2a 프롬프트 날짜) ──
+
+
+def test_shift_to_future_date_preserves_clock_and_window():
+    s = datetime(2026, 10, 15, 14, 0)
+    e = datetime(2026, 10, 15, 17, 30)
+    ns, ne = shift_to_request_date(s, e, "2026-10-18")
+    assert (ns.year, ns.month, ns.day, ns.hour, ns.minute) == (2026, 10, 18, 14, 0)
+    assert (ne.year, ne.month, ne.day, ne.hour, ne.minute) == (2026, 10, 18, 17, 30)
+    assert ne - ns == e - s  # 창 길이 보존
+
+
+def test_shift_noop_when_same_or_past_or_invalid():
+    s = datetime(2026, 10, 15, 14, 0)
+    e = datetime(2026, 10, 15, 17, 30)
+    assert shift_to_request_date(s, e, "2026-10-15") == (s, e)  # 같은 날
+    assert shift_to_request_date(s, e, "2026-10-01") == (s, e)  # 과거 → 무변경
+    assert shift_to_request_date(s, e, "junk") == (s, e)
+    assert shift_to_request_date(s, e, None) == (s, e)
