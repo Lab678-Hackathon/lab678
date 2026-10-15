@@ -1086,8 +1086,10 @@ body {
 .route-end { color: var(--c-text-muted); }
 .route-start-time { margin-left: auto; font-size: var(--fs-badge); color: var(--c-text-muted); }
 .route-start-walker { position: absolute; left: 2px; top: 50%; transform: translateY(-50%); }
-.route-start-dot { position: absolute; left: 41px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; background: var(--c-ink-pin); border: 3px solid #fff; box-shadow: var(--shadow-pin); z-index: 1; }
-.route-end-flag { position: absolute; left: 41px; top: 50%; transform: translateY(-50%); font-size: 24px; line-height: 1; color: var(--c-primary-ink); z-index: 1; }
+/* 시작·도착 점 — 세로선 위 남색 점(대칭). 도착점도 시작점과 동일하게 찍는다(2026-10-15). */
+.route-start-dot, .route-end-dot { position: absolute; left: 41px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; background: var(--c-ink-pin); border: 3px solid #fff; box-shadow: var(--shadow-pin); z-index: 1; }
+/* 깃발 — 시작 사람 이모티콘(left:2px·36 box)과 같은 좌측 열·동일 선상, 조금 더 크게. */
+.route-end-flag { position: absolute; left: 2px; width: 36px; text-align: center; top: 50%; transform: translateY(-50%); font-size: 30px; line-height: 1; color: var(--c-primary-ink); z-index: 1; }
 
 /* 걷는 구간 글자 — 청록 13 SemiBold(이모지 없이). */
 .route-seg { min-height: 30px; display: flex; align-items: center; }

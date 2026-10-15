@@ -279,7 +279,9 @@ export function renderRouteCard(route, origin, opts = {}) {
   // End — 계획 종료(도보+방문 체인). finish_at 있으면 그 값, 없으면 창 종료.
   const finish = route.finish_at || trip?.end_at || null;
   const endRow = el("div", "route-end");
+  // 깃발(시작 사람 이모티콘과 같은 좌측 열) + 도착 점(시작점과 대칭, 세로선 위) + 라벨.
   endRow.append(el("span", "route-end-flag", "⚑"));
+  endRow.append(el("span", "route-end-dot"));
   endRow.append(
     el(
       "span",

@@ -144,7 +144,7 @@ export function renderHomeView({
   const actions = el("div", "core-actions");
   actions.append(
     coreAction({
-      kicker: "IMMEDIATE RECOMMENDATION",
+      kicker: "EXPLORE NOW",
       title: "Right now",
       sub: "Fits your location and the time you have.",
       cta: "Find experiences",
@@ -153,7 +153,7 @@ export function renderHomeView({
       onClick: onStartA,
     }),
     coreAction({
-      kicker: "CHOOSE A DATE",
+      kicker: "PLAN AHEAD",
       title: "Plan a route",
       sub: "2+ cultural experiences for a date you choose.",
       cta: "Create a route",
