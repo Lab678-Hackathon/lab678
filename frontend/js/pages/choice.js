@@ -125,12 +125,15 @@ export function renderChoiceView({
       body.append(reasons);
     }
 
-    // Fact 표 — Time(세션+소요) · Price · Getting there · Opening hours.
+    // Fact 표 — Planned visit(소요) · Price · Getting there · Opening hours.
+    // '세션(session)'이라는 표현은 쓰지 않는다 — 사용자의 시작시각을 '예약 회차'처럼 오인시키고,
+    // 개관 전 시각(예: 07:58 < 09:30)을 '방문 가능 회차'로 보이게 한다(신뢰 §6). 사용자의 방문
+    // 가능창은 상단 tripStamp 에, 실제 운영시간은 아래 'Opening hours' 행에 이미 분리 표시된다.
     const facts = el("div", "choice-facts");
-    const timeVal =
-      `${fmtTime(request.start_at)} session` +
-      (candidate.visit_minutes ? ` · ${candidate.visit_minutes} min` : "");
-    facts.append(factRow("Time", timeVal));
+    const visitMin = candidate.visit_minutes;
+    facts.append(
+      factRow("Planned visit", visitMin ? `About ${visitMin} min` : "Plan your own time"),
+    );
     // 상세는 공간이 넉넉하니 카드용 축약(display) 대신 전체 공식 요금문(raw)을 보여준다
     // (카드는 짧게 '…'로 축약, 상세는 전액 요금표 그대로 — 줄바꿈). raw 없으면 display 폴백.
     facts.append(
@@ -199,12 +202,23 @@ export function renderChoiceView({
       actions.append(save);
     }
 
-    const off = candidate.official_links?.[0];
-    const offBtn = el("button", "btn-outline-pill", "Official details ↗");
-    offBtn.type = "button";
-    if (off) offBtn.addEventListener("click", () => window.open(off.url, "_blank", "noopener"));
-    else offBtn.disabled = true;
-    actions.append(offBtn);
+    // 공식 링크 전부 제공(VISITKOREA 상세 + 시설 공식 홈페이지 등) — 라벨은 백엔드 값 그대로.
+    const officialLinks = candidate.official_links ?? [];
+    if (officialLinks.length) {
+      for (const link of officialLinks) {
+        const offBtn = el("button", "btn-outline-pill", `${link.label} ↗`);
+        offBtn.type = "button";
+        offBtn.addEventListener("click", () =>
+          window.open(link.url, "_blank", "noopener"),
+        );
+        actions.append(offBtn);
+      }
+    } else {
+      const offBtn = el("button", "btn-outline-pill", "Official details ↗");
+      offBtn.type = "button";
+      offBtn.disabled = true;
+      actions.append(offBtn);
+    }
 
     const third = el(
       "button",

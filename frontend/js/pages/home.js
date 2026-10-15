@@ -192,7 +192,7 @@ export function renderHomeView({
       el(
         "span",
         "choice-card-sub",
-        `${fmtTime(saved.request.start_at)} session · from ${saved.request.start_location.label}`,
+        `${fmtTime(saved.request.start_at)}–${fmtTime(saved.request.end_at)} · from ${saved.request.start_location.label}`,
       ),
     );
     const view = el("span", "choice-card-view", "View →");

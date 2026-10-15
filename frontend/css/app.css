@@ -371,7 +371,9 @@ body {
 .welcome-hero {
   flex: 1 1 auto; min-height: 0; display: flex; justify-content: center;
   padding-top: calc(46px + env(safe-area-inset-top, 0px));
-  background: #bfe0e4 url("../assets/img/welcome-hero.png") center top / cover no-repeat;
+  /* center top 은 이미지 상단만 보여 하단 남산이 기기에 따라 크롭된다 → 세로 위치를 아래로
+     옮겨(이미지가 위로 올라와) 남산 밴드가 드러나게. 값(%)이 클수록 더 아래(남산 쪽)를 보여줌. */
+  background: #bfe0e4 url("../assets/img/welcome-hero.png") center 70% / cover no-repeat;
 }
 .welcome-brand { text-align: center; }
 .welcome-logo { margin: 0; font-size: 36px; font-weight: var(--fw-bold); letter-spacing: 0.04em; color: var(--c-primary); }
@@ -602,8 +604,10 @@ body {
 .translate-toggle {
   margin-left: auto; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
   border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-primary-ink);
-  font-size: var(--fs-badge); font-weight: var(--fw-bold); letter-spacing: 0.02em;
-  padding: var(--space-3) var(--space-10); border-radius: var(--r-full);
+  /* 크기·폰트를 Select(.btn-select)에 맞춤 — font-size=body, 세로 padding 8px(+1px 테두리 상·하
+     = Select 의 9px 무테두리와 동일 높이), 가로 padding=space-14. 테두리·배경은 토글 정체성 유지. */
+  font-size: var(--fs-body); font-weight: var(--fw-bold); letter-spacing: 0.02em;
+  padding: 8px var(--space-14); border-radius: var(--r-full);
 }
 .translate-toggle:hover { border-color: var(--c-primary); }
 .translate-toggle[aria-pressed="true"] { background: var(--c-primary-tint); border-color: var(--c-primary); color: var(--c-primary); }
