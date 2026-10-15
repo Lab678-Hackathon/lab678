@@ -68,7 +68,7 @@ async def plan_day_route(
 
     조립 로직은 route_orchestrator._build_route(정본) 재사용 — 여기선 tool 경계·trace 만.
     """
-    route = await _build_route(origin, stops, start_at, available_minutes, trace)
+    route, _reason = await _build_route(origin, stops, start_at, available_minutes, trace)
     trace.step(
         "tool.plan_day_route",
         stops_in=len(stops),

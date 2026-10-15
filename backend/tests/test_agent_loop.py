@@ -253,3 +253,40 @@ def test_empty_route_without_unmet_uses_no_results(monkeypatch):
     resp = _run("plan my evening", _ctx())
     assert resp.message == al._NO_RESULTS
     assert "lovely walking route" not in (resp.message or "")
+
+
+def test_prompt_window_overrides_short_form_window(monkeypatch):
+    # 폼/칩 기본 창이 짧아도(25분) 프롬프트가 1–5 PM 을 명시하면 거부되지 않고 루트가 돈다.
+    # 검증(30분)이 프롬프트 창 반영 '후'에 돌아야 함 — 프롬프트 > 폼(§6 Request 우선).
+    from app.agent import route_orchestrator as ro
+    from app.models.recommend import ParsedConditions
+
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("PlanCultureRoute", {"when": "from 1pm to 5pm"}),
+            _final("Here's a route."),
+        ],
+    )
+
+    async def fake_parse(text, today=None):
+        return ParsedConditions(start_time="13:00", end_time="17:00")
+
+    captured: dict = {}
+
+    async def fake_route(ctx, trace, *a, **kw):
+        captured["available"] = ctx.available_minutes
+        return RouteData(routes=[], origin=None, unmet="x")
+
+    monkeypatch.setattr(al, "parse_note", fake_parse)
+    monkeypatch.setattr(ro, "recommend_route", fake_route)
+
+    short_form = ChatContext(
+        start_location=StartLocation(label="Gwanghwamun", lat=37.57, lng=126.98),
+        start_at=datetime(2026, 10, 8, 11, 35),
+        end_at=datetime(2026, 10, 8, 12, 0),  # 25분(<30) — 프롬프트 없으면 거부됐을 창
+    )
+    resp = _run("plan a cultural route from 1pm to 5pm", short_form)
+    # 30분 미만 clarify 가 아니라 실제 루트 경로가 실행됐어야 한다.
+    assert "30 minutes" not in (resp.message or "")
+    assert captured.get("available") == 240  # 프롬프트 창(13:00–17:00)이 반영됨

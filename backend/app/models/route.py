@@ -76,6 +76,10 @@ class RouteData(BaseModel):
     # feasible 후보가 담긴 스톱 수보다 많음 — 즉 '근처엔 더 있는데 시간/도보로 못 담음'.
     # '더 추가' 부족 시 "시간을 늘릴까?"를 구체적으로 제안하는 데 쓴다(발견 부족과 구분).
     more_feasible: bool = False
+    # 프롬프트가 시간창을 직접 말해 폼/칩 기본값을 덮어쓴 경우, 실제 사용된 창(ISO)을 돌려준다 →
+    # 프론트가 trip 칩·루트 카드·저장 ref 를 이 값으로 맞춰 화면과 계산을 일치시킨다. 미적용 시 None.
+    window_start: datetime | None = None
+    window_end: datetime | None = None
     ai_notice: str = (
         "AI-assisted route · facts from official sources, unconfirmed details marked"
     )

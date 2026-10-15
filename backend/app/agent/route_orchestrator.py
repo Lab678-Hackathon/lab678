@@ -57,7 +57,11 @@ from app.domain.route import (
     route_status,
 )
 from app.domain.signals import classification_signals
-from app.domain.timing import TimingVerdict, shift_to_request_date
+from app.domain.timing import (
+    TimingVerdict,
+    resolve_prose_window,
+    shift_to_request_date,
+)
 from app.models.recommend import (
     Candidate,
     InterestCode,
@@ -117,8 +121,11 @@ async def _build_route(
     start_at: datetime,
     available_minutes: int,
     trace: Trace,
-) -> Route | None:
-    """스톱 순서에 구간 도보를 붙여 Route 구성. 도보만으로 창 초과면 None(불가)."""
+) -> tuple[Route | None, str]:
+    """스톱 순서에 구간 도보를 붙여 Route 구성. (route, reason). 불가 시 (None, reason):
+    'over_time_budget'(도보+방문이 창 초과) | 'walk_unmeasured'(첫 2레그 중 Tmap 측정 실패 —
+    시간 문제가 아님). 호출부가 reason 으로 사용자 메시지를 구분한다(측정 실패를 '시간창 안 맞음'으로
+    오표기하지 않음)."""
     pts: list[tuple[str, float, float]] = [
         (origin.label, origin.lat, origin.lng)  # type: ignore[list-item]
     ] + [
@@ -142,7 +149,15 @@ async def _build_route(
     # 하루 동선: 시간창이 허용하는 만큼만(개수 제한 대신 시간 제한, 강제 채움 없음).
     keep = fit_count(walk_minutes, stops, available_minutes)
     if keep < 2:
-        return None  # 창에 2개도 안 들어감 → 루트 불가(개별 전환)
+        # 2개도 안 들어감. 원인 구분: 첫 2레그 중 하나라도 Tmap 측정 실패(None)면 '측정 실패'이지
+        # '시간창 초과'가 아니다 — 메시지를 구분해 오해를 막는다(없는 직선 위조 금지와 같은 선상).
+        first_none = next((i for i, wm in enumerate(walk_minutes) if wm is None), None)
+        reason = (
+            "walk_unmeasured"
+            if first_none is not None and first_none < 2
+            else "over_time_budget"
+        )
+        return None, reason  # 루트 불가(개별 전환)
     stops = stops[:keep]
     segments = [s for s, _ in segs][:keep]
     walk_minutes = walk_minutes[:keep]
@@ -188,7 +203,7 @@ async def _build_route(
         stay_note=stay_note,
         finish_at=finish_at,
         flags=flags,
-    )
+    ), "ok"
 
 
 def _resolve_pinned(
@@ -235,6 +250,27 @@ async def recommend_route(
     if new_start != ctx.start_at:
         ctx = ctx.model_copy(update={"start_at": new_start, "end_at": new_end})
         trace.step("request_date", date=cond.date)
+    # [시간 프롬프트 — 전체 창 반영(2026-10-15 Product)] 챗 B 는 사용자가 산문으로 시간창을 직접
+    # 말한다('from 1 PM to 5 PM'). 명시된 시작/종료 시각은 폼/칩 기본값을 덮어쓴다(지어내기 아님 —
+    # 근거는 사용자 발화). 날짜는 위 shift 로 이미 반영됨 → 그 날짜에 시각만 끼운다.
+    ps, pe, applied_window = resolve_prose_window(
+        ctx.start_at, ctx.end_at, cond.start_time, cond.end_time, cond.duration_minutes
+    )
+    if applied_window is not None:
+        ctx = ctx.model_copy(update={"start_at": ps, "end_at": pe})
+        trace.step(
+            "prose_window",
+            applied=applied_window,
+            start_at=ps.isoformat(),
+            end_at=pe.isoformat(),
+            available_minutes=ctx.available_minutes,
+        )
+    # 프롬프트가 창을 덮어쓴 경우에만 '실제 사용된 창'을 프론트로 되돌려준다(칩·카드·저장 일치용).
+    window_fields = (
+        {"window_start": ctx.start_at, "window_end": ctx.end_at}
+        if applied_window is not None
+        else {}
+    )
     cond = merge_saved_interests(cond, saved_interests)
     cond = merge_saved_open_preferences(cond, saved_open_preferences)
     cond = merge_saved_walks(cond, prefer_shorter_walks)
@@ -389,19 +425,28 @@ async def recommend_route(
             unmet="We couldn't build a reliable 2–3 stop route from what's open now — see individual experiences instead.",
             notices=route_notices,
             environment=env,
+            **window_fields,
         )
 
-    route = await _build_route(
+    route, build_reason = await _build_route(
         origin, stops, ctx.start_at, ctx.available_minutes, trace
     )
     if route is None:
-        trace.step("route_unmet", reason="over_time_budget")
+        trace.step("route_unmet", reason=build_reason)
+        unmet = (
+            "We couldn't measure walking routes between these experiences right now — "
+            "please try again in a moment, or see individual experiences."
+            if build_reason == "walk_unmeasured"
+            else "The nearest open experiences don't fit your time window as one walking "
+            "route — try a longer window or see individual experiences."
+        )
         return RouteData(
             routes=[],
             origin=origin,
-            unmet="The nearest open experiences don't fit your time window as one walking route — try a longer window or see individual experiences.",
+            unmet=unmet,
             notices=route_notices,
             environment=env,
+            **window_fields,
         )
     trace.step(
         "route_built",
@@ -419,4 +464,5 @@ async def recommend_route(
         environment=env,
         # 근처 feasible 가 담긴 스톱보다 많으면 '더 있는데 시간/도보로 못 담음' → 시간 연장 제안 근거.
         more_feasible=len(feasible) > len(route.stops),
+        **window_fields,
     )

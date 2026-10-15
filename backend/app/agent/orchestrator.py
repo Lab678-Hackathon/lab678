@@ -59,11 +59,11 @@ from app.domain.status import resolve_status
 from app.domain.timing import (
     EventPeriod,
     TimingVerdict,
-    effective_end_at,
     judge_event_period,
     judge_extracted_hours,
     judge_timing,
     operating_hours_text,
+    resolve_prose_window,
     shift_to_request_date,
     should_retry_hours_with_llm,
 )
@@ -654,20 +654,28 @@ async def recommend_a(
         get_environment(lat, lng, trace),
     )
 
-    # [시간 프롬프트 우선, §11] note 가 명시한 종료시각('until 5pm')·소요시간('3 hours')이 있으면
-    # 가용창을 '더 좁게'만 조정(보수적 — 없는 시간을 벌지 않음). 판정·available_minutes 에 반영.
-    # 모호한 'afternoon' 등은 note_parser 가 비워 두므로 여기 닿지 않는다. 무효는 폼 값 유지.
-    eff_end, applied_time = effective_end_at(
-        ctx.start_at, ctx.end_at, cond.end_time, cond.duration_minutes
+    # [시간 프롬프트 — 전체 창 반영(2026-10-15 Product)] note 가 명시한 시작/종료 시각('from 1pm
+    # to 5pm')·소요시간('3 hours')은 폼/칩 기본값을 덮어쓴다(확장 허용 — B 와 동일 정책). 근거가
+    # 사용자 발화라 지어내기(불변식 #3) 아님. 모호한 'afternoon' 등은 note_parser 가 비워 둬 안 닿음.
+    # 역전·과소 등 무효는 폼 값 유지(graceful). 날짜는 위 shift 로 이미 반영됨.
+    ps, pe, applied_window = resolve_prose_window(
+        ctx.start_at, ctx.end_at, cond.start_time, cond.end_time, cond.duration_minutes
     )
-    if applied_time is not None:
-        ctx = ctx.model_copy(update={"end_at": eff_end})
+    if applied_window is not None:
+        ctx = ctx.model_copy(update={"start_at": ps, "end_at": pe})
         trace.step(
-            "time_prompt",
-            source=applied_time,
-            end_at=eff_end.isoformat(),
+            "prose_window",
+            applied=applied_window,
+            start_at=ps.isoformat(),
+            end_at=pe.isoformat(),
             available_minutes=ctx.available_minutes,
         )
+    # 프롬프트가 창을 덮어쓴 경우에만 '실제 사용된 창'을 프론트로 되돌려준다(칩 동기화 — B 와 동일).
+    window_fields = (
+        {"window_start": ctx.start_at, "window_end": ctx.end_at}
+        if applied_window is not None
+        else {}
+    )
 
     trace.step(
         "structure",
@@ -858,4 +866,5 @@ async def recommend_a(
         conditions=cond,
         notices=notices,
         environment=env,
+        **window_fields,
     )

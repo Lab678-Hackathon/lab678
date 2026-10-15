@@ -20,6 +20,7 @@ from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 
 from app.agent.context import RequestContext
+from app.agent.note_parser import parse_note
 from app.agent.tools.schemas import (
     TOOL_SCHEMAS,
     AnswerTravelQuestion,
@@ -29,6 +30,7 @@ from app.agent.tools.schemas import (
 from app.config import settings
 from app.core.trace import Trace
 from app.domain.input_validation import validate_available_time
+from app.domain.timing import resolve_prose_window
 from app.models.chat import ChatContext, ChatKind, ChatResponse, ChatTurn
 from app.models.recommend import InterestCode
 from app.rag.retrieve import answer_question
@@ -156,7 +158,6 @@ async def dispatch_tool(
         # 사실(위치·시각창)은 context 에서, 선호·날짜 '표현'만 LLM args 에서. 경계 검증은 domain.
         # 날짜 표현(when)을 note 앞에 합쳐 parse_note→shift_to_request_date 가 상대·명시 날짜를
         # 결정론으로 해석하게 한다(채팅 자연어 날짜도 A·B 동일하게 반영). 날짜 숫자 생성은 코드가.
-        validate_available_time(context.start_at, context.end_at)
         note = (
             " ".join(
                 p.strip()
@@ -165,12 +166,24 @@ async def dispatch_tool(
             )
             or None
         )
+        # [프롬프트 우선 — 시간창] 프롬프트가 명시한 시작/종료 시각을 폼/칩 기본값보다 '먼저' 반영한
+        # 뒤에 경계(30분·자정)를 검증한다 — 유효한 프롬프트 창이 짧은 기본 폼 창 때문에 거부되지 않게
+        # (프롬프트 > 폼, §6 Request 우선). 날짜 shift 는 orchestrator 가 수행.
+        start_at, end_at, cond = context.start_at, context.end_at, None
+        if note:
+            cond = await parse_note(note)
+            ps, pe, applied = resolve_prose_window(
+                start_at, end_at, cond.start_time, cond.end_time, cond.duration_minutes
+            )
+            if applied is not None:
+                start_at, end_at = ps, pe
+        validate_available_time(start_at, end_at)
         ctx = RequestContext(
             start_location=context.start_location,
-            start_at=context.start_at,
-            end_at=context.end_at,
+            start_at=start_at,
+            end_at=end_at,
             note=note,
-            conditions=None,
+            conditions=cond,  # 이미 파싱했으면 재사용(orchestrator 가 재파싱 안 함)
         )
         # 지연 import: 무거운 소스 체인을 끌어오므로 호출 시점에만.
         if name == RecommendExperiences.__name__:

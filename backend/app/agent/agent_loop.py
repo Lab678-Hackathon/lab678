@@ -51,6 +51,7 @@ from app.domain.conflict import conflict_message, io_interest_conflict
 from app.domain.input_validation import validate_available_time
 from app.domain.locations import detect_location_in_text
 from app.domain.text_signals import detect_indoor_outdoor
+from app.domain.timing import resolve_prose_window
 from app.models.chat import ChatContext, ChatKind, ChatResponse, ChatTurn
 from app.models.rag import RagAnswer
 from app.models.recommend import InterestCode, ParsedConditions, RecommendData
@@ -422,8 +423,28 @@ async def _run_recommend_or_route(
             "Need preferences first: ask the user what kind of experiences they want."
         )
 
-    # 시간 경계 위반(예: 30분 미만)은 사용자-facing 메시지를 그대로 되묻는다 —
-    # 루프의 generic tool-error 핸들러가 삼켜 모호한 문구로 바뀌지 않게 여기서 잡는다.
+    # [누적 조건] 전 대화의 user 발화를 모아 1회 파싱 → 제외·위치·선호의 '합집합'을 얻는다.
+    # 라우팅 LLM 의 매턴 preferences 요약이 이전 제외를 흘려도, 사용자가 실제로 말한 조건을
+    # 직접 누적하므로 제거한 장소가 다시 안 나오고 위치도 유지된다(route_orchestrator 가
+    # exclude_places/concepts 를 하드 필터로 적용). 첫 턴은 현재 메시지만 → 기존과 동일.
+    convo_text = accumulated_user_text(state.history, state.message)
+    cond = await parse_note(convo_text) if convo_text.strip() else ParsedConditions()
+
+    # [프롬프트 우선 — 시간창] 프롬프트가 시작/종료 시각을 명시했으면 폼/칩 기본값보다 '먼저' 반영한
+    # 뒤에 경계(30분·자정)를 검증한다. 그래야 '1–5 PM' 같은 유효한 프롬프트 창이 짧은 기본 폼 창
+    # (예: 지금이 23:35 라 25분 남음) 때문에 거부되지 않는다(프롬프트 > 폼 — §6 Request 우선). 날짜
+    # shift 는 orchestrator 가 수행하므로 여기선 시각만 반영(창 길이=검증 대상은 날짜와 무관).
+    ps, pe, applied_window = resolve_prose_window(
+        context.start_at,
+        context.end_at,
+        cond.start_time,
+        cond.end_time,
+        cond.duration_minutes,
+    )
+    if applied_window is not None:
+        context = context.model_copy(update={"start_at": ps, "end_at": pe})
+    # 시간 경계 위반(예: 30분 미만)은 사용자-facing 메시지를 그대로 되묻는다 — 루프의 generic
+    # tool-error 핸들러가 삼켜 모호한 문구로 바뀌지 않게 여기서 잡는다(프롬프트 창 반영 '후' 검증).
     try:
         validate_available_time(context.start_at, context.end_at)
     except ValidationFailure as e:
@@ -432,13 +453,6 @@ async def _run_recommend_or_route(
             kind=ChatKind.CLARIFY, tool=name, message=e.user_message
         )
         return f"Invalid time window: {e.user_message}"
-
-    # [누적 조건] 전 대화의 user 발화를 모아 1회 파싱 → 제외·위치·선호의 '합집합'을 얻는다.
-    # 라우팅 LLM 의 매턴 preferences 요약이 이전 제외를 흘려도, 사용자가 실제로 말한 조건을
-    # 직접 누적하므로 제거한 장소가 다시 안 나오고 위치도 유지된다(route_orchestrator 가
-    # exclude_places/concepts 를 하드 필터로 적용). 첫 턴은 현재 메시지만 → 기존과 동일.
-    convo_text = accumulated_user_text(state.history, state.message)
-    cond = await parse_note(convo_text) if convo_text.strip() else ParsedConditions()
     # [번복] 현재 턴이 과거 제외 대상을 '추가/복원'하면 제외 해제(Request 가 Preference 를 이김).
     before = (list(cond.exclude_concepts), list(cond.exclude_places))
     cond = reconcile_reversals(cond, state.message)

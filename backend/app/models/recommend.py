@@ -86,6 +86,13 @@ class ParsedConditions(BaseModel):
         default=None,
         description="Max budget per experience in Korean won, if the user stated an amount. Null otherwise.",
     )
+    start_time: str | None = Field(
+        default=None,
+        description="An explicit clock time the user wants to START at, as 'HH:MM' in 24h "
+        "(e.g. 'from 1pm' -> '13:00', 'starting at 10' -> '10:00'). Set ONLY when the user named "
+        "a concrete start clock time. Null for vague words ('in the afternoon') or if not "
+        "mentioned. Never invent a time.",
+    )
     end_time: str | None = Field(
         default=None,
         description="An explicit clock time the user wants to FINISH by, as 'HH:MM' in 24h "
@@ -314,5 +321,9 @@ class RecommendData(BaseModel):
     notices: list[str] = Field(default_factory=list)
     # 환경(날씨·대기질) Context — 악조건 시 프론트가 주의 배너 표시(PRD §6.6, Soft).
     environment: EnvironmentContext | None = None
+    # 프롬프트가 시간창을 직접 말해 폼/칩 기본값을 덮어쓴 경우, 실제 사용된 창(ISO)을 돌려준다 →
+    # 프론트가 trip 칩을 이 값으로 맞춰 화면과 판정을 일치시킨다(B RouteData 와 동일). 미적용 시 None.
+    window_start: datetime | None = None
+    window_end: datetime | None = None
     # AI 관여 고지 (NFR-05, DESIGN §1): 프론트가 상단에 표시.
     ai_notice: str = "AI-assisted results · unconfirmed details marked"

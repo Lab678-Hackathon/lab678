@@ -432,6 +432,15 @@ export function renderChatView({ onBack, onHome }) {
   }
 
   function renderResponse(data) {
+    // 프롬프트가 시간창을 직접 말해('from 1 PM to 5 PM') 백엔드가 폼/칩 기본값을 덮어썼으면,
+    // 실제 사용된 창으로 trip 칩·루트 카드·저장 ref 를 맞춘다(화면과 계산 일치). A(recommendation)·
+    // B(route) 둘 다 window 를 돌려주므로 어느 쪽이든 반영. renderRoute/renderRecommendation 전에 적용.
+    const win = data.route || data.recommendation;
+    if (win?.window_start && win?.window_end) {
+      startValue = String(win.window_start).slice(0, 16);
+      endValue = String(win.window_end).slice(0, 16);
+      refreshTrip();
+    }
     // AI가 생성한 자연어 답변(message)을 결과 '소개'로 사용 — 하드코딩 문구 대체.
     const intro = (data.message || "").trim();
     const hasRoute = data.route && (data.route.routes ?? []).length;

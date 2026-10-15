@@ -75,7 +75,7 @@ def test_plan_day_route_delegates(monkeypatch):
     stub = _StubRoute()
 
     async def fake_build(origin, stops, start_at, avail, trace):
-        return stub
+        return stub, "ok"
 
     monkeypatch.setattr(rt, "_build_route", fake_build)
     out = asyncio.run(rt.plan_day_route("ORIGIN", [], None, 300, Trace()))
@@ -84,7 +84,7 @@ def test_plan_day_route_delegates(monkeypatch):
 
 def test_plan_day_route_none_when_infeasible(monkeypatch):
     async def fake_build(origin, stops, start_at, avail, trace):
-        return None  # 창 초과 → 루트 불가
+        return None, "over_time_budget"  # 창 초과 → 루트 불가
 
     monkeypatch.setattr(rt, "_build_route", fake_build)
     assert asyncio.run(rt.plan_day_route("ORIGIN", [], None, 60, Trace())) is None

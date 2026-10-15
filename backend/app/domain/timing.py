@@ -272,6 +272,7 @@ def judge_timing(
         return TimingVerdict.UNCERTAIN, "operating hours not parseable"
 
     caveat = _has_caveat(hours, len(ranges))
+    word_caveat = any(w in low for w in _CAVEAT_WORDS)
     ws = start_dt.time()
     we = _window_end_time(start_dt, end_dt)
     overlap = any(s < we and e > ws for s, e in ranges)
@@ -284,7 +285,13 @@ def judge_timing(
         if too_late:
             return TimingVerdict.CLOSED, "after last admission"
         return TimingVerdict.OPEN, "open during your time window"
-    # 계절·복수시설·문의 등 → 단정하지 않음
+    # 계절·복수시설·문의 등 → 기본은 단정하지 않음(UNCERTAIN). 단, caveat 가 월/복수범위에서만
+    # 비롯했고(단어형 'vary/문의/계절' 없음) 파싱된 범위가 '전부' 창과 안 겹치면 CLOSED 로 둔다:
+    # 계절 변형은 날짜상 상호배타적이라 어느 시즌이든 닫힘 → 오탈락 위험 없이 Hard 제외가 안전
+    # (예: 22:10 창에 09:00-18:00/09:00-17:00 둘 다 마감). 단어형 caveat 는 숫자가 예시일 수
+    # 있어 그대로 보류한다.
+    if ranges and not overlap and not word_caveat:
+        return TimingVerdict.CLOSED, "closed during your time window (all listed hours)"
     return TimingVerdict.UNCERTAIN, "operating hours need checking"
 
 
@@ -331,39 +338,51 @@ def shift_to_request_date(
     return start_at + timedelta(days=delta), end_at + timedelta(days=delta)
 
 
-def effective_end_at(
+def resolve_prose_window(
     start_at: datetime,
     form_end_at: datetime,
+    start_time: str | None,
     end_time: str | None,
     duration_minutes: int | None,
-) -> tuple[datetime, str | None]:
-    """note 가 명시한 종료시각/소요시간으로 가용창을 '더 좁게'만 조정(보수적 narrow, §11).
+) -> tuple[datetime, datetime, str | None]:
+    """산문에 '명시된' 시작/종료 시각으로 가용창을 재구성한다(2026-10-15 Product — 챗 전체 창 반영).
 
-    가용시간을 과대평가하지 않도록 명시값과 폼 종료 중 **더 이른 쪽(min)** 을 택한다
-    (없는 시간을 벌어 장소를 OPEN 으로 오판하지 않게). 창을 넓히지는 않는다 — Request 우선
-    이되 '덜 가진' 쪽으로만 간다. note 값이 무효이거나 결과가 30분 미만/역전이면 폼 값을
-    유지(무시 — 사용자가 말하지 않은 시간을 지어내지 않고 추천도 막지 않는다. raise 하지 않음:
-    루프의 generic 핸들러가 모호한 오류로 삼키지 않게). 반환: (effective_end, applied|None).
-    applied 는 실제 적용된 근거('end_time'|'duration'), 미적용 시 None(trace 용).
+    effective_end_at 의 narrow-only(좁히기만)와 달리, 사용자가 프롬프트에 직접 밝힌 시각은 '사용자가
+    스스로 말한 시간'이라 폼/칩 기본값을 덮어쓴다(확장 허용). 이는 숫자 지어내기(불변식 #3)가 아니다 —
+    근거가 사용자 발화다. 명시된 bound 만 바꾸고 미명시 bound 는 그대로 둔다. 날짜는 start_at 의 날짜를
+    유지한다(조회 날짜는 이미 shift_to_request_date 로 반영됨).
+
+    - start_time 있으면 시작 시각 override. end_time 있으면 종료 override; 없고 duration 있으면
+      (새)시작+duration. 결과가 역전/30분 미만이면 적용하지 않고 폼 값 유지(지어내지 않음·추천 안 막음).
+    반환: (start, end, applied) — applied 는 trace 라벨('start'|'end'|'start+end'|'duration'|None).
     """
-    candidates: list[tuple[datetime, str]] = []
-    t = _hhmm(end_time)
-    if t is not None:
-        candidates.append(
-            (datetime.combine(start_at.date(), t, tzinfo=start_at.tzinfo), "end_time")
-        )
-    if duration_minutes is not None and duration_minutes > 0:
-        candidates.append((start_at + timedelta(minutes=duration_minutes), "duration"))
-    if not candidates:
-        return form_end_at, None
-    end, source = min(candidates, key=lambda c: c[0])
-    if end >= form_end_at:  # 폼보다 넓히지 않음(보수적)
-        return form_end_at, None
-    if (
-        end - start_at < _MIN_WINDOW
-    ):  # 30분 미만/역전 → 무시(지어내지 않음, raise 안 함)
-        return form_end_at, None
-    return end, source
+    s = _hhmm(start_time)
+    e = _hhmm(end_time)
+    has_duration = bool(duration_minutes and duration_minutes > 0)
+    if s is None and e is None and not has_duration:
+        return start_at, form_end_at, None
+    new_start = (
+        datetime.combine(start_at.date(), s, tzinfo=start_at.tzinfo) if s else start_at
+    )
+    if e is not None:
+        new_end = datetime.combine(new_start.date(), e, tzinfo=start_at.tzinfo)
+    elif has_duration:
+        new_end = new_start + timedelta(minutes=duration_minutes or 0)
+    else:
+        new_end = form_end_at
+    if new_end - new_start < _MIN_WINDOW:  # 역전·과소 → 지어내지 않고 폼 유지
+        return start_at, form_end_at, None
+    if new_start == start_at and new_end == form_end_at:
+        return start_at, form_end_at, None
+    if s is not None and e is not None:
+        applied = "start+end"
+    elif s is not None:
+        applied = "start"
+    elif e is not None:
+        applied = "end"
+    else:
+        applied = "duration"
+    return new_start, new_end, applied
 
 
 def judge_extracted_hours(
