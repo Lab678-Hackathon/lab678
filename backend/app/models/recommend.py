@@ -231,6 +231,11 @@ class OfficialLink(BaseModel):
 class Candidate(BaseModel):
     id: str
     title: str
+    # 표시 title 은 영문화(로마자+외래어 복원). 원문에 한글이 있던 경우 그 원문을 보존해
+    # 둔다 — '결과 상단 Translate' 토글이 켜질 때만 이 한글 원문을 LLM 의미번역에 쓴다
+    # (로마자화 결과가 아니라 원문을 번역해야 'Seoul International Fireworks Festival' 처럼
+    # 뜻이 산다). 한글이 없으면 None(번역 불필요). 기본 표시는 바꾸지 않는다.
+    title_original: str | None = None
     # 출처 배지(멀티소스, 설계 §6.2). 공식 소스 식별 — "tour"=TourAPI, "seoul"=서울문화포털.
     source: str = "tour"
     type: ExperienceType = ExperienceType.DEFAULT

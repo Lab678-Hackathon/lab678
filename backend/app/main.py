@@ -22,6 +22,7 @@ from app.api.preferences import router as preferences_router
 from app.api.recommend import router as recommend_router
 from app.api.route import router as route_router
 from app.api.session import router as session_router
+from app.api.translate import router as translate_router
 from app.config import settings
 from app.core.exceptions import KonnectError
 from app.core.trace import new_trace_id
@@ -64,6 +65,7 @@ app.include_router(preferences_router)
 app.include_router(ask_router)
 app.include_router(chat_router)
 app.include_router(route_router)
+app.include_router(translate_router)
 
 
 @app.exception_handler(KonnectError)

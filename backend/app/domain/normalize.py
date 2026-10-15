@@ -226,6 +226,55 @@ def _romanize(text: str) -> str:
     return _HANGUL_SYL_RUN_RE.sub(repl, text or "")
 
 
+# ── 외래어(영어·외국어를 한글로 적은 것) → 영어 복원 사전 ──
+# 행사·공연·장소 제목엔 '발음대로 적힌 영어'(글로벌·콘서트·페스티벌…)가 흔한데, 그대로
+# 로마자화하면 'Geulrobeol·Konseoteu' 같은 소음이 된다. 로마자화 '전에' 이 사전으로
+# 원래 영어를 되살린다. 의미 번역이 아니라 '원 영어 표기 복원'만 하고(한글날→Hangeulnal은
+# 그대로), 사전에 없는 한글은 기존대로 발음 보존 로마자화한다. 결정론·오프라인.
+# 긴 표제부터 매칭한다(아트나이트 > 아트/나이트). 오탐 위험이 큰 1음절 외래어(홀·돔·쇼·
+# 북·데이 등 — 네이티브 한국어에 섞여들 수 있음)와 '파트'(아파트에 매칭)는 일부러 제외.
+_LOANWORDS = {
+    # 행사·형식
+    "페스티벌": "Festival", "페스티발": "Festival", "콘서트": "Concert",
+    "아트나이트": "Art Night", "비엔날레": "Biennale", "카니발": "Carnival",
+    "퍼레이드": "Parade", "쇼케이스": "Showcase", "엑스포": "Expo",
+    "페어": "Fair", "마켓": "Market", "투어": "Tour", "워크숍": "Workshop",
+    "워크샵": "Workshop", "세미나": "Seminar", "컨퍼런스": "Conference",
+    "포럼": "Forum", "심포지엄": "Symposium", "프로젝트": "Project",
+    "컬렉션": "Collection", "에디션": "Edition", "갈라": "Gala",
+    # 공연·음악
+    "뮤지컬": "Musical", "오페라": "Opera", "오케스트라": "Orchestra",
+    "발레": "Ballet", "리사이틀": "Recital", "클래식": "Classic",
+    "재즈": "Jazz", "힙합": "Hip-hop", "버스킹": "Busking", "밴드": "Band",
+    "댄스": "Dance", "라이브": "Live", "뮤직": "Music", "필름": "Film",
+    "시네마": "Cinema",
+    # 장소
+    "뮤지엄": "Museum", "갤러리": "Gallery", "센터": "Center",
+    "플라자": "Plaza", "스퀘어": "Square", "테마파크": "Theme Park",
+    "파크": "Park", "타워": "Tower", "스튜디오": "Studio", "라운지": "Lounge",
+    "스테이지": "Stage", "아레나": "Arena", "스타디움": "Stadium",
+    "컨벤션": "Convention", "스트리트": "Street", "빌리지": "Village",
+    "가든": "Garden",
+    # 주제·일반
+    "글로벌": "Global", "케이팝": "K-POP", "코리아": "Korea",
+    "아티스트": "Artist", "아트": "Art", "나이트": "Night", "위크": "Week",
+    "패션": "Fashion", "뷰티": "Beauty", "푸드": "Food", "와인": "Wine",
+    "커피": "Coffee", "미디어": "Media", "디지털": "Digital",
+    "아카이브": "Archive", "크리스마스": "Christmas", "할로윈": "Halloween",
+    "스페셜": "Special", "시즌": "Season",
+}
+_LOANWORD_RE = re.compile("|".join(sorted(_LOANWORDS, key=len, reverse=True)))
+
+
+def _apply_loanwords(text: str) -> str:
+    """한글로 적힌 영어·외래어를 영어로 복원(로마자화 '전'에). 치환어 양옆에 공백을 넣어
+    인접 한글·영문과 붙지 않게 하고(공백은 뒤 단계에서 축약), 사전에 없는 한글은 그대로 둬
+    발음 보존 로마자화로 넘긴다. 예: '서울글로벌 아트나이트' → '서울 Global  Art Night '."""
+    if not text:
+        return text
+    return _LOANWORD_RE.sub(lambda m: f" {_LOANWORDS[m.group()]} ", text)
+
+
 # 영국식 → 미국식 철자(관광 영문 텍스트 빈출 — 공식 영문 API 가 영국식으로 주는 경우 통일).
 _BRITISH_TO_AMERICAN = {
     "centre": "center",
@@ -304,8 +353,10 @@ def english_display(text: str | None) -> str:
     1) 한글이 든 괄호 묶음 제거 — 괄호 속 한글은 보통 '전체 명칭의 번역 중복'이라(예 영문
        'Dongdaemun Design Plaza' + '(동대문디자인플라자)') 로마자화하면 'Dongdaemundijainpeullaja'
        같은 소음이 되므로 제거한다. 영문만 든 괄호는 보존.
-    2) 괄호 밖 인라인 한글은 **발음 보존 로마자화**(혼합 제목에서도 한글을 지우지 않고 읽게 —
-       '한글날'→'Hangeulnal', 의미 번역 아님). 결정론·오프라인(LLM 없음).
+    2) 외래어 복원 → 로마자화. 한글로 적힌 영어·외래어(글로벌·콘서트…)는 _apply_loanwords 로
+       원 영어 표기를 되살리고('서울글로벌 아트나이트'→'Seoul Global Art Night'), 사전에 없는
+       한글만 **발음 보존 로마자화**(혼합 제목의 한글도 지우지 않고 읽게 — '한글날'→'Hangeulnal',
+       의미 번역 아님). 결정론·오프라인(LLM 없음).
     3) 인접 중복어 축약으로 '경복궁 Gyeongbokgung' 같은 로마자화-영문 중복을 접고, 미국영어로
        통일(centre→center). 모두 비면(괄호 제거로 사라짐) 원문 전체를 로마자화해 이름을 살린다.
     """
@@ -314,8 +365,8 @@ def english_display(text: str | None) -> str:
     for _ in range(2):
         for pat in _BRACKET_PATS:
             t = pat.sub(lambda m: "" if _HANGUL_RE.search(m.group()) else m.group(), t)
-    # 2) 괄호 밖 인라인 한글을 로마자화(제거하지 않는다 — 혼합 제목의 한글도 발음 보존).
-    t = _romanize(t)
+    # 2) 외래어를 영어로 복원한 뒤, 남은 인라인 한글을 로마자화(제거하지 않는다 — 발음 보존).
+    t = _romanize(_apply_loanwords(t))
     # 3) 정리: 빈 괄호·중복 공백·괄호 안쪽 공백·양끝 구분자.
     t = re.sub(r"[\(\[\{<「『]\s*[\)\]\}>」』]", "", t)
     t = re.sub(r"\s+([)\]\}>」』])", r"\1", t)
@@ -324,9 +375,11 @@ def english_display(text: str | None) -> str:
     t = _dedup_adjacent_words(t).strip()
     if _LATIN_LETTER_RE.search(t):
         return to_american(t)
-    # 괄호 제거로 이름이 사라진 경우 등 — 원문 전체를 로마자화(이름을 지우지 않는다).
+    # 괄호 제거로 이름이 사라진 경우 등 — 원문 전체를 외래어 복원+로마자화(이름을 지우지 않는다).
     romanized = _dedup_adjacent_words(
-        re.sub(r"\s{2,}", " ", _romanize(text or "")).strip(" \t-·,/|").strip()
+        re.sub(r"\s{2,}", " ", _romanize(_apply_loanwords(text or "")))
+        .strip(" \t-·,/|")
+        .strip()
     )
     return to_american(romanized)
 
@@ -545,9 +598,12 @@ def normalize_seoul_event(row: dict[str, Any]) -> Candidate | None:
     if coords is None:
         return None
     lat, lng = coords
-    title = english_display(row.get("TITLE"))
+    raw_title = str(row.get("TITLE") or "").strip()
+    title = english_display(raw_title)
     if not title:
         return None
+    # 한글이 든 원문만 보존(온디맨드 번역용). 영문 원문은 번역 불필요.
+    title_original = raw_title if _HANGUL_RE.search(raw_title) else None
 
     price = normalize_price(_seoul_price_text(row))
     # 행사는 '그날 안의 운영시간'이 구조화돼 있지 않다 → 미확인(시간 지어내지 않음).
@@ -572,6 +628,7 @@ def normalize_seoul_event(row: dict[str, Any]) -> Candidate | None:
     return Candidate(
         id=f"seoul-{abs(hash(uid)) % (10**10)}",
         title=title,
+        title_original=title_original,
         source="seoul",
         type=etype,
         status=ResultStatus.CHECK_NEEDED,  # 판정 전(orchestrator 에서 3상태 산정)
@@ -596,9 +653,12 @@ def normalize_candidate(
     if coords is None:
         return None
     lat, lng = coords
-    title = english_display(item.get("title"))
+    raw_title = str(item.get("title") or "").strip()
+    title = english_display(raw_title)
     if not title:
         return None
+    # TourAPI(EngService2)는 보통 영문 제목이라 한글이 거의 없지만, 섞여 오면 보존(번역용).
+    title_original = raw_title if _HANGUL_RE.search(raw_title) else None
 
     etype = _TYPE_MAP.get(str(item.get("contenttypeid")), ExperienceType.DEFAULT)
     price = normalize_price(_first(intro, _FEE_KEYS))
@@ -631,6 +691,7 @@ def normalize_candidate(
     return Candidate(
         id=f"tour-{item.get('contentid')}",
         title=title,
+        title_original=title_original,
         type=etype,
         visit_minutes=official_visit_minutes(intro),  # 공식 권장 방문시간(있을 때만)
         status=ResultStatus.CHECK_NEEDED,  # 판정 전(A3에서 3상태 산정)

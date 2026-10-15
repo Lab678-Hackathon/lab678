@@ -33,6 +33,15 @@ export function postRoute(payload, signal) {
   });
 }
 
+// 온디맨드 번역 — 한글 유래 표시 문자열(제목 원문·가격 원문) 목록 → {원문: 영어} 매핑.
+// '결과 상단 Translate' 토글이 켜질 때만 호출(핫패스 아님). 기본 표시는 결정론으로 유지.
+export function translateTexts(texts) {
+  return request("/api/translate", {
+    method: "POST",
+    body: JSON.stringify({ texts }),
+  });
+}
+
 // 단일 챗봇 Agent (AG-1/2·AG-3) — 자연어 + 대화 히스토리를 tool-calling 으로 라우팅.
 // history = 이전 턴들(멀티턴 맥락, 후속 교정용). 서버는 stateless.
 export function postChat(message, context, history, signal) {

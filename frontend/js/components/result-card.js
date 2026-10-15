@@ -1,6 +1,10 @@
 // Result Card v3 (LF-03 카드 캐러셀) — Fact · Reason · 미확인을 시각 분리(신뢰 UX).
 // 상태 배지 후보당 1개, Reason 0~2개, 미확인은 별도 flag 칩. 썸네일에 번호 배지.
 import { typeIcon3d } from "./icons3d.js";
+import { createTranslateToggle } from "./translate-toggle.js";
+
+// 한글 포함 여부 — 번역 토글 대상(제목·가격) 표시용. 원문 한글을 data-ko 에 실어둔다.
+const HANGUL = /[가-힣]/;
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
@@ -96,6 +100,7 @@ export function directionsUrl(origin, c) {
 export function renderResultCard(c, origin, index = 0) {
   const card = el("article", "card");
   card.dataset.status = c.status;
+  let hasKo = false; // 번역할 한글(제목·가격)이 있으면 actions 행에 Translate 토글을 둔다
 
   // 1. Head: 썸네일(번호 배지) + 상태 배지 + 제목
   const head = el("div", "card-head");
@@ -116,7 +121,13 @@ export function renderResultCard(c, origin, index = 0) {
   headText.append(badge);
   const far = farChip(c); // 반경 확대 편입 시 분홍 "Far" 칩
   if (far) headText.append(far);
-  headText.append(el("h2", "card-title", c.title));
+  const titleEl = el("h2", "card-title", c.title);
+  // 원문에 한글이 있던 제목은 그 원문을 data-ko 로 보관 → Translate 토글이 의미번역으로 교체.
+  if (c.title_original && HANGUL.test(c.title_original)) {
+    titleEl.dataset.ko = c.title_original;
+    hasKo = true;
+  }
+  headText.append(titleEl);
   head.append(thumb, headText);
   card.append(head);
 
@@ -159,8 +170,16 @@ export function renderResultCard(c, origin, index = 0) {
   // 3. Meta (Fact) — 시간·가격·이동. provenance 를 문구로 구분.
   const meta = el("div", "meta");
   if (c.time) meta.append(el("span", "meta-item", c.time.display));
-  if (c.price && c.price.status !== "unknown")
-    meta.append(el("span", "meta-item", c.price.display));
+  if (c.price && c.price.status !== "unknown") {
+    const priceEl = el("span", "meta-item", c.price.display);
+    // 가격 표시/원문에 한글이 있으면(유료·부분무료 원본) 원문을 data-ko 로 → 번역 교체 대상.
+    const ko = c.price.raw || c.price.display;
+    if (ko && HANGUL.test(ko)) {
+      priceEl.dataset.ko = ko;
+      hasKo = true;
+    }
+    meta.append(priceEl);
+  }
   if (c.movement) {
     // 예상 도보시간 옆에 거리(km/m)도 함께 — Tmap 경로 거리. 없으면 시간만.
     const dist = formatDistance(c.movement.distance_m);
@@ -193,7 +212,16 @@ export function renderResultCard(c, origin, index = 0) {
   const select = el("button", "btn-select", "Select");
   select.dataset.status = c.status;
   select.dataset.id = c.id;
-  actions.append(links, select);
+  // Translate 토글은 Select 와 같은 행(우측 묶음)에 둔다 — 별도 행을 만들지 않아 카드 높이가
+  // 토글 유무로 흔들리지 않게. 번역할 한글(제목·가격)이 있을 때만 노출(기본=결정론, 켜면 색만
+  // 바뀌며 의미번역으로 교체·끄면 복원).
+  if (hasKo) {
+    const right = el("div", "actions-right");
+    right.append(createTranslateToggle(() => card), select);
+    actions.append(links, right);
+  } else {
+    actions.append(links, select);
+  }
   card.append(actions);
 
   return card;

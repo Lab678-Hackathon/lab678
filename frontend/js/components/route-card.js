@@ -4,6 +4,10 @@
 // 체류시간은 주장하지 않는다(B-T01) — 각 스톱 '예정 분'은 표기 안 함.
 import { farChip } from "./result-card.js";
 import { typeIcon3d, TYPE_LABEL_3D, icon3d } from "./icons3d.js";
+import { createTranslateToggle } from "./translate-toggle.js";
+
+// 한글 포함 여부 — 번역 토글 대상(스톱 제목·가격). 원문 한글을 data-ko 에 실어둔다.
+const HANGUL = /[가-힣]/;
 
 const ROUTE_STATUS = {
   fits: "Ready to go (route)",
@@ -57,7 +61,10 @@ function stopRow(stop, onRemove) {
   const body = el("div", "route-stop-body");
 
   const titleLine = el("div", "route-stop-title-line");
-  titleLine.append(el("span", "route-stop-title", c.title));
+  const stopTitle = el("span", "route-stop-title", c.title);
+  if (c.title_original && HANGUL.test(c.title_original))
+    stopTitle.dataset.ko = c.title_original;
+  titleLine.append(stopTitle);
   // 유형 태그 — 3D 유형 아이콘 24 + 유형 이름(Figma v2, 상태 배지 대신). 분류 근거(signals)가
   // 있으면 태그를 눌러 AI 분류 매칭 칩을 펼친다(기존 투명 UX 유지). 미확인 구분은 flags·Planned 로.
   const hasSignals = Array.isArray(c.signals) && c.signals.length > 0;
@@ -131,8 +138,12 @@ function stopRow(stop, onRemove) {
   // Fact: 운영시간·가격(미확인 가격은 flag로 분리)
   const meta = el("div", "route-stop-meta");
   if (c.time) meta.append(el("span", "meta-item", c.time.display));
-  if (c.price && c.price.status !== "unknown")
-    meta.append(el("span", "meta-item", c.price.display));
+  if (c.price && c.price.status !== "unknown") {
+    const priceEl = el("span", "meta-item", c.price.display);
+    const ko = c.price.raw || c.price.display;
+    if (ko && HANGUL.test(ko)) priceEl.dataset.ko = ko;
+    meta.append(priceEl);
+  }
   if (meta.childNodes.length) body.append(meta);
 
   if (c.flags?.length) {
@@ -165,8 +176,12 @@ export function renderRouteCard(route, origin, opts = {}) {
   const { trip, onRemove } = opts;
   const card = el("article", "route-card");
 
-  // ── Head: 날짜/시간 + 헤드라인 + 스톱 요약 ──
+  // ── Head: (번역 토글) + 날짜/시간 + 헤드라인 + 스톱 요약 ──
   const head = el("div", "route-card-head");
+  // 결과 상단 Translate — 스톱 제목·가격의 한글 원문을 온디맨드 의미번역(기본은 결정론 표시).
+  const trRow = el("div", "route-translate-row");
+  trRow.append(createTranslateToggle(() => card));
+  head.append(trRow);
   if (trip?.start_at && trip?.end_at)
     head.append(
       el(
