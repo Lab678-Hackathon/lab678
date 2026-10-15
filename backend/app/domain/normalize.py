@@ -16,6 +16,7 @@ import re
 from typing import Any
 
 from app.domain.reservation import judge_reservation
+from app.domain.timing import summarize_hours
 from app.models.recommend import (
     Candidate,
     ExperienceType,
@@ -338,6 +339,16 @@ def _strip_html(s: str | None) -> str:
     )
 
 
+def _trim_at_word(text: str, limit: int) -> str:
+    """limit 초과 시 **단어 경계**에서 자르고 '…' — 글자수 컷으로 단어 중간을 끊지 않는다
+    (가격 등 자유기술 텍스트의 짤림 방지). 전체는 공식 링크/상세로 확인."""
+    text = text.strip()
+    if len(text) <= limit:
+        return text
+    cut = text[:limit].rsplit(" ", 1)[0].rstrip(" ,/·-")
+    return (cut or text[:limit].rstrip()) + "…"
+
+
 def _first(d: dict[str, Any], keys: list[str]) -> str:
     for k in keys:
         v = d.get(k)
@@ -377,14 +388,14 @@ def normalize_price(raw: str) -> PriceInfo:
         # 일부 무료·일부 유료 → 애매(대표가격으로 쓰지 않음)
         return PriceInfo(
             status=PriceStatus.PARTIAL_OR_AMBIGUOUS,
-            display=text[:60],
+            display=_trim_at_word(text, 60),
             raw=text,
             provenance=Provenance.CONFIRMED,
         )
     if has_num:
         return PriceInfo(
             status=PriceStatus.PAID,
-            display=text[:60],
+            display=_trim_at_word(text, 60),
             raw=text,
             provenance=Provenance.CONFIRMED,
         )
@@ -431,11 +442,16 @@ def official_visit_minutes(intro: dict[str, Any]) -> int | None:
 
 
 def normalize_hours(intro: dict[str, Any]) -> TimeInfo | None:
-    """운영시간 → 확인된 표시값. 없으면 None(미확인)."""
+    """운영시간 → 카드용 간결 표시값. 없거나 '그날 한 시간대'로 요약 불가(계절·문의 등)면
+    None(미확인 — 호출부가 'Hours need checking' 플래그 + 공식 링크로). 글자수 컷으로 단어
+    중간을 끊지 않는다(텍스트 짤림 방지) — summarize_hours 가 시각 범위만 결정론으로 뽑는다."""
     raw = _first(intro, _HOURS_KEYS)
     if not raw:
         return None
-    return TimeInfo(display=_strip_html(raw)[:80], provenance=Provenance.CONFIRMED)
+    display = summarize_hours(_strip_html(raw))
+    if not display:
+        return None
+    return TimeInfo(display=display, provenance=Provenance.CONFIRMED)
 
 
 def _valid_coords(item: dict[str, Any]) -> tuple[float, float] | None:

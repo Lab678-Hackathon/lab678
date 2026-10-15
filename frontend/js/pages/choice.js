@@ -131,7 +131,14 @@ export function renderChoiceView({
       `${fmtTime(request.start_at)} session` +
       (candidate.visit_minutes ? ` · ${candidate.visit_minutes} min` : "");
     facts.append(factRow("Time", timeVal));
-    facts.append(factRow("Price", candidate.price?.display || "Price needs checking"));
+    // 상세는 공간이 넉넉하니 카드용 축약(display) 대신 전체 공식 요금문(raw)을 보여준다
+    // (카드는 짧게 '…'로 축약, 상세는 전액 요금표 그대로 — 줄바꿈). raw 없으면 display 폴백.
+    facts.append(
+      factRow(
+        "Price",
+        candidate.price?.raw || candidate.price?.display || "Price needs checking",
+      ),
+    );
     if (candidate.movement?.display) {
       facts.append(
         factRow(

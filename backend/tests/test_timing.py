@@ -277,3 +277,38 @@ def test_shift_noop_when_same_or_past_or_invalid():
     assert shift_to_request_date(s, e, "2026-10-01") == (s, e)  # 과거 → 무변경
     assert shift_to_request_date(s, e, "junk") == (s, e)
     assert shift_to_request_date(s, e, None) == (s, e)
+
+
+# ── summarize_hours (#텍스트 짤림 — 카드용 간결 한 줄, 생성 아님) ──
+
+
+def test_summarize_hours_simple_range():
+    from app.domain.timing import summarize_hours
+
+    assert summarize_hours("09:00-18:00") == "09:00–18:00"
+    # 마지막 입장 등 부가 텍스트가 있어도 시각 범위만 뽑는다(짤림 없음).
+    assert summarize_hours("09:00-18:00 (Last admission 17:30)") == "09:00–18:00"
+
+
+def test_summarize_hours_multi_range_is_ambiguous():
+    # 범위가 2개 이상이면(요일/시설별 변형 — 예: 평일/주말) 하나로 단정 못 함 → None.
+    # Boan1942 처럼 '12:00-18:00 / 12:00-19:00'를 '·'로 이어 붙여 오해주지 않는다.
+    from app.domain.timing import summarize_hours
+
+    assert summarize_hours("12:00-18:00 / 12:00-19:00") is None
+    assert summarize_hours("10:00-13:00, 14:00-18:00") is None
+
+
+def test_summarize_hours_24h():
+    from app.domain.timing import summarize_hours
+
+    assert summarize_hours("Open 24 hr") == "Open 24 hours"
+
+
+def test_summarize_hours_ambiguous_returns_none():
+    # 계절·'문의/상이' 등은 그날 한 시간대로 단정 못 함 → None(공식 링크로, 시간 지어내지 않음).
+    from app.domain.timing import summarize_hours
+
+    assert summarize_hours("March-October 09:00-18:00 / November-February 09:00-17:00") is None
+    assert summarize_hours("Inquire by phone") is None
+    assert summarize_hours("") is None

@@ -162,6 +162,30 @@ def parse_last_admission(text: str) -> time | None:
     return None
 
 
+def summarize_hours(text: str) -> str | None:
+    """자유기술 운영시간 → 카드 meta 용 '간결한 한 줄'(결정론, 생성 아님).
+
+    긴 원문을 글자수로 자르면 단어 중간이 끊긴다(텍스트 짤림) → 깔끔한 시각 범위만 뽑는다.
+    **시각 범위가 정확히 1개일 때만** 그 범위를 보여준다. 2개 이상이면(계절·요일별·시설별 등
+    — 예: '평일 12:00-18:00 / 주말 12:00-19:00') 어느 게 그날인지 단정할 수 없어 None 으로
+    두고 호출부가 '미확인 + 공식 링크'로 넘긴다(신뢰 §6: 시간 지어내지 않음). 복수 범위를
+    '·'로 이어 붙이면 하루 두 타임처럼 오해를 주므로 합치지 않는다. 계절·'문의/상이/vary'
+    표현도 None.
+    """
+    if not text:
+        return None
+    low = text.lower()
+    if any(w in low for w in _ALL_DAY):
+        return "Open 24 hours"
+    if _MONTH_RE.search(low) or any(w in low for w in _CAVEAT_WORDS):
+        return None
+    ranges = parse_time_ranges(text)
+    if len(ranges) != 1:  # 0개(파싱 불가) 또는 2개 이상(요일/시설별 변형) → 애매
+        return None
+    s, e = ranges[0]
+    return f"{s.strftime('%H:%M')}–{e.strftime('%H:%M')}"
+
+
 def parse_closed_weekdays(restdate: str) -> set[int]:
     """휴무 요일 집합(0=월~6=일). 파싱 불가(공휴일 등)는 빈 집합."""
     low = restdate.lower()

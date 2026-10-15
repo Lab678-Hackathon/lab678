@@ -282,3 +282,29 @@ def test_parse_duration_min():
     assert parse_duration_min("60분") == 60
     assert parse_duration_min("") is None  # 빈값 → 추정 안 함
     assert parse_duration_min("free") is None  # 숫자 없음 → None
+
+
+# ── 텍스트 짤림 수정: 운영시간 요약(A) · 가격 단어경계 트림 ──
+
+
+def test_normalize_hours_summarized_not_char_cut():
+    from app.domain.normalize import normalize_hours
+
+    # 길고 계절/마지막입장이 섞인 원문도 글자수로 자르지 않고 깔끔한 범위만(또는 None).
+    t = normalize_hours({"usetime": "09:00-18:00 (Last admission 17:00), Closed Tuesdays"})
+    assert t is not None and t.display == "09:00–18:00"
+    # 계절 운영시간 → 한 시간대로 단정 불가 → None(호출부가 'Hours need checking' 처리).
+    assert normalize_hours({"usetime": "Mar-Oct 09:00-18:00 / Nov-Feb 09:00-17:00"}) is None
+
+
+def test_normalize_price_trims_at_word_boundary():
+    from app.domain.normalize import normalize_price
+
+    long_fee = (
+        "Adults 3,000 won, Youth 2,400 won, Children 1,500 won, "
+        "Free for under 6 and over 65"
+    )
+    disp = normalize_price(long_fee).display
+    assert disp.endswith("…")
+    assert len(disp) <= 61  # 60 + 생략부호
+    assert "wo…" not in disp and "Yout…" not in disp  # 단어 중간 끊김 없음
