@@ -94,7 +94,7 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   home.setAttribute("aria-label", "Home");
   home.append(icon3d("home", { size: 28 }));
   if (onHome) home.addEventListener("click", onHome);
-  nav.append(back, el("span", "nav-title", "Immediate recommendation"), home);
+  nav.append(back, el("span", "nav-title", "Right now"), home);
   root.append(nav);
 
   // ── 접힘 pill (note 편집 중 Where&when 대체) ──

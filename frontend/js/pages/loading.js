@@ -48,7 +48,7 @@ export function renderLoadingView({ request, conditions, onCancel }) {
   back.type = "button";
   back.setAttribute("aria-label", "Back");
   back.addEventListener("click", () => onCancel?.());
-  topRow.append(back, el("h1", "loading-title", "Immediate recommendation"));
+  topRow.append(back, el("h1", "loading-title", "Right now"));
   top.append(topRow);
   top.append(renderConditionSummary(request, conditions));
   root.append(top);
