@@ -126,6 +126,16 @@ _HANGUL_RUN_RE = re.compile(f"[{_HANGUL}]+(?:[\\s·]+[{_HANGUL}]+)*")
 _LATIN_LETTER_RE = re.compile(r"[A-Za-z]")
 
 
+def _strip_hangul_brackets(text: str) -> str:
+    """한글이 든 괄호 묶음을 제거(2회 — 중첩 잔여 대응). 영문만 든 괄호는 보존.
+    english_display 1단계와 동일 — 표시가 '로마자화된 한글'인지 판정(title_original)에 공유한다."""
+    t = text
+    for _ in range(2):
+        for pat in _BRACKET_PATS:
+            t = pat.sub(lambda m: "" if _HANGUL_RE.search(m.group()) else m.group(), t)
+    return t
+
+
 # ── 로마자화(국어의 로마자 표기법, 음절 기반·음절 간 음운동화 없음) ──
 # 외국인 FIT 대상이라 한글만 있는 공식 명칭(서울 행사 등)을 '발음 보존'해 읽을 수 있게 바꾼다.
 # 의미 번역이 아니다: '한글날' → 'Hangeulnal'(X 'A Day of Hangeul'). 결정론·오프라인
@@ -360,11 +370,8 @@ def english_display(text: str | None) -> str:
     3) 인접 중복어 축약으로 '경복궁 Gyeongbokgung' 같은 로마자화-영문 중복을 접고, 미국영어로
        통일(centre→center). 모두 비면(괄호 제거로 사라짐) 원문 전체를 로마자화해 이름을 살린다.
     """
-    t = text or ""
-    # 1) 한글 포함 괄호 묶음 제거(2회 반복 — 중첩 잔여 대응). 영문만 든 괄호는 유지.
-    for _ in range(2):
-        for pat in _BRACKET_PATS:
-            t = pat.sub(lambda m: "" if _HANGUL_RE.search(m.group()) else m.group(), t)
+    # 1) 한글 포함 괄호 묶음 제거. 영문만 든 괄호는 유지.
+    t = _strip_hangul_brackets(text or "")
     # 2) 외래어를 영어로 복원한 뒤, 남은 인라인 한글을 로마자화(제거하지 않는다 — 발음 보존).
     t = _romanize(_apply_loanwords(t))
     # 3) 정리: 빈 괄호·중복 공백·괄호 안쪽 공백·양끝 구분자.
@@ -657,8 +664,14 @@ def normalize_candidate(
     title = english_display(raw_title)
     if not title:
         return None
-    # TourAPI(EngService2)는 보통 영문 제목이라 한글이 거의 없지만, 섞여 오면 보존(번역용).
-    title_original = raw_title if _HANGUL_RE.search(raw_title) else None
+    # title_original = Translate 소스. '우리가 한글을 로마자화해 표시한' 경우에만 둔다.
+    # english_display 가 '한글 괄호 묶음'은 표시에서 지우므로(예: "The Children's Museum… (국립
+    # 민속…)" → "The Children's Museum…"), 괄호 한글을 걷어낸 뒤에도 인라인 한글이 남을 때만
+    # 보존한다. 괄호 안에만 한글이 있던 경우(표시는 순수 영문)엔 번역해도 안 바뀌므로 None —
+    # Translate 버튼이 영어 제목 카드에 불필요하게 뜨던 것 방지.
+    title_original = (
+        raw_title if _HANGUL_RE.search(_strip_hangul_brackets(raw_title)) else None
+    )
 
     etype = _TYPE_MAP.get(str(item.get("contenttypeid")), ExperienceType.DEFAULT)
     price = normalize_price(_first(intro, _FEE_KEYS))

@@ -243,6 +243,19 @@ def test_candidate_homepage_is_secondary_website():
     assert c.official_links[1].url == "https://example.com/"
 
 
+def test_candidate_title_original_only_when_display_romanized():
+    # 괄호 속 한글만 있던 영어 제목 → 표시는 순수 영문 → title_original None(Translate 불필요).
+    c = normalize_candidate(
+        _item(title="The Children's Museum of Korea (국립민속박물관 어린이박물관)"), {}, {}
+    )
+    assert c.title == "The Children's Museum of Korea"
+    assert c.title_original is None
+    # 한글을 로마자화해 표시한 제목(한글발음 보존) → title_original 보존(Translate 대상).
+    c2 = normalize_candidate(_item(title="경복궁"), {}, {})
+    assert c2.title == "Gyeongbokgung"
+    assert c2.title_original == "경복궁"
+
+
 def test_candidate_free_no_price_flag():
     c = normalize_candidate(_item(), intro={"usefeeculture": "Free"}, common={})
     assert c.price.status is PriceStatus.FREE
