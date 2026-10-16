@@ -204,7 +204,10 @@ class ClassificationSignal(BaseModel):
 
 
 class TimeInfo(BaseModel):
-    display: str
+    # 카드용 간결 표시('10:00–18:30'). 단일 범위로 확실히 요약될 때만 채운다 — 복수범위·계절·
+    # caveat 라 단정 불가면 None(카드엔 미노출). 상세는 raw(원본 전체)를 보여준다.
+    display: str | None = None
+    raw: str | None = None  # 원본 운영시간 전체 보존(상세용 — 복수범위도 그대로, 합성 금지)
     provenance: Provenance
 
 

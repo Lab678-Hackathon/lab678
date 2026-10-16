@@ -169,8 +169,11 @@ export function renderResultCard(c, origin, index = 0) {
 
   // 3. Meta (Fact) — 시간·가격·이동. provenance 를 문구로 구분.
   const meta = el("div", "meta");
-  if (c.time) meta.append(el("span", "meta-item", c.time.display));
-  if (c.price && c.price.status !== "unknown") {
+  // 확실한 것만 카드에 노출(사용자 규칙): 운영시간은 단일범위로 요약될 때(display)만, 가격은
+  // Free/Paid 로 확정일 때만. 불확실(복수범위 시간·미확인/모호 가격)은 카드에서 숨기고 상세·
+  // 플래그로 안내 → "확실한 요소가 하나뿐이거나 둘 다 불확실하면 불확실한 건 안 보임".
+  if (c.time?.display) meta.append(el("span", "meta-item", c.time.display));
+  if (c.price && (c.price.status === "free" || c.price.status === "paid")) {
     const priceEl = el("span", "meta-item", c.price.display);
     // 번역은 '화면에 실제로 보이는' 가격에 한글이 있을 때만(숨은 원문 '무료'→'Free' 처럼 번역해도
     // 화면이 안 바뀌는 경우는 제외). 기본 표시는 결정론 영어(Free/₩)라 대개 대상 아님 → 불필요한

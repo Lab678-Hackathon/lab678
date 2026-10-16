@@ -508,10 +508,11 @@ def normalize_hours(intro: dict[str, Any]) -> TimeInfo | None:
     raw = _first(intro, _HOURS_KEYS)
     if not raw:
         return None
-    display = summarize_hours(_strip_html(raw))
-    if not display:
-        return None
-    return TimeInfo(display=display, provenance=Provenance.CONFIRMED)
+    clean = _strip_html(raw)
+    display = summarize_hours(clean)
+    # 요약 불가(복수범위·계절·caveat)여도 raw 는 버리지 않는다 — 카드는 display(단일범위 확실)가
+    # 있을 때만 쓰고, 상세는 raw 전체를 보여준다(가격 raw 와 동일 패턴). display 는 None 일 수 있다.
+    return TimeInfo(display=display, raw=clean, provenance=Provenance.CONFIRMED)
 
 
 def _valid_coords(item: dict[str, Any]) -> tuple[float, float] | None:
@@ -680,7 +681,9 @@ def normalize_candidate(
     flags: list[UnconfirmedFlag] = []
     if price.status == PriceStatus.UNKNOWN:
         flags.append(UnconfirmedFlag(text="Price needs checking"))
-    if time_info is None:
+    # 운영시간 미확인(raw 조차 없음) 또는 요약 불가(display None — 카드엔 단일범위를 못 보임)면
+    # 플래그. raw 는 상세에 노출되지만 카드 레벨에선 '확인 필요'로 투명 표기 유지.
+    if time_info is None or time_info.display is None:
         flags.append(UnconfirmedFlag(text="Hours need checking"))
 
     # 공식 링크: VisitKorea 영문 상세(출처 명시 'VISITKOREA')를 우선, 시설 자체 공식 홈페이지는

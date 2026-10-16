@@ -137,8 +137,9 @@ function stopRow(stop, onRemove) {
 
   // Fact: 운영시간·가격(미확인 가격은 flag로 분리)
   const meta = el("div", "route-stop-meta");
-  if (c.time) meta.append(el("span", "meta-item", c.time.display));
-  if (c.price && c.price.status !== "unknown") {
+  // 확실한 것만 노출(result-card 와 동일): 운영시간 display 있을 때, 가격 Free/Paid 확정일 때만.
+  if (c.time?.display) meta.append(el("span", "meta-item", c.time.display));
+  if (c.price && (c.price.status === "free" || c.price.status === "paid")) {
     const priceEl = el("span", "meta-item", c.price.display);
     // 화면에 보이는 가격에 한글이 있을 때만 번역 대상(result-card 와 동일 — 숨은 원문 파싱 안 함).
     if (c.price.display && HANGUL.test(c.price.display))

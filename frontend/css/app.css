@@ -302,6 +302,8 @@ body {
 .choice-title { margin: 0; font-size: 22px; line-height: var(--lh-tight); font-weight: var(--fw-bold); }
 .choice-page .badge { align-self: flex-start; }
 .choice-facts { display: flex; flex-direction: column; gap: var(--space-8); background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-12) var(--space-14); margin-top: var(--space-4); }
+/* 상세 번역 토글 행 — 🌐 를 우측 정렬(제목·가격 아래, facts 위). */
+.choice-translate-row { display: flex; justify-content: flex-end; margin: var(--space-4) 0 var(--space-8); }
 .choice-fact { display: flex; gap: var(--space-12); align-items: baseline; }
 .choice-fact-k { flex: 0 0 92px; font-size: var(--fs-meta); color: var(--c-text-muted); }
 .choice-fact-v { flex: 1; min-width: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); }

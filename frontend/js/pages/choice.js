@@ -5,6 +5,9 @@
 import { isLoggedIn, saveChoice } from "../state.js";
 import { showLoginSheet } from "../components/login-sheet.js";
 import { icon3d } from "../components/icons3d.js";
+import { createTranslateToggle } from "../components/translate-toggle.js";
+
+const HANGUL = /[가-힣]/; // 번역 토글 노출·대상 판정(제목 원문·가격 원문에 한글 있는지)
 
 const STATUS_LABEL = {
   fits: "Fits your conditions",
@@ -56,7 +59,7 @@ function showSaveToast() {
   setTimeout(() => toast.remove(), 2800);
 }
 
-function factRow(label, value) {
+function factRow(label, value, dataKo) {
   const row = el("div", "choice-fact");
   row.append(el("span", "choice-fact-k", label));
   if (value && value.chip) {
@@ -64,7 +67,9 @@ function factRow(label, value) {
     v.append(el("span", "choice-fact-chip", value.chip));
     row.append(v);
   } else {
-    row.append(el("span", "choice-fact-v", value || "—"));
+    const v = el("span", "choice-fact-v", value || "—");
+    if (dataKo) v.dataset.ko = dataKo; // 🌐 번역 대상(한글 원문)일 때만
+    row.append(v);
   }
   return row;
 }
@@ -109,11 +114,25 @@ export function renderChoiceView({
     const body = el("div", "choice-body");
 
     body.append(el("p", "choice-stamp", tripStamp(request.start_at, request.end_at)));
-    body.append(el("h1", "choice-title", candidate.title));
+    const titleEl = el("h1", "choice-title", candidate.title);
+    // 로마자화한 한글 제목이면 원문을 data-ko 로 → 상세 🌐 토글이 의미번역으로 교체(카드와 동일).
+    if (candidate.title_original && HANGUL.test(candidate.title_original))
+      titleEl.dataset.ko = candidate.title_original;
+    body.append(titleEl);
 
     const badge = el("span", "badge", STATUS_LABEL[candidate.status] ?? candidate.status);
     badge.dataset.status = candidate.status;
     body.append(badge);
+
+    // 번역 대상(로마자화한 한글 제목 또는 한글 가격 원문)이 있으면 상세에도 🌐 토글을 둔다 —
+    // 상세는 가격 raw(예: '무료')를 그대로 보여주므로 번역 수요가 있다. 스코프=상세 root(모든 [data-ko]).
+    const priceText =
+      candidate.price?.raw || candidate.price?.display || "Price to check";
+    if (titleEl.dataset.ko || HANGUL.test(priceText)) {
+      const trRow = el("div", "choice-translate-row");
+      trRow.append(createTranslateToggle(() => root));
+      body.append(trRow);
+    }
 
     if (candidate.reasons?.length) {
       const reasons = el("ul", "reasons");
@@ -136,11 +155,9 @@ export function renderChoiceView({
     );
     // 상세는 공간이 넉넉하니 카드용 축약(display) 대신 전체 공식 요금문(raw)을 보여준다
     // (카드는 짧게 '…'로 축약, 상세는 전액 요금표 그대로 — 줄바꿈). raw 없으면 display 폴백.
+    // 한글이 섞인 원문(예: '무료')이면 data-ko 로 실어 🌐 번역 대상이 되게 한다.
     facts.append(
-      factRow(
-        "Price",
-        candidate.price?.raw || candidate.price?.display || "Price to check",
-      ),
+      factRow("Price", priceText, HANGUL.test(priceText) ? priceText : null),
     );
     if (candidate.movement?.display) {
       facts.append(
@@ -152,13 +169,11 @@ export function renderChoiceView({
         ),
       );
     }
+    // 상세는 공간이 넉넉하니 요약(display) 없으면 원본 운영시간(raw) 전체를 보여준다(복수범위·
+    // 계절도 그대로 — 카드엔 못 올리지만 상세에선 확인 가능). 둘 다 없으면 '확인 필요' 칩.
+    const hoursVal = candidate.time?.display || candidate.time?.raw;
     facts.append(
-      factRow(
-        "Opening hours",
-        candidate.time?.display
-          ? candidate.time.display
-          : { chip: "Check opening hours" },
-      ),
+      factRow("Opening hours", hoursVal || { chip: "Check opening hours" }),
     );
     body.append(facts);
 

@@ -303,11 +303,15 @@ def test_parse_duration_min():
 def test_normalize_hours_summarized_not_char_cut():
     from app.domain.normalize import normalize_hours
 
-    # 길고 계절/마지막입장이 섞인 원문도 글자수로 자르지 않고 깔끔한 범위만(또는 None).
+    # 길고 계절/마지막입장이 섞인 원문도 글자수로 자르지 않고 깔끔한 범위만(또는 display None).
     t = normalize_hours({"usetime": "09:00-18:00 (Last admission 17:00), Closed Tuesdays"})
     assert t is not None and t.display == "09:00–18:00"
-    # 계절 운영시간 → 한 시간대로 단정 불가 → None(호출부가 'Hours need checking' 처리).
-    assert normalize_hours({"usetime": "Mar-Oct 09:00-18:00 / Nov-Feb 09:00-17:00"}) is None
+    # 계절 운영시간 → 한 시간대로 단정 불가 → display None(카드 미노출)이되 raw 는 보존(상세 노출용).
+    seasonal = normalize_hours({"usetime": "Mar-Oct 09:00-18:00 / Nov-Feb 09:00-17:00"})
+    assert seasonal is not None and seasonal.display is None
+    assert seasonal.raw == "Mar-Oct 09:00-18:00 / Nov-Feb 09:00-17:00"
+    # 운영시간 텍스트가 아예 없으면 None(상세에 보일 raw 도 없음).
+    assert normalize_hours({}) is None
 
 
 def test_normalize_price_trims_at_word_boundary():
