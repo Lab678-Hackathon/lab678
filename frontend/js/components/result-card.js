@@ -172,10 +172,11 @@ export function renderResultCard(c, origin, index = 0) {
   if (c.time) meta.append(el("span", "meta-item", c.time.display));
   if (c.price && c.price.status !== "unknown") {
     const priceEl = el("span", "meta-item", c.price.display);
-    // 가격 표시/원문에 한글이 있으면(유료·부분무료 원본) 원문을 data-ko 로 → 번역 교체 대상.
-    const ko = c.price.raw || c.price.display;
-    if (ko && HANGUL.test(ko)) {
-      priceEl.dataset.ko = ko;
+    // 번역은 '화면에 실제로 보이는' 가격에 한글이 있을 때만(숨은 원문 '무료'→'Free' 처럼 번역해도
+    // 화면이 안 바뀌는 경우는 제외). 기본 표시는 결정론 영어(Free/₩)라 대개 대상 아님 → 불필요한
+    // Translate 노출을 막는다. 대상이면 '보이는 텍스트'를 그대로 번역 키로 쓴다(정확·안정).
+    if (c.price.display && HANGUL.test(c.price.display)) {
+      priceEl.dataset.ko = c.price.display;
       hasKo = true;
     }
     meta.append(priceEl);

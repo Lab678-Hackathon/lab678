@@ -20,10 +20,14 @@ export function createTranslateToggle(getScope, { onError } = {}) {
   let busy = false;
   let cache = null; // { 원문: 번역 } — 한 번 받으면 재사용
 
-  // 라벨은 항상 "Translate" 고정 — 활성/비활성은 색(aria-pressed)으로만 구분하는 토글.
+  // 라벨은 번역 이모지(🌐) 고정 — 텍스트 "Translate"는 과해 아이콘만 쓴다. 활성/비활성은
+  // 색(aria-pressed)으로 구분. 아이콘 전용이라 스크린리더용 aria-label/title 을 둔다(접근성).
   function syncState() {
-    btn.textContent = "Translate";
+    btn.textContent = "🌐";
     btn.setAttribute("aria-pressed", String(on));
+    const label = on ? "Show original" : "Translate";
+    btn.setAttribute("aria-label", label);
+    btn.title = label;
   }
   syncState();
 

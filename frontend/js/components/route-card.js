@@ -140,8 +140,9 @@ function stopRow(stop, onRemove) {
   if (c.time) meta.append(el("span", "meta-item", c.time.display));
   if (c.price && c.price.status !== "unknown") {
     const priceEl = el("span", "meta-item", c.price.display);
-    const ko = c.price.raw || c.price.display;
-    if (ko && HANGUL.test(ko)) priceEl.dataset.ko = ko;
+    // 화면에 보이는 가격에 한글이 있을 때만 번역 대상(result-card 와 동일 — 숨은 원문 파싱 안 함).
+    if (c.price.display && HANGUL.test(c.price.display))
+      priceEl.dataset.ko = c.price.display;
     meta.append(priceEl);
   }
   if (meta.childNodes.length) body.append(meta);
@@ -179,9 +180,17 @@ export function renderRouteCard(route, origin, opts = {}) {
   // ── Head: (번역 토글) + 날짜/시간 + 헤드라인 + 스톱 요약 ──
   const head = el("div", "route-card-head");
   // 결과 상단 Translate — 스톱 제목·가격의 한글 원문을 온디맨드 의미번역(기본은 결정론 표시).
-  const trRow = el("div", "route-translate-row");
-  trRow.append(createTranslateToggle(() => card));
-  head.append(trRow);
+  // 번역 대상(한글)이 하나도 없으면 토글을 아예 노출하지 않는다(result-card 의 hasKo 와 동일 정책).
+  const routeHasKo = (route.stops || []).some((s) => {
+    const c = s.candidate || {};
+    const price = c.price?.display || ""; // 보이는 가격만(숨은 원문 아님)
+    return (c.title_original && HANGUL.test(c.title_original)) || HANGUL.test(price);
+  });
+  if (routeHasKo) {
+    const trRow = el("div", "route-translate-row");
+    trRow.append(createTranslateToggle(() => card));
+    head.append(trRow);
+  }
   if (trip?.start_at && trip?.end_at)
     head.append(
       el(
