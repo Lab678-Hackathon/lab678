@@ -86,15 +86,31 @@ export function openDirectionsOverlay({ origin, candidate }) {
       }
       mapCtrl = ctrl;
       ctrl.focus(candidate.id);
+
+      // "내 위치" 버튼 — 지도 위 우하단 플로팅. 현 위치로 카메라 이동 + follow 토글.
+      // 첫 GPS fix 수신 전까지는 비활성, follow ON 이면 활성 스타일로 표시.
+      const locBtn = el("button", "dir-locate");
+      locBtn.type = "button";
+      locBtn.setAttribute("aria-label", "Recenter to my location");
+      locBtn.innerHTML = '<span aria-hidden="true">◎</span>';
+      locBtn.disabled = true;
+      locBtn.addEventListener("click", () => ctrl.recenterLive());
+      ctrl.onFollowChange((isFollowing, hasLive) => {
+        locBtn.disabled = !hasLive;
+        locBtn.classList.toggle("is-active", isFollowing);
+      });
+      mapWrap.append(locBtn);
+
       // 실시간 현재 위치(빨간 점 + pulse) — 표시 전용. 이동에 따라 점만 갱신하고 경로는
       // 재계산하지 않는다(Tmap 재호출 없음·§6 #7). 권한 거부/실패는 조용히 점만 생략.
+      // maximumAge 1000: 거의 실시간 fix(캐시 재사용 최소)로 이동을 촘촘히 포착.
       if (navigator.geolocation) {
         watchId = navigator.geolocation.watchPosition(
           (p) => {
             if (!closed) ctrl.setLiveLocation(p.coords.latitude, p.coords.longitude);
           },
           () => {},
-          { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 },
+          { enableHighAccuracy: true, maximumAge: 1000, timeout: 10000 },
         );
       }
     })

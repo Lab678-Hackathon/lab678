@@ -191,13 +191,27 @@ export async function renderMap(container, origin, candidates) {
 
   // 실시간 현재 위치 마커(빨간 점 + pulse 링). watchPosition 콜백이 좌표를 밀어넣으면
   // 첫 호출에 생성, 이후 위치만 갱신한다. 경로 재계산은 하지 않는다(§6 #7 · Tmap 재호출 없음).
+  // follow 모드: "내 위치" 버튼으로 켜면 갱신마다 카메라가 현 위치를 따라간다. 사용자가
+  // 지도를 드래그하면 자동 해제(실제 지도앱처럼). 카메라 이동만이며 Tmap 재호출은 없다.
   let liveMarker = null;
+  let liveCoords = null;
+  let following = false;
+  let followCb = null;
+  function notifyFollow() {
+    if (followCb) followCb(following, liveCoords != null);
+  }
+  function panToLive() {
+    if (!liveCoords) return;
+    if (reduceMotion) map.setCenter(liveCoords);
+    else map.panTo(liveCoords, { duration: 500, easing: "easeOutCubic" });
+  }
   function setLiveLocation(lat, lng) {
     if (lat == null || lng == null) return;
-    const pos = new maps.LatLng(lat, lng);
-    if (!liveMarker) {
+    const first = !liveMarker;
+    liveCoords = new maps.LatLng(lat, lng);
+    if (first) {
       liveMarker = new maps.Marker({
-        position: pos,
+        position: liveCoords,
         map,
         icon: {
           content:
@@ -206,16 +220,34 @@ export async function renderMap(container, origin, candidates) {
         },
         zIndex: 200, // 출발/후보 핀 위에
       });
+      notifyFollow(); // 첫 fix 수신 → 버튼 활성화
     } else {
-      liveMarker.setPosition(pos);
+      liveMarker.setPosition(liveCoords);
     }
+    if (following) panToLive(); // follow ON 이면 카메라가 따라감
   }
   function clearLiveLocation() {
     if (liveMarker) {
       liveMarker.setMap(null);
       liveMarker = null;
     }
+    liveCoords = null;
+    following = false;
   }
+  // "내 위치" 버튼 → 현재 위치로 카메라 이동 + follow ON.
+  function recenterLive() {
+    if (!liveCoords) return;
+    following = true;
+    panToLive();
+    notifyFollow();
+  }
+  // 사용자가 지도를 직접 움직이면 follow 해제(카메라가 사용자와 다투지 않도록).
+  maps.Event.addListener(map, "dragstart", () => {
+    if (following) {
+      following = false;
+      notifyFollow();
+    }
+  });
 
   return {
     focus,
@@ -224,6 +256,10 @@ export async function renderMap(container, origin, candidates) {
     },
     setLiveLocation,
     clearLiveLocation,
+    recenterLive,
+    onFollowChange(cb) {
+      followCb = cb;
+    },
   };
 }
 
