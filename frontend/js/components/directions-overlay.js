@@ -4,6 +4,7 @@
 import { el } from "./sheet.js";
 import { directionsUrl, formatDistance } from "./result-card.js";
 import { renderMap } from "../map.js";
+import { icon3d } from "./icons3d.js";
 
 export function openDirectionsOverlay({ origin, candidate }) {
   const url = directionsUrl(origin, candidate);
@@ -92,7 +93,7 @@ export function openDirectionsOverlay({ origin, candidate }) {
       const locBtn = el("button", "dir-locate");
       locBtn.type = "button";
       locBtn.setAttribute("aria-label", "Recenter to my location");
-      locBtn.innerHTML = '<span aria-hidden="true">◎</span>';
+      locBtn.append(icon3d("locate", { size: 30, className: "dir-locate-ico" }));
       locBtn.disabled = true;
       locBtn.addEventListener("click", () => ctrl.recenterLive());
       ctrl.onFollowChange((isFollowing, hasLive) => {

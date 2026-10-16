@@ -19,6 +19,7 @@ export const ICON_3D = {
   destination: "icon-3d-destination.png",
   walking: "icon-3d-walking.png",
   profile: "icon-3d-profile.png",
+  locate: "icon-3d-locate.png", // Directions 지도 "내 위치" 버튼
 };
 
 // 유형 라벨(접근성 alt·태그 텍스트). 사용자-facing 영어.
