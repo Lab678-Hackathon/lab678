@@ -34,15 +34,13 @@ async function loadNaver() {
   return _loader;
 }
 
-function startPinHTML() {
-  return '<div class="start-pin"></div>';
-}
-
-// 출발점 — 남색 점 + 회색 후광, 왼쪽에 3D 걷는 사람(36px). A·B 지도 공용(Figma v2).
-function startPinWalkHTML() {
+// 출발점 — 남색 점 + 회색 후광, 왼쪽에 3D 얼굴+핀(44px). A·B·미니 지도 공용(v3 issue #15 §3).
+// 걷는 사람은 방향이 지도·경로와 안 맞아 헷갈린다는 피드백 → 3D 얼굴로 교체. 걷는 사람은
+// B 타임라인 출발 줄(route-card)에만 남긴다.
+function startFacePinHTML() {
   return (
     '<div class="start-pin-wrap">' +
-    `<img class="start-walker" src="${icon3dSrc("walking")}" width="36" height="36" alt="" aria-hidden="true" draggable="false" />` +
+    `<img class="start-face" src="${icon3dSrc("start")}" width="44" height="44" alt="" aria-hidden="true" draggable="false" />` +
     '<span class="start-pin"></span>' +
     "</div>"
   );
@@ -102,8 +100,8 @@ export async function renderMap(container, origin, candidates) {
   new maps.Marker({
     position: new maps.LatLng(origin.lat, origin.lng),
     map,
-    // 출발 걷는 사람(왼쪽) + 남색 점 — 점 중심이 좌표에.
-    icon: { content: startPinWalkHTML(), anchor: new maps.Point(47, 18) },
+    // 출발 3D 얼굴(왼쪽) + 남색 점 — 점 중심이 좌표에.
+    icon: { content: startFacePinHTML(), anchor: new maps.Point(49, 22) },
     zIndex: 50,
   });
 
@@ -283,8 +281,8 @@ export async function renderRouteMap(container, origin, route) {
   new maps.Marker({
     position: new maps.LatLng(origin.lat, origin.lng),
     map,
-    // 출발 걷는 사람(왼쪽) + 남색 점 — 점 중심이 좌표에 오도록 anchor.
-    icon: { content: startPinWalkHTML(), anchor: new maps.Point(47, 18) },
+    // 출발 3D 얼굴(왼쪽) + 남색 점 — 점 중심이 좌표에 오도록 anchor.
+    icon: { content: startFacePinHTML(), anchor: new maps.Point(49, 22) },
     zIndex: 50,
   });
   const bounds = new maps.LatLngBounds(
@@ -340,7 +338,7 @@ export async function renderMiniMap(container, origin, candidate) {
   new maps.Marker({
     position: new maps.LatLng(origin.lat, origin.lng),
     map,
-    icon: { content: startPinHTML(), anchor: new maps.Point(9, 9) },
+    icon: { content: startFacePinHTML(), anchor: new maps.Point(49, 22) },
     zIndex: 50,
   });
   new maps.Marker({

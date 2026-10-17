@@ -18,6 +18,7 @@ export const ICON_3D = {
   home: "icon-3d-home.png",
   destination: "icon-3d-destination.png",
   walking: "icon-3d-walking.png",
+  start: "icon-3d-start.png", // 지도 출발점 마커(3D 얼굴+핀). 걷는 사람은 B 타임라인 출발 줄에만.
   profile: "icon-3d-profile.png",
   locate: "icon-3d-locate.png", // Directions 지도 "내 위치" 버튼
 };

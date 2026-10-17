@@ -5,6 +5,8 @@
 import { isLoggedIn, saveChoice } from "../state.js";
 import { showLoginSheet } from "../components/login-sheet.js";
 import { icon3d } from "../components/icons3d.js";
+import { directionsUrl } from "../components/result-card.js";
+import { openDirectionsOverlay } from "../components/directions-overlay.js";
 import { createTranslateToggle } from "../components/translate-toggle.js";
 
 const HANGUL = /[가-힣]/; // 번역 토글 노출·대상 판정(제목 원문·가격 원문에 한글 있는지)
@@ -188,8 +190,10 @@ export function renderChoiceView({
       ),
     );
 
-    // 버튼 — 저장 전: Save to My Pick / Official details / Back to results.
-    //        저장 후: See on map / Official details / Find other options.
+    // 버튼 (v3 issue #15 §2) — 순서:
+    //   저장 전: Save to My Pick → Directions ↗ → Official website ↗ → Back to results
+    //   저장 후: See on map    → Directions ↗ → Official website ↗ → Find other options
+    // VISITKOREA 상세 링크는 여기서 숨긴다(상세는 결과 카드에서만) — kind 로 필터.
     const actions = el("div", "choice-actions");
     if (isSaved) {
       const map = el("button", "btn-cta", "See on map");
@@ -217,8 +221,24 @@ export function renderChoiceView({
       actions.append(save);
     }
 
-    // 공식 링크 전부 제공(VISITKOREA 상세 + 시설 공식 홈페이지 등) — 라벨은 백엔드 값 그대로.
-    const officialLinks = candidate.official_links ?? [];
+    // Directions ↗ — 다른 버튼과 같은 흰 바탕·회색 테두리·검정 글자 + 앞 3D 목적지 아이콘(28).
+    // 결과에서 Directions 를 누른 것과 동일하게 인앱 개요 지도 오버레이부터 보여준다(그 안에서
+    // "Open in Naver Map" 으로 외부 연결). 좌표 없어 경로를 만들 수 없으면 숨긴다.
+    if (directionsUrl(origin, candidate)) {
+      const dir = el("button", "btn-outline-pill btn-outline-icon");
+      dir.type = "button";
+      dir.append(
+        icon3d("destination", { size: 28, className: "btn-outline-ico" }),
+        el("span", "btn-outline-text", "Directions ↗"),
+      );
+      dir.addEventListener("click", () => openDirectionsOverlay({ origin, candidate }));
+      actions.append(dir);
+    }
+
+    // 공식 링크 — 시설 자체 공식 홈페이지만(VISITKOREA 상세는 kind 로 제외). 라벨은 백엔드 값.
+    const officialLinks = (candidate.official_links ?? []).filter(
+      (l) => l.kind !== "visitkorea",
+    );
     if (officialLinks.length) {
       for (const link of officialLinks) {
         const offBtn = el("button", "btn-outline-pill", `${link.label} ↗`);
@@ -235,9 +255,10 @@ export function renderChoiceView({
       actions.append(offBtn);
     }
 
+    // 마지막 내비 버튼은 조금 크게(16px Bold · 높이 50) — v3 §2 "Back to results 다른 버튼보다 크게".
     const third = el(
       "button",
-      "btn-outline-pill",
+      "btn-outline-pill btn-outline-lg",
       isSaved ? "Find other options" : "Back to results",
     );
     third.type = "button";
