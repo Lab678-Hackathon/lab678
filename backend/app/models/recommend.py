@@ -236,6 +236,10 @@ class UnconfirmedFlag(BaseModel):
 class OfficialLink(BaseModel):
     label: str  # 예: "View official details"
     url: str
+    # 링크 종류(의미 기반 — 라벨 Copy·번역과 무관). "homepage"=시설 자체 공식 홈,
+    # "visitkorea"=KTO 영문 포털 상세. LF-09 상세는 visitkorea 를 숨기고(상세는 결과
+    # 카드에서만) homepage 만 노출한다(issue #15 §2). 프론트는 kind 로 필터.
+    kind: str = "homepage"
 
 
 class Candidate(BaseModel):

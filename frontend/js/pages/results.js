@@ -212,7 +212,14 @@ export function renderResultsView({ request, env, onBack, onHome, onEdit, onSele
     countRow.append(el("span", "count-pill", `${n} experience${n > 1 ? "s" : ""}`));
     const dirChip = el("button", "directions-chip");
     dirChip.type = "button";
-    dirChip.innerHTML = 'Directions <span aria-hidden="true">↗</span>';
+    // 앞에 3D 목적지(지도) 아이콘 20px — 청록 채움 칩(v3 issue #15 §1).
+    const dirArrow = el("span", null, "↗");
+    dirArrow.setAttribute("aria-hidden", "true");
+    dirChip.append(
+      icon3d("destination", { size: 20, className: "directions-chip-ico" }),
+      el("span", "directions-chip-label", "Directions"),
+      dirArrow,
+    );
     dirChip.addEventListener("click", () => {
       const f = cands.find((c) => c.id === state.focusedId) || cands[0];
       // 외부 Naver 페이지는 iframe 임베드 불가(X-Frame-Options: DENY) → 인앱 풀스크린

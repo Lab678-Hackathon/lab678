@@ -686,20 +686,24 @@ def normalize_candidate(
     if time_info is None or time_info.display is None:
         flags.append(UnconfirmedFlag(text="Hours need checking"))
 
-    # 공식 링크: VisitKorea 영문 상세(출처 명시 'VISITKOREA')를 우선, 시설 자체 공식 홈페이지는
-    # 있을 때 'Official Website'로 함께 제공한다(둘은 다른 공식 출처 — 사용자가 구분해 열 수 있게).
+    # 공식 링크: 시설 자체 공식 홈페이지('Official website')를 먼저, KTO 영문 포털 상세
+    # ('See details (VisitKorea)')를 그 아래로 제공한다(둘은 다른 공식 출처 — 사용자가 구분해
+    # 열 수 있게; issue #15 §1 순서). kind 로 종류를 명시해 LF-09 에서 visitkorea 를 숨긴다.
     links: list[OfficialLink] = []
+    homepage = _href(common.get("homepage", ""))
+    if homepage:
+        links.append(
+            OfficialLink(label="Official website", url=homepage, kind="homepage")
+        )
     content_id = item.get("contentid")
     if content_id:
         links.append(
             OfficialLink(
-                label="View on VISITKOREA",
+                label="See details (VisitKorea)",
                 url=_VISITKOREA_EN_DETAIL.format(cid=content_id),
+                kind="visitkorea",
             )
         )
-    homepage = _href(common.get("homepage", ""))
-    if homepage:
-        links.append(OfficialLink(label="Official Website", url=homepage))
 
     image = item.get("firstimage") or None  # 공식 이미지만, 없으면 None(제외 안 함)
 
