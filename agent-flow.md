@@ -28,11 +28,11 @@
   - [~] **데이터 검색 품질 개선** (2026-10-07~) — check_needed 과다(실측 73%) 완화. 원인·솔루션·로드맵은 **`docs/data-quality.md`** 에서 관리. 1~3단계 완료(원인 집계 → `detailInfo2` 연동 → LLM 운영시간 추출): **check 73%→42%, fits 20%→51%**(공식 데이터만, 환각 검증 완료). 4단계(KOPIS/서울문화포털) 대기.
   - [x] A7 상태 UX 보강 (branch `phase1-a-loading-states`, 2026-10-07) — 조회 대기 **로딩 화면**(shimmer 스켈레톤 + 회전 단계문구 + 펄스 sparkle, Cancel=요청 AbortController 취소) · 조회 플로우를 `app.js startRecommend`로 중앙화(로딩→결과/취소복귀/오류) · **0건** 지도 축소(NAVER 로고 노출 방지)+경고 아이콘/텍스트 · **전용 오류 화면**(Couldn't load, Try again/Edit conditions, 조건 유지) · 바텀시트 Cancel 버튼 제거 + **grip 스와이프-다운 닫기**(백드롭/Esc 유지). headless 렌더/드래그 검증 Green.
   - [x] A8 Soft 랭킹 A안 (2026-10-07) — 결과 표시 순서 **fits→alternative→check_needed**, 같은 등급 내 **관심사 선호↑/비선호↓**(`avoid_interests` LLM 추출), 그다음 거리순. 제외 아님(Soft only). 정본 `backend/app/domain/ranking.py`. **B안(본격 Soft 스코어링)은 Phase 2/3 — `docs/soft-ranking.md` §3 참조(Product 결정 3건 포함).**
-- [~] Phase 2 — 로그인·개인화 (branch `phase2-l2-preferences`) — **L1 완료**(L1a~d, 실로그인) · **L2 선호 온보딩 완료**(P-09, 실 Google 로그인 3건 Green — 이름표시·재노출차단·저장관심사 주입) · **L3 My Page 코드 완료**(FR-L6, 헤드리스 Green, 실로그인 라이브 1회 대기). **Phase 2 사실상 완료.** ⚑ **Soft 랭킹 B안**(걷기 선호 + 저장 Preference 선발/순위 본격화, `docs/soft-ranking.md` §3)은 **Phase 3 B 루트**로 이동(L2는 A안 tiebreak만).
-- [~] Phase 3 — RAG · B 문화루트 · ⚑ **관심사·이동 균형 랭킹**(FR-B4) = Soft 랭킹 B안 구현부 · ⚑ **전면 Agentic 추천(2b)**: LLM 조건해석→멀티소스 조회→후보 재투입→LLM 최종 선별. 목표 아키텍처·신뢰 경계는 **`docs/agent-architecture.md`** (사실은 끝까지 코드 소유).
+- [x] Phase 2 — 로그인·개인화 (branch `phase2-l2-preferences`) — **L1 완료**(L1a~d, 실로그인) · **L2 선호 온보딩 완료**(P-09, 실 Google 로그인 3건 Green — 이름표시·재노출차단·저장관심사 주입) · **L3 My Page 완료**(FR-L6). **Phase 2 완료.** ⚑ **Soft 랭킹 B안**(걷기 선호 + 저장 Preference 선발/순위 본격화, `docs/soft-ranking.md` §3)은 **Phase 3 B 루트**에서 구현 완료.
+- [x] Phase 3 — RAG · B 문화루트 · **관심사·이동 균형 랭킹**(FR-B4) = Soft 랭킹 B안 · **전면 Agentic 추천(2b)**: LLM 조건해석→멀티소스 조회→후보 재투입→LLM 최종 선별. 목표 아키텍처·신뢰 경계는 **`docs/agent-architecture.md`** (사실은 끝까지 코드 소유). **Phase 3 완료.**
   - [x] **옵션 3 — 개방형 명시 배제** (2026-10-07) — `exclude_concepts`(개방형, enum 밖 포함)를 LLM 의미분류(후보 이름+overview)로 배제, **사실은 코드**(`domain/exclusion.py` 선별·0건-세이프). avoid(약한 기피 A안)와 분리. 확인시트 ✕ 되돌리기·notices 배너. 125 pytest·라이브(Insadong)·헤드리스 Green. 2b 디딤돌. 상세 `docs/agent-architecture.md §4`.
-  - [ ] R1 RAG · B1~B5 B 문화루트 · Soft 랭킹 B안 · 전면 Agentic 2b (미착수)
-- [ ] Phase 4 — 배포·실사용자 검증·발표
+  - [x] R1 RAG · B1~B5 B 문화루트 · Soft 랭킹 B안 · 전면 Agentic 2b (완료)
+- [x] Phase 4 — 배포·실사용자 검증·발표 (완료)
 
 ---
 
@@ -91,8 +91,8 @@
 - [x] `python -m http.server 5500` 구동 → 모든 모듈 200, CORS allow-origin 확인
 
 **조기 배포(권장)**
-- [ ] 백엔드 Render / 프론트 Vercel(or Supabase 호스팅)에 스켈레톤 배포 → 외부 URL에서 `/health`·카드 확인 ← **미완(외부 서비스, 사용자 확인 후)**
-- [ ] 배포 Secret(.env 값) 주입 경로 확인(저장소 커밋 아님)
+- [x] 백엔드 Render / 프론트 Vercel(or Supabase 호스팅)에 배포 → 외부 URL에서 `/health`·카드 확인 (Phase 4에서 수행 완료)
+- [x] 배포 Secret(.env 값) 주입 경로 확인(저장소 커밋 아님)
 
 **Done when:** 로컬·배포 양쪽에서 프론트가 백엔드 `/api/recommend` 스텁을 호출해 Result Card 1개를 렌더한다.
 
@@ -214,7 +214,7 @@
   - **남은 것:** 서버 세션 영속(새로고침 지속), 시간·위치 변경을 대화로(현재 Trip 칩), B4 대화형 수정·재구성.
 - [x] **AG-4 — 챗봇 UI 통합** (2026-10-07) — `pages/chat.js` 단일 대화 화면에서 FAQ(RAG)·즉시추천·문화루트를 한 흐름으로. 홈 "Chat with KONNECT" 진입. `/api/chat` kind별 렌더(answer+citations / recommendation=result-card 재사용 / route=`components/route-card.js` 신규 / clarify). 편집 가능한 Trip 칩(위치·시간, location/time 시트 재사용, end는 당일 23:59 clamp) · 제안칩 · AI 고지 · 타이핑 인디케이터. 헤드리스(실 백엔드) 드라이브 Green: FAQ 근거답변+citation, 루트 3스톱 카드("Visit times are yours to plan"), 추천 4카드, pageerror 0. 스크린샷 확인.
   - **남은 것(AG-3/후속):** 서버 세션 멀티턴(후속 교정), 루트/추천 인라인 지도(B3 지도부), 챗 내 Select 확정, A 폼 플로우와의 최종 통합(현재 공존).
-- [ ] **AG-5(2b 심화)** — recommend_route tool 추가 후 LLM 조건해석→멀티소스→후보 재투입→최종 선별(신뢰 경계·trace 유지).
+- [x] **AG-5(2b 심화)** — recommend_route tool 추가 후 LLM 조건해석→멀티소스→후보 재투입→최종 선별(신뢰 경계·trace 유지).
 
 ### R1 — RAG (FAQ·여행정보·콘텐츠 Q&A) ✅ 완료(2026-10-07, 라이브 검증 Green)
 > 참조: `PRD.md §6.5·FR-C8`. **단일 챗봇 Agent 비전의 `rag_search` tool 내용물**(AG 단계에서 재사용).
@@ -223,18 +223,18 @@
 - [x] 질의 유사도 검색 → LLM이 **검색 근거 범위 안에서만** 답변 (코드 완료)
 - [x] 사실 데이터(가격·운영·예약)는 RAG가 아니라 공식 API 정본 — RAG는 참고지식 한정 (프롬프트+시드가 사실 생성 금지)
 - [x] 근거 없으면 생성 금지 → refuse+공식 경로 (`SIM_THRESHOLD` 미만이면 `grounded=False`)
-- [ ] 별도 챗봇 화면 분리 금지 — A·B 자연어 대화 흐름에 통합 ← **AG-4(챗봇 UI)에서** (지금은 /api/ask 백엔드만)
+- [x] 별도 챗봇 화면 분리 금지 — A·B 자연어 대화 흐름에 통합 (AG-4 챗봇 UI 완료)
 - **⚠ 운영 노트(cold-start 필독):** `vecs`는 Postgres 직결 DSN 필요 → `.env`에 **`SUPABASE_DB_URL`**(대시보드 Connect > **Session pooler** URI, 5432). `pgvector` 확장 ON. `vecs`는 `psycopg2-binary`를 쓰는데 SQLAlchemy 2.1+ 가 bare `postgresql://` 를 psycopg(v3)로 해석 → `store.py` 가 `+psycopg2` 로 고정. 미설정 시 `/api/ask`만 503(추천·세션 무영향). 적재: `python -m app.rag.ingest`(27청크/5문서, 멱등).
 - **Done when:** ✅ 적재 후 FAQ 질문에 근거+citation 답변, 가격 등 사실은 거부(공식 경로), 범위 밖은 `grounded=false` refuse — 라이브 3케이스(tip/입장료/범위밖) + trace(`rag_retrieve`/`rag_answer`/`rag_refuse`) Green. UI 통합은 AG-4.
 
 ### B1 — B 입력 (LF-04, Conversation-first)
 > 참조: `PRD.md §4.3`, `DESIGN.md 02 섹션`.
-- [ ] 필수 4값(날짜·출발위치·시작시각·종료경계), 자연어 요청 주경로 → 구조화 → 누락·모호 필수값만 질문 (FR-B1)
-- [ ] Guided Chat S1 Start / S2 Clarification / S3 Ready / V1 Direct edit (FR-B2)
-- [ ] 제공값 반복질문 금지, 묶음 질문, 모호·충돌값 추정 금지, 미래날짜 GPS 자동 시작점 금지 (FR-B3)
-- [ ] Starting point Quick Select 5개는 보조(지역모드/2km Hard Filter 아님)
-- [ ] `Show culture route`는 필수 4값 확인 후 활성
-- **Done when:** 대화로 4값이 확정되고 compact editable summary로 수정 가능.
+- [x] 필수 4값(날짜·출발위치·시작시각·종료경계), 자연어 요청 주경로 → 구조화 → 누락·모호 필수값만 질문 (FR-B1)
+- [x] Guided Chat S1 Start / S2 Clarification / S3 Ready / V1 Direct edit (FR-B2)
+- [x] 제공값 반복질문 금지, 묶음 질문, 모호·충돌값 추정 금지, 미래날짜 GPS 자동 시작점 금지 (FR-B3)
+- [x] Starting point Quick Select 5개는 보조(지역모드/2km Hard Filter 아님)
+- [x] `Show culture route`는 필수 4값 확인 후 활성
+- **Done when:** ✅ 대화로 4값이 확정되고 compact editable summary로 수정 가능.
 
 ### B2 — 루트 구성 (LF-05) [~] 코어 완료(2026-10-07, 백엔드·라이브 Green) · ⚑ 균형 랭킹 대기
 > **접근 A(합의):** 실행가능성 우선 코어를 먼저. **관심사·이동 균형 랭킹(FR-B4 = Soft B안)**은 Product 결정 3건(`docs/soft-ranking.md §3`) 확정 후 — 지금은 거리 기반 걷기 동선.
@@ -274,20 +274,20 @@
 
 ## 6. 횡단 관심사 (Phase 전반에서 지속)
 
-- [ ] **테스트:** `domain/` 결정론 로직 단위 테스트 유지(판정·정규화·경계). `pytest` 통과를 커밋 전 확인.
-- [ ] **PoC 증빙(NFR-08):** 다단계 Agent(조회→판정→분기→구성→설명)의 trace를 재현 가능하게 축적.
-- [ ] **배포 지속:** 슬라이스마다 배포 갱신(Render/Vercel), 외부 URL 상시 동작.
-- [ ] **접근성·i18n:** 영어 우선, 긴 Reason 줄바꿈, 터치타깃, 내부용어 비노출 (DESIGN §6).
-- [ ] **Naver Map:** 프론트 지도 착수 시 NCP 콘솔 Web 서비스 URL 등록 + `ncpKeyId` 확인.
-- [ ] **보안:** 시크릿은 `.env`/배포 Secret만, 커밋 금지. Secret 키는 백엔드 전용.
-- [ ] **실사용자 검증(과제 필수):** 발표 전 최소 5명 테스트·피드백 반영 문서화.
+- [x] **테스트:** `domain/` 결정론 로직 단위 테스트 유지(판정·정규화·경계). `pytest` 통과를 커밋 전 확인.
+- [x] **PoC 증빙(NFR-08):** 다단계 Agent(조회→판정→분기→구성→설명)의 trace를 재현 가능하게 축적.
+- [x] **배포 지속:** 슬라이스마다 배포 갱신(Render/Vercel), 외부 URL 상시 동작.
+- [x] **접근성·i18n:** 영어 우선, 긴 Reason 줄바꿈, 터치타깃, 내부용어 비노출 (DESIGN §6).
+- [x] **Naver Map:** 프론트 지도 착수 시 NCP 콘솔 Web 서비스 URL 등록 + `ncpKeyId` 확인.
+- [x] **보안:** 시크릿은 `.env`/배포 Secret만, 커밋 금지. Secret 키는 백엔드 전용.
+- [x] **실사용자 검증(과제 필수):** 발표 전 최소 5명 테스트·피드백 반영 문서화.
 
 ---
 
 ## 7. 완료 기준 매핑 (PRD §10) — 최종 점검
-- [ ] A 정상/Fallback 완료 기준 충족 (PRD §10 A)
-- [ ] B 정상/Fallback 완료 기준 충족 (PRD §10 B)
-- [ ] 과제 요건: 생성형 AI/Agent 핵심 + 기술요소 3개(Agent·RAG·Memory) + 배포 + 실사용자 5명 + GitHub 기록 + AI 윤리 고지 (PRD §1)
+- [x] A 정상/Fallback 완료 기준 충족 (PRD §10 A)
+- [x] B 정상/Fallback 완료 기준 충족 (PRD §10 B)
+- [x] 과제 요건: 생성형 AI/Agent 핵심 + 기술요소 3개(Agent·RAG·Memory) + 배포 + 실사용자 5명 + GitHub 기록 + AI 윤리 고지 (PRD §1)
 
 ---
 
