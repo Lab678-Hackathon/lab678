@@ -41,6 +41,9 @@ function icon(name, className = "fr-icon") {
 function localNowValue() {
   const d = new Date();
   d.setSeconds(0, 0);
+  // 시작 휠·window 계산이 5분 단위이므로 기본 시작시각도 같은 격자로 반올림한다.
+  // (안 그러면 9:47 같은 원본값 탓에 time-sheet 는 1hr 로 보이는데 폼 검증은 58분으로 어긋남.)
+  d.setMinutes(Math.round(d.getMinutes() / 5) * 5);
   const off = d.getTimezoneOffset();
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
@@ -76,8 +79,8 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   let startValue = prefill?.start_at?.slice(0, 16) ?? localNowValue();
   let endValue = prefill?.end_at?.slice(0, 16) ?? "";
 
-  // Done by 는 시작시각으로부터 최소 30분 뒤여야 한다(그 이하면 추천이 성립하지 않음).
-  const MIN_WINDOW_MIN = 30;
+  // Done by 는 시작시각으로부터 최소 1시간 뒤여야 한다(그 이하면 추천이 성립하지 않음).
+  const MIN_WINDOW_MIN = 60;
   const windowMin = () =>
     endValue ? Math.round((new Date(endValue) - new Date(startValue)) / 60000) : null;
 
@@ -207,7 +210,7 @@ export function renderInputView({ prefill, onBack, onHome, onRecommend }) {
   // 시간 안내: 종료 선택 시 "You have Xh Ym"(teal), 미선택 시 amber 안내
   const timeHint = el("p", "field-hint-amber", "Pick when you need to be done");
   function refreshHint() {
-    // 30분 미만 경고는 폼 아래가 아니라 '시계(time-sheet)' 박스 안에서 띄운다(거기서 Done 비활성).
+    // 1시간 미만 경고는 폼 아래가 아니라 '시계(time-sheet)' 박스 안에서 띄운다(거기서 Done 비활성).
     // 여기선 기존처럼 소요시간(teal) / 미선택 안내(amber)만.
     if (endValue) {
       timeHint.textContent = durText(startValue, endValue);
