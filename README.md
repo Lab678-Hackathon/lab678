@@ -2,6 +2,8 @@
 
 > 서울 자유여행 중인 외국인 FIT에게, **지금 조건(위치·날짜·가용시간·운영조건)에서 실제로 가능한 문화경험**을 좁혀주는 모바일-퍼스트 웹 서비스.
 
+**🔗 Live Demo:** https://codyssey-konnect-frontend.vercel.app/
+
 코디세이 AI 네이티브 Final Project 결과물로, **기획(Planning) · 디자인(Design) · 개발(Code)** 세 영역의 산출물을 하나의 저장소에 모았습니다.
 
 ---
