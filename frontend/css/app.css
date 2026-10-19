@@ -1196,7 +1196,7 @@ body {
 .dir-summary.is-estimate { color: var(--c-text-muted); font-style: italic; }
 .dir-open {
   display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-  background: var(--c-primary); color: var(--c-on-primary); border: 0;
+  background: var(--c-surface); color: var(--c-primary); border: 1px solid var(--c-primary);
   border-radius: var(--r-full); padding: var(--space-12); font-size: var(--fs-meta);
   font-weight: var(--fw-bold); cursor: pointer;
 }
