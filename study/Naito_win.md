@@ -60,19 +60,30 @@ $settingsDir  = Join-Path $env:USERPROFILE ".claude"
 if (-not (Test-Path $settingsDir)) { New-Item -ItemType Directory -Path $settingsDir -Force }
 $settingsPath = Join-Path $settingsDir "settings.json"
 
+# API 키는 화면에 표시하지 않고 입력합니다.
+$secureKey = Read-Host "Enter your Codyssey API key" -AsSecureString
+$keyPtr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
+try {
+    $apiKey = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($keyPtr)
+} finally {
+    [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($keyPtr)
+}
+$secureKey.Dispose()
+
 $settings = @{
     env = @{
         ANTHROPIC_BASE_URL = "https://copa.codyssey.kr"
-        ANTHROPIC_API_KEY  = "<YOUR_CODYSSEY_API_KEY>"   # ← 여기엔 코디세이 API 키를 입력
+        ANTHROPIC_API_KEY  = $apiKey
         ANTHROPIC_MODEL    = "claude-sonnet-4"
         ANTHROPIC_SMALL_FAST_MODEL = "claude-haiku-4"
     }
 } | ConvertTo-Json -Depth 5
 
 Set-Content -Path $settingsPath -Value $settings -Encoding UTF8 -Force
+$apiKey = $null
 Write-Host "Created settings file at $settingsPath"
 ```
-> **주의**: `ANTHROPIC_API_KEY`에 실제 발급받은 **코디세이 API 키**를 넣어야 합니다.
+> **주의**: API 키는 입력 중 화면에 표시되지 않습니다. 키를 문서·스크립트·PowerShell 명령 이력·Git에 직접 넣지 마세요. 설정 파일은 공유하지 말고, 유출이 의심되면 즉시 폐기·재발급하세요.
 
 ---
 ## 5️⃣ 설치 검증
@@ -109,7 +120,7 @@ claude edit path/to/file.py "리팩터링 제안"
 
 ---
 **마무리**
-- `settings.json`에 올바른 API 키가 들어갔는지 확인
+- `settings.json`에 올바른 API 키가 들어갔는지 확인하되, 키 전체를 화면이나 로그에 출력하지 않음
 - `claude` 명령을 새 터미널에서 바로 사용할 수 있어야 함
 - 문제가 생기면 `where.exe claude*` 로 실제 파일 위치를 확인하고 PATH를 다시 검토하세요.
 
@@ -138,12 +149,17 @@ claude edit path/to/file.py "리팩터링 제안"
    - 기존 권한, 플러그인, 기타 환경 설정이 있는 사용자는 백업 후 필요한 `env` 값만 병합해야 합니다.
    - API 키는 문서·스크립트·Git에 직접 저장하지 않고 사용자가 실행 시 입력하거나 환경변수/보안 저장소로 주입해야 합니다.
 
-4. **임시 작업 경로는 재현 가능한 설치 파일이 아님**
+4. **API 키 마스킹**
+   - 위 설정 예시는 `Read-Host -AsSecureString`을 사용해 입력 중 키를 표시하지 않습니다.
+   - 키를 확인할 때도 전체 값을 출력하지 말고, 필요하면 앞 4자와 뒤 4자만 별도 로컬 확인용으로 사용합니다(예: `abcd••••wxyz`).
+   - `settings.json`은 사용자 프로필의 민감한 설정 파일이므로 다른 사람에게 보내거나 저장소에 커밋하지 않습니다.
+
+5. **임시 작업 경로는 재현 가능한 설치 파일이 아님**
    - `C:\Users\DJ\.gemini\antigravity-cli\brain\...\install_naito.ps1`는 현재 PC의 임시 경로입니다.
    - 다른 PC에서 실행할 수 있도록 하려면 스크립트를 저장소의 `study\install_naito.ps1` 같은 고정 위치에 별도로 저장해야 합니다.
    - 단, API 키가 포함된 스크립트는 저장소에 추가하면 안 됩니다.
 
-5. **최종 검증은 버전 확인만으로 충분하지 않음**
+6. **최종 검증은 버전 확인만으로 충분하지 않음**
    - `claude --version`은 CLI 설치와 PATH만 확인합니다.
    - 실제 사용 가능 여부는 새 PowerShell에서 `claude`를 실행하고, Copa endpoint와 설정된 모델로 간단한 요청까지 성공하는지 별도로 확인해야 합니다.
    - `401 Unauthorized`가 나오면 설치 문제가 아니라 API 키, 권한, endpoint 또는 모델 설정 문제입니다.
