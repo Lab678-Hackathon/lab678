@@ -1,5 +1,8 @@
 # AI 해커톤 프레임워크
 
+범용 RAG 문서 도우미: [설정·자료 추가·실행 안내](framework_doc/rag_guide.md).
+관광 데이터 없이 시작하며 홈페이지에서 자료 기반 질문과 출처를 확인할 수 있습니다.
+
 FastAPI + Vanilla JS + Supabase + LangChain 기반의 AI 해커톤용 재사용 프레임워크.
 **Core를 고정하고 Topic Layer만 교체**해 해커톤 주제가 달라져도 빠르게 시작한다.
 
@@ -70,7 +73,7 @@ python3.12 -m venv .venv
 source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cd ..
-uvicorn backend.app.main:app --reload --port 8000
+python -m uvicorn app.main:app --app-dir backend --reload --port 8000
 ```
 
 헬스체크:

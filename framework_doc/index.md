@@ -1,5 +1,10 @@
 # 프레임워크 순방향 인덱스 (파일 → 심볼)
 
+## 범용 RAG 작업 문서
+
+- [구현 작업 기록·검증 결과](./rag_work_report.md) — 2026-10-30, `framework`
+- [설정·자료 추가·실행 안내](./rag_guide.md)
+
 > 생성일: 2026-10-29 | 브랜치: full-framework
 > Core 파일 중심. "이 파일에 뭐가 있나"를 빠르게 찾는 용도.
 > 관련: [reverse_index.md](./reverse_index.md) | [tree.md](./tree.md)

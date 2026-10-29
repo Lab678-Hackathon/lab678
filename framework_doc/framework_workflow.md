@@ -251,7 +251,7 @@ python3.12 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cd ..
-uvicorn backend.app.main:app --reload --port 8000
+python -m uvicorn app.main:app --app-dir backend --reload --port 8000
 
 # 헬스체크
 curl http://localhost:8000/health

@@ -170,6 +170,13 @@ class Settings(BaseSettings):
 
 ### 4.7 RAG (선택적 Core)
 
+범용 구현 사용법: [rag_guide.md](./rag_guide.md).
+관광 데이터 없이 시작하며 .md/.txt를 나중에 적재합니다.
+POST /api/ask는 답변과 출처를 반환하고, 홈페이지에서 확인합니다.
+검색 거리는 cosine similarity로 변환하며 근거가 없으면 LLM을 호출하지 않습니다.
+DB·임베딩·LLM 장애는 빈 검색 결과와 구분합니다.
+적재 시 같은 상대 경로의 문서를 교체하고, DB 작업은 worker thread에서 실행합니다.
+
 ```
 backend/app/rag/
 ├── embed.py        ← OpenAI Embeddings
