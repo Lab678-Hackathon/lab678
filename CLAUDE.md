@@ -44,7 +44,16 @@
 
 | 작업 | 읽을 파일 |
 |---|---|
-| 프레임워크 설계·기능 범위 | `study/framework_design.md` |
-| konnect 부품 찾기 | `study/02-code-index.md` |
-| 함수 위치 확인 | `study/03-reverse-index.md` |
-| 환경 세팅 명령어 | `study/07-handover-guide.md` |
+| 프레임워크 설계·기능 범위 | `framework_doc/framework_design.md` |
+| 작업 절차·검증 명령 | `framework_doc/framework_workflow.md` |
+| konnect 부품 찾기 | `konnect_study/02-code-index.md` |
+| 함수 위치 확인 | `konnect_study/03-reverse-index.md` |
+| 환경 세팅 명령어 | `konnect_study/07-handover-guide.md` |
+| 재사용 코드·템플릿 | `utils/README.md` |
+
+## 토큰 절약 원칙
+
+- `konnect_study/`는 참조 전용. 먼저 `konnect_study/02-code-index.md`로 위치 확인 후 해당 파일만 읽는다.
+- `utils/templates/`에 템플릿이 있으면 새로 작성하지 않고 복사해서 교체한다.
+- `utils/snippets/`에 패턴이 있으면 그대로 활용한다.
+- Core 파일은 변경 전 반드시 사용자 확인. 한 번 확인으로 여러 Topic에 영향.
