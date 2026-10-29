@@ -290,7 +290,7 @@ Content 파일 금지: API 호출 · DOM 조작 · 판정 로직.
 ├── .gitignore
 ├── framework_doc/              ← 프레임워크 설계 · 작업 문서
 │   ├── framework_design.md     ← 이 파일
-│   └── framework_workflow.md   ← 작업 절차 (작성 예정)
+│   └── framework_workflow.md   ← 작업 절차
 ├── konnect_study/              ← konnect 분석 참조 (건드리지 않음)
 ├── backend/
 │   ├── requirements.txt
@@ -366,7 +366,7 @@ Content 파일 금지: API 호출 · DOM 조작 · 판정 로직.
 ```
 CLAUDE.md
   → framework_doc/framework_design.md  (이 파일)
-  → framework_doc/framework_workflow.md
+  → framework_doc/framework_workflow.md   (§§ 참조)
   → konnect_study/02-code-index.md     (konnect 부품 찾기, 필요 시)
   → 해당 Core 파일
   → 해당 Topic 파일

@@ -1,7 +1,8 @@
 # CLAUDE.md — AI 해커톤 프레임워크
 
 > 이 저장소는 FastAPI + Vanilla JS + Supabase + LangChain 기반 AI 해커톤용 재사용 프레임워크다.
-> 설계 문서: `study/framework_design.md` (작성 중)
+> 설계 문서: `framework_doc/framework_design.md`
+> 작업 절차: `framework_doc/framework_workflow.md`
 > konnect 브랜치: 기술 참조용 구현 예시 (의존하지 않음)
 
 ---
@@ -10,10 +11,11 @@
 
 백지화 완료. 프레임워크 설계 진행 중.
 
-- `study/` — 참조 문서 (konnect 분석, 설계 계획)
-- `study/02-code-index.md` — konnect 부품 카탈로그
-- `study/03-reverse-index.md` — 함수 위치 역방향 찾기
-- `study/플랫폼_심플페이지_경량화계획.md` — 프레임워크 설계 초안
+- `framework_doc/` — 프레임워크 설계·작업 문서
+- `konnect_study/` — konnect 분석 참조 자료 (건드리지 않음)
+- `utils/` — 재사용 스크립트·템플릿·스니펫
+- `konnect_study/02-code-index.md` — konnect 부품 카탈로그
+- `konnect_study/03-reverse-index.md` — 함수 위치 역방향 찾기
 
 ---
 
@@ -32,7 +34,7 @@
 
 ## 작업 원칙
 
-- **설계 문서 먼저.** 코드 작성 전 `study/framework_design.md` 확인.
+- **설계 문서 먼저.** 코드 작성 전 `framework_doc/framework_design.md` + `framework_doc/framework_workflow.md` 확인.
 - **konnect는 참조만.** `git show konnect:<파일>` 로 열람, 직접 의존 없음.
 - **Core / Topic Layer 분리.** Core는 변경 최소화, Topic은 자유롭게.
 - **커밋·푸시는 사용자 요청 시만.**

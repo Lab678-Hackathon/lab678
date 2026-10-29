@@ -22,8 +22,8 @@ utils/
 
 | 파일 | 용도 |
 |---|---|
-| `scripts/setup_dev.py` | 개발 환경 초기 세팅 확인 |
-| `scripts/ingest_rag.py` | RAG 지식 문서 → pgvector 적재 |
+| `scripts/setup_dev.py` | 개발 환경 초기 세팅 확인 (환경변수·LLM·RAG 상태) |
+| `scripts/ingest_rag.py` | RAG 지식 문서 → pgvector 적재 (SUPABASE_DB_URL 필요) |
 | `templates/source_template.py` | 외부 API 클라이언트 템플릿 |
 | `templates/domain_template.py` | 판정 로직 모듈 템플릿 |
 | `templates/api_router_template.py` | FastAPI 라우터 템플릿 |
