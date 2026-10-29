@@ -1,0 +1,440 @@
+# AI 해커톤 프레임워크 설계
+
+> 작성일: 2026-10-29
+> 버전: v0.1 (설계 초안)
+> konnect 브랜치: 기술 구현 참조용. 의존하지 않음.
+
+---
+
+## 0. 한 줄 정의
+
+**"Core를 고정하고 Topic Layer를 교체하는 AI 웹 앱 스캐폴드"**
+
+해커톤 주제가 달라져도 Core는 그대로 재사용하고, 주제별 코드(Topic Layer)만 새로 작성한다.
+
+---
+
+## 1. 브랜치 전략
+
+| 브랜치 | 목적 |
+|---|---|
+| `main` | Simple Framework — Core만. 가볍게 시작하는 기준점 (추후 정의) |
+| `full-framework` | Full Framework — Core + 완전한 Topic scaffold |
+| `konnect` | 기술 참조용 구현 예시. 건드리지 않음 |
+
+**구현 순서:** `full-framework` 먼저 완성 → `main`(simple)은 full에서 추출.
+
+---
+
+## 2. 계층 구조
+
+```
+┌──────────────────────────────────────────────┐
+│  Topic Layer  (해커톤 주제마다 교체)           │
+│  sources · domain · agent · pages · content  │
+├──────────────────────────────────────────────┤
+│  Core  (해커톤마다 재사용)                    │
+│  auth · llm-adapter · rag                    │
+│  envelope · trace · exceptions · config      │
+│  frontend routing · tokens                   │
+└──────────────────────────────────────────────┘
+```
+
+---
+
+## 3. 기술 스택
+
+| 레이어 | 기술 | 비고 |
+|---|---|---|
+| Frontend | Vanilla HTML / CSS / JavaScript, ES Modules | 빌드 도구·프레임워크 없음 |
+| Backend | Python 3.12+ / FastAPI | pydantic-settings |
+| AI / Agent | OpenAI API + LangChain | Tool·Chain 패턴 |
+| LLM Provider | Adapter 패턴 | `LLM_PROVIDER` 환경변수로 OpenAI ↔ Naito 전환 |
+| Auth | Supabase Auth | Anonymous Sign-in → Google OAuth Linking |
+| DB | Supabase Postgres | 사용자·세션·상태 |
+| RAG (선택) | Supabase pgvector + OpenAI Embeddings | 주제에 따라 활성화 |
+| 배포 | Render (backend) / Vercel (frontend) | |
+
+---
+
+## 4. Core 기능 명세
+
+### 4.1 인증 (Supabase Auth)
+
+```
+익명 첫 진입
+  → Supabase Anonymous Sign-in (user_id 선발급)
+  → 핵심 기능 제한 허용 (범위는 Topic 설정)
+  → 로그인 유도
+  → Google OAuth → Identity Linking → 동일 user_id 영구 승격
+```
+
+- 프론트: `auth.js` — signInWithGoogle · signOut · getToken · onAuthChange
+- 백엔드: `core/auth.py` — JWT JWKS 검증만 (provider-agnostic)
+- 첫 진입 강제 로그인 없음
+- 비회원→로그인 데이터 자동 보존 (Identity Linking)
+
+---
+
+### 4.2 LLM Provider Adapter
+
+`LLM_PROVIDER` 환경변수 하나로 전환. 코드 변경 없음.
+
+```
+backend/app/services/llm/
+├── adapter.py    ← get_llm() 단일 진입점
+├── openai.py     ← ChatOpenAI 래퍼
+└── naito.py      ← Naito endpoint · auth · model 래퍼
+```
+
+**규칙:**
+- Naito 미설정 시 빈 응답 반환 금지 → 명확한 ConfigurationError
+- provider 출력: `message` + 선택적 `citations`만
+- 사실 필드(가격·좌표·운영시간) 생성 금지
+- Naito 장애 시 자동 사실 생성 금지. 오류 반환 또는 명시적 OpenAI fallback만
+
+---
+
+### 4.3 Response Envelope
+
+모든 API 응답의 공통 포맷.
+
+```python
+class Envelope(BaseModel, Generic[T]):
+    ok: bool
+    data: T | None = None
+    error: ErrorDetail | None = None
+```
+
+- `ok=True` + data: 정상 (빈 결과 포함)
+- `ok=False` + error: 실패
+- 시스템 오류와 빈 결과를 구분해 반환
+
+---
+
+### 4.4 예외 계층
+
+```python
+class AppError(Exception): ...
+class ExternalSourceError(AppError): ...  # 외부 API 실패 → 503
+class ValidationFailure(AppError): ...    # 입력 오류 → 422
+class AuthError(AppError): ...            # 인증 실패 → 401
+class ConfigurationError(AppError): ...   # 설정 오류 → 500
+```
+
+`main.py` 핸들러가 `AppError` → `Envelope(ok=False)` 변환.
+
+---
+
+### 4.5 Trace
+
+AI 파이프라인 각 단계 기록.
+
+```python
+class Trace:
+    def step(self, name: str, data: dict) -> None: ...
+    def to_dict(self) -> dict: ...
+```
+
+- `APP_ENV=development`: 응답에 trace 포함
+- `APP_ENV=production`: trace 미노출
+
+---
+
+### 4.6 Config
+
+```python
+class Settings(BaseSettings):
+    app_env: str = "development"
+    backend_port: int = 8000
+    cors_allow_origins: str
+
+    openai_api_key: str
+    openai_model: str = "gpt-4o"
+    openai_embedding_model: str = "text-embedding-3-small"
+
+    llm_provider: str = "openai"   # openai | naito
+    naito_base_url: str = ""
+    naito_api_key: str = ""
+    naito_model: str = ""
+
+    supabase_url: str
+    supabase_publishable_key: str
+    supabase_secret_key: str
+    supabase_db_url: str = ""      # 없으면 RAG 비활성화
+
+    # Topic 키는 주제 확정 후 추가
+```
+
+---
+
+### 4.7 RAG (선택적 Core)
+
+```
+backend/app/rag/
+├── embed.py        ← OpenAI Embeddings
+├── ingest.py       ← 문서 → 청크 → pgvector 적재
+├── retrieve.py     ← 유사도 검색 → 근거 있을 때만 LLM 답변
+└── knowledge/      ← 주제별 지식 문서 (*.md) ← Topic 교체 대상
+```
+
+- 근거 없으면 생성 안 함
+- `supabase_db_url` 없으면 graceful 비활성화. 다른 기능 무영향.
+
+---
+
+### 4.8 프론트엔드 Core
+
+```
+frontend/
+├── index.html
+├── css/
+│   └── tokens.css       ← 디자인 토큰 (색·타이포·간격·반경)
+└── js/
+    ├── app.js            ← 부트스트랩 + 페이지 라우팅만
+    ├── router.js         ← 메뉴명 → 페이지 함수 매핑
+    ├── auth.js           ← Supabase auth
+    ├── api.js            ← fetch 래퍼 (JWT 자동 부착, Envelope 파싱)
+    └── state.js          ← 최소 공유 상태
+                             (현재 유저, 현재 선택, 마지막 요청·결과)
+```
+
+`app.js`에 도메인 로직 없음. 라우팅과 부트스트랩만.
+
+---
+
+## 5. Topic Layer 명세
+
+주제마다 새로 작성. konnect 브랜치 구현을 패턴 참조로 활용.
+
+### 5.1 백엔드 Topic
+
+```
+backend/app/
+├── sources/          ← 외부 API 클라이언트
+│   └── [source].py  ← timeout · retry 내장. 실패 → ExternalSourceError
+├── domain/           ← 결정론적 판정. LLM 미사용.
+│   ├── normalize.py  ← 외부 데이터 → 내부 Candidate 스키마
+│   ├── judge.py      ← 제약 판정 (가용성 · 예산 · 시간 등)
+│   └── rank.py       ← 필터 · 정렬
+├── agent/            ← LangChain 파이프라인
+│   ├── pipeline.py   ← 오케스트레이션 진입점
+│   ├── tools/        ← LangChain Tools (소스 조회 래핑)
+│   └── prompts/      ← 프롬프트 템플릿
+├── api/
+│   └── [feature].py  ← 라우터 (검증 · 인증 · 서비스 호출 · Envelope 반환)
+├── services/
+│   └── [feature].py  ← 흐름 조합
+└── models/
+    └── [topic].py    ← Pydantic 스키마
+```
+
+### 5.2 프론트엔드 Topic
+
+```
+frontend/js/
+├── content.js        ← 브랜드명 · 메뉴 · 사용자-facing 문구
+├── pages/            ← 화면 로직
+└── components/       ← 재사용 DOM 컴포넌트
+```
+
+### 5.3 Content 분리 원칙
+
+```js
+export const CONTENT = {
+  brand: { name: "서비스명", tagline: "한 줄 설명" },
+  menu: { /* 주제별 메뉴 */ },
+  copy: { aiNotice: "AI-assisted · unconfirmed details marked" },
+};
+```
+
+Content 파일 금지: API 호출 · DOM 조작 · 판정 로직.
+
+---
+
+## 6. AI 파이프라인 구조
+
+```
+[parse]    자연어 입력 → 구조화 조건  (LLM structured output)
+    ↓
+[fetch]    외부 소스 조회             (LangChain Tools, 병렬)
+    ↓
+[judge]    제약 판정                  (결정론적 코드, LLM 미사용)
+    ↓
+[rank]     필터링 · 정렬
+    ↓
+[compose]  결과 구성                  (0건 세이프, 부족 시 재판단)
+    ↓
+[explain]  사용자-facing 설명         (LLM — 확인된 근거만)
+```
+
+### 불변 원칙
+
+| # | 원칙 |
+|---|---|
+| 1 | 판정은 코드로, 설명은 LLM으로 |
+| 2 | LLM이 사실(가격·시간·좌표·가용성)을 생성하지 않는다 |
+| 3 | 미확인을 긍정(무료·가능·이용 가능)으로 바꾸지 않는다 |
+| 4 | Hard 제외 후보는 정상 결과에 섞이지 않는다 |
+| 5 | 강제 채움 금지. 숫자 맞추려고 부적합 후보를 넣지 않는다 |
+| 6 | AI 고지 · 확인/미확인 구분 UI를 제거하지 않는다 |
+
+---
+
+## 7. 디렉터리 구조
+
+```
+[project-root]/
+├── CLAUDE.md
+├── .env.example
+├── .gitignore
+├── framework_doc/              ← 프레임워크 설계 · 작업 문서
+│   ├── framework_design.md     ← 이 파일
+│   └── framework_workflow.md   ← 작업 절차 (작성 예정)
+├── konnect_study/              ← konnect 분석 참조 (건드리지 않음)
+├── backend/
+│   ├── requirements.txt
+│   └── app/
+│       ├── main.py             ← FastAPI 앱 (Core)
+│       ├── config.py           ← Settings (Core)
+│       ├── core/
+│       │   ├── auth.py         ← JWT 검증 (Core)
+│       │   ├── exceptions.py   ← AppError 계층 (Core)
+│       │   └── trace.py        ← Trace (Core)
+│       ├── models/
+│       │   ├── common.py       ← Envelope · ErrorDetail (Core)
+│       │   └── [topic].py      ← 주제별 스키마 (Topic)
+│       ├── api/
+│       │   ├── health.py       ← GET /health (Core)
+│       │   └── [feature].py    ← 주제별 라우터 (Topic)
+│       ├── services/
+│       │   ├── llm/            ← LLM Provider Adapter (Core)
+│       │   │   ├── adapter.py
+│       │   │   ├── openai.py
+│       │   │   └── naito.py
+│       │   └── [feature].py    ← 흐름 조합 (Topic)
+│       ├── rag/                ← 선택적 Core
+│       │   ├── embed.py
+│       │   ├── ingest.py
+│       │   ├── retrieve.py
+│       │   └── knowledge/      ← Topic 지식 문서
+│       ├── sources/            ← Topic
+│       ├── domain/             ← Topic
+│       └── agent/              ← Topic
+├── frontend/
+│   ├── index.html
+│   ├── css/
+│   │   └── tokens.css          ← Core
+│   └── js/
+│       ├── app.js              ← Core
+│       ├── router.js           ← Core
+│       ├── auth.js             ← Core
+│       ├── api.js              ← Core
+│       ├── state.js            ← Core
+│       ├── content.js          ← Topic
+│       ├── pages/              ← Topic
+│       └── components/         ← Topic
+└── tests/
+    ├── core/                   ← Core 테스트
+    └── [topic]/                ← Topic 테스트
+```
+
+---
+
+## 8. 새 해커톤 프로젝트 시작 순서
+
+```
+1.  full-framework 브랜치 기반으로 시작
+2.  content.js       브랜드명 · 메뉴 · 기본 문구 교체
+3.  .env             Topic 전용 API 키 추가
+4.  models/[topic]   핵심 Pydantic 스키마 정의
+5.  sources/         외부 API 클라이언트 작성
+6.  domain/          정규화 · 판정 · 랭킹 작성
+7.  agent/           LangChain 파이프라인 · 프롬프트 작성
+8.  api/[feature]    라우터 추가 (main.py에 include)
+9.  pages/           화면 추가 (router.js에 등록)
+10. components/      필요 컴포넌트 추가
+11. rag/knowledge/   지식 문서 추가 (RAG 사용 시)
+```
+
+---
+
+## 9. LLM 작업 원칙
+
+### 읽는 순서
+
+```
+CLAUDE.md
+  → framework_doc/framework_design.md  (이 파일)
+  → framework_doc/framework_workflow.md
+  → konnect_study/02-code-index.md     (konnect 부품 찾기, 필요 시)
+  → 해당 Core 파일
+  → 해당 Topic 파일
+  → 관련 테스트
+```
+
+### Core vs Topic 수정 원칙
+
+| 대상 | 원칙 |
+|---|---|
+| Core 수정 | 모든 Topic에 영향. 반드시 사용자 확인 후 진행 |
+| Topic 수정 | 해당 기능에만 영향. 자유롭게 작업 |
+| konnect 참조 | `git show konnect:파일경로` 로 열람 |
+
+### 파일 1개 = 책임 1개
+
+| 파일 | 책임 |
+|---|---|
+| `main.py` | 앱 시작, 라우터 · 핸들러 등록 |
+| `config.py` | 환경변수 로드 · 검증 |
+| `core/auth.py` | JWT 검증, 사용자 신원 반환 |
+| `core/exceptions.py` | 예외 → HTTP 응답 변환 |
+| `services/llm/adapter.py` | 설정에 따라 LLM 인스턴스 반환 |
+| `rag/retrieve.py` | 근거 있을 때만 LLM 답변 생성 |
+| `app.js` | 앱 시작, 현재 페이지 표시 |
+| `router.js` | 메뉴명 ↔ 페이지 함수 연결 |
+| `api.js` | JWT 부착, 요청 전송, Envelope 파싱 |
+| `content.js` | 사용자-facing 문구 제공 |
+
+---
+
+## 10. 위험과 대응
+
+| 위험 | 대응 |
+|---|---|
+| Core 수정이 Topic 전체를 깨뜨림 | Core 수정 전 사용자 확인. Core 테스트 먼저 실행 |
+| konnect 코드 복사 시 KONNECT 로직 혼입 | 복사 후 KONNECT 전용 로직 제거 확인 |
+| LLM이 사실을 생성 | judge 단계는 코드로. LLM 출력에서 사실 필드 수신 금지 |
+| Naito 계약이 예상과 다름 | adapter 내부에서만 흡수. 외부 인터페이스 불변 |
+| Naito 장애로 핵심 기능 중단 | Naito는 특정 기능에만 연결. 핵심 추천은 독립 유지 |
+| Naito 토큰 소진 | 토큰량 · 소진 정책 사전 확인. OpenAI fallback 준비 |
+| RAG 없이 기능 미동작 | RAG 없이도 핵심 기능 동작. RAG는 보강 전용 |
+
+---
+
+## 11. 완료 기준
+
+### Core 완료 기준
+
+- [ ] `GET /health` → `{"ok": true}`
+- [ ] Anonymous Sign-in + Google OAuth Linking 동작
+- [ ] JWT 검증 동작 (Bearer 토큰)
+- [ ] 모든 응답이 `{ok, data, error}` Envelope 형식
+- [ ] `AppError` 계층이 올바른 HTTP 상태코드로 변환
+- [ ] `LLM_PROVIDER=openai` LLM 호출 동작
+- [ ] `LLM_PROVIDER=naito` 전환 동작 (미설정 시 명확한 오류)
+- [ ] 프론트 `auth.js` 로그인 · 로그아웃 · 세션 확인 동작
+- [ ] 프론트 `api.js` JWT 자동 부착 · Envelope 파싱 동작
+- [ ] `tokens.css` 디자인 토큰 적용
+- [ ] Core 테스트 전체 통과
+
+### Topic 완료 기준 (매 해커톤마다)
+
+- [ ] 외부 API 클라이언트가 실제 데이터 반환
+- [ ] 정규화 · 판정 파이프라인이 올바른 결과 반환
+- [ ] AI 파이프라인이 단계별로 Trace 기록
+- [ ] 결과 상태를 구분해 표시 (정상 · 미확인 · 대안)
+- [ ] 비회원 상태에서 허용된 기능 동작
+- [ ] Core 테스트가 Topic 변경 후에도 전체 통과
+- [ ] RAG 사용 시 RAG 없이도 핵심 기능 동작
+- [ ] Naito 없이 mock provider로 전체 UI 검증 가능
