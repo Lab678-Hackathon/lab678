@@ -21,4 +21,6 @@ def get_embedding_model():
     return OpenAIEmbeddings(
         model=settings.openai_embedding_model,
         api_key=settings.openai_api_key,
+        request_timeout=30,
+        max_retries=1,
     )

@@ -1,8 +1,10 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from pydantic import ValidationError
 
 from app.config import settings
@@ -25,7 +27,6 @@ app = FastAPI(title="AI Hackathon Framework - 팀명: YourTeamName", lifespan=li
 
 # 정적 파일 제공 (frontend 디렉터리의 index.html 등을 루트 경로에 매핑)
 from fastapi.staticfiles import StaticFiles
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,6 +48,7 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     )
 
 
+@app.exception_handler(RequestValidationError)
 @app.exception_handler(ValidationError)
 async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
     return JSONResponse(
@@ -62,3 +64,8 @@ async def validation_error_handler(request: Request, exc: ValidationError) -> JS
 app.include_router(health.router)
 from app.api import topic
 app.include_router(topic.router)
+from app.api import ask
+app.include_router(ask.router)
+
+# The catch-all static mount must follow API routes.
+app.mount("/", StaticFiles(directory=Path(__file__).resolve().parents[2] / "frontend", html=True), name="frontend")

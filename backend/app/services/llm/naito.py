@@ -21,4 +21,6 @@ def build_naito_llm(streaming: bool = False) -> ChatOpenAI:
         base_url=settings.naito_base_url,
         streaming=streaming,
         temperature=0,
+        timeout=30,
+        max_retries=1,
     )

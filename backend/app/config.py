@@ -1,9 +1,11 @@
 from functools import cached_property
+from pathlib import Path
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=Path(__file__).resolve().parents[2] / ".env", extra="ignore")
 
     # App
     app_env: str = "development"
@@ -26,6 +28,12 @@ class Settings(BaseSettings):
     supabase_publishable_key: str = ""
     supabase_secret_key: str = ""
     supabase_db_url: str = ""
+
+    rag_collection: str = "knowledge"
+    rag_top_k: int = Field(default=5, ge=1, le=20)
+    rag_similarity_threshold: float = Field(default=0.35, ge=-1, le=1)
+    rag_embedding_dimension: int = Field(default=1536, ge=1)
+    rag_system_prompt: str = "등록된 자료를 바탕으로 질문에 답하는 도우미입니다."
 
     @cached_property
     def cors_origins(self) -> list[str]:

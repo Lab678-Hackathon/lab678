@@ -8,4 +8,6 @@ def build_openai_llm(streaming: bool = False) -> ChatOpenAI:
         api_key=settings.openai_api_key,
         streaming=streaming,
         temperature=0,
+        timeout=30,
+        max_retries=1,
     )
