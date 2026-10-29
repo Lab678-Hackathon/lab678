@@ -21,7 +21,11 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="AI Hackathon Framework", lifespan=lifespan)
+app = FastAPI(title="AI Hackathon Framework - 팀명: YourTeamName", lifespan=lifespan)
+
+# 정적 파일 제공 (frontend 디렉터리의 index.html 등을 루트 경로에 매핑)
+from fastapi.staticfiles import StaticFiles
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 app.add_middleware(
     CORSMiddleware,
