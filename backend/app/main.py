@@ -56,6 +56,5 @@ async def validation_error_handler(request: Request, exc: ValidationError) -> JS
 
 # ── 라우터 등록 ────────────────────────────────────
 app.include_router(health.router)
-# Topic 라우터는 여기에 추가:
-# from app.api import [feature]
-# app.include_router([feature].router, prefix="/api")
+from app.api import topic
+app.include_router(topic.router)
