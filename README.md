@@ -189,6 +189,7 @@ templates 참조: `utils/templates/` · snippets 참조: `utils/snippets/`
 |---|---|
 | `framework_doc/framework_design.md` | 설계 명세 (계층·기능·원칙) |
 | `framework_doc/framework_workflow.md` | 작업 절차 (계획→실행→검증→보완) |
+| `framework_doc/tech.md` | 기술 스택 상세 (역할·버전·공식 문서·위치) |
 | `framework_doc/tree.md` | 전체 디렉터리 구조 |
 | `framework_doc/index.md` | 파일 → 심볼 순방향 인덱스 |
 | `framework_doc/reverse_index.md` | 심볼 → 파일 역방향 인덱스 |

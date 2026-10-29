@@ -365,8 +365,9 @@ Content 파일 금지: API 호출 · DOM 조작 · 판정 로직.
 
 ```
 CLAUDE.md
-  → framework_doc/framework_design.md  (이 파일)
-  → framework_doc/framework_workflow.md   (§§ 참조)
+  → framework_doc/framework_design.md  (이 파일 — 설계 명세)
+  → framework_doc/framework_workflow.md (작업 절차)
+  → framework_doc/tech.md              (기술별 역할·공식 문서·위치)
   → konnect_study/02-code-index.md     (konnect 부품 찾기, 필요 시)
   → 해당 Core 파일
   → 해당 Topic 파일

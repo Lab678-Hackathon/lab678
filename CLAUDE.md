@@ -48,6 +48,7 @@
 |---|---|
 | 프레임워크 설계·기능 범위 | `framework_doc/framework_design.md` |
 | 작업 절차·검증 명령 | `framework_doc/framework_workflow.md` |
+| 기술 역할·버전·공식 문서 | `framework_doc/tech.md` |
 | konnect 부품 찾기 | `konnect_study/02-code-index.md` |
 | 함수 위치 확인 | `konnect_study/03-reverse-index.md` |
 | 환경 세팅 명령어 | `konnect_study/07-handover-guide.md` |
