@@ -15,7 +15,7 @@ from app.api import health
 async def lifespan(app: FastAPI):
     missing = settings.missing_keys()
     if missing:
-        print(f"[startup] ⚠️  missing keys: {missing}")
+        print(f"[startup] WARNING missing keys: {missing}")
     else:
         print(f"[startup] ✅ env ok | provider={settings.llm_provider} | rag={settings.rag_enabled}")
     yield
