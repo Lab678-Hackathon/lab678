@@ -1,0 +1,326 @@
+# 프레임워크 작업 워크플로
+
+> 모든 작업은 **계획 → 실행 → 검증 → 보완** 4단계로 진행한다.
+> 단계를 건너뛰지 않는다. 검증 없이 완료로 보고하지 않는다.
+
+---
+
+## 0. 작업 전 필수 루틴
+
+모든 작업 시작 전 아래를 순서대로 확인한다.
+
+```
+1. framework_doc/framework_design.md  § 해당 섹션 확인
+2. utils/README.md                    재사용 가능한 템플릿·스니펫 있는지 확인
+3. CLAUDE.md 라우팅 테이블            어떤 파일을 읽어야 하는지 확인
+4. 사용자에게 범위 확인               Core 수정인지 Topic 수정인지 명시
+```
+
+**Core 수정 시:** 반드시 사용자 확인 후 진행. 모든 Topic에 영향.
+**Topic 수정 시:** 해당 기능에만 영향. 자유롭게 진행.
+
+---
+
+## 1. 계획 단계
+
+### 1.1 작업 분류
+
+```
+이 작업이:
+  Core 추가/수정?   → §2 Core 작업 절차
+  Topic 추가/수정?  → §3 Topic 작업 절차
+  새 프로젝트 시작? → §4 새 프로젝트 절차
+  konnect 참조 필요? → §5 konnect 참조 방법
+```
+
+### 1.2 konnect 참조 여부 판단
+
+| 새로 작성하는 게 나은 경우 | konnect 참조가 유용한 경우 |
+|---|---|
+| 패턴이 명확하고 단순함 | 복잡한 비동기 파이프라인 구현 |
+| utils/templates에 템플릿 있음 | LangChain 도구 체인 구조 참고 |
+| 도메인 로직이 완전히 다름 | JWT 검증·Supabase 연동 패턴 |
+
+### 1.3 범위 정의 (작업 시작 전 확인)
+
+```
+목표:     [무엇을 만들거나 수정할지]
+파일:     [수정할 파일 목록]
+보존:     [건드리지 않을 인터페이스·불변식]
+검증:     [완료를 어떻게 확인할지]
+```
+
+---
+
+## 2. Core 작업 절차
+
+### 2.1 Core에 해당하는 것
+
+```
+backend/app/
+  main.py · config.py
+  core/auth.py · core/exceptions.py · core/trace.py
+  models/common.py (Envelope, ErrorDetail)
+  services/llm/ (adapter, openai, naito)
+  rag/ (embed, ingest, retrieve)
+
+frontend/js/
+  app.js · router.js · auth.js · api.js · state.js
+  css/tokens.css
+```
+
+### 2.2 Core 수정 절차
+
+```
+[계획]
+1. 변경 이유와 영향 범위를 사용자에게 명시
+2. 기존 인터페이스 보존 여부 확인
+3. 영향받는 Topic 파일 목록 파악
+
+[실행]
+4. 변경 최소화. 인터페이스(함수명·파라미터·반환 타입) 유지
+5. 새 기능은 Optional 파라미터로 추가 (기존 호출부 변경 없음)
+
+[검증]
+6. Core 단위 테스트 전체 통과 확인
+7. 기존 Topic 파일들이 변경 없이 동작하는지 확인
+
+[보완]
+8. framework_design.md §4 해당 섹션 업데이트
+9. 패턴이 재사용 가능하면 utils/snippets/ 또는 utils/templates/에 추가
+```
+
+---
+
+## 3. Topic 작업 절차
+
+### 3.1 새 기능 추가 (Backend)
+
+```
+[계획]
+1. utils/templates/ 에서 템플릿 확인
+   - 외부 API: source_template.py
+   - 판정 로직: domain_template.py
+   - 라우터: api_router_template.py
+2. 스키마 먼저 정의 (models/[topic].py)
+
+[실행]
+3. sources/[source].py  ← 외부 API 클라이언트
+   - timeout · retry 내장
+   - 실패 → ExternalSourceError (절대 None 반환 안 함)
+4. domain/normalize.py  ← 외부 데이터 → 내부 스키마
+   - 미확인 필드는 None 또는 "unknown". 추정으로 채우지 않음
+5. domain/judge.py      ← 결정론적 판정 (LLM 미사용)
+6. agent/pipeline.py    ← LangChain 파이프라인
+   - utils/snippets/llm_call.py 패턴 참조
+   - utils/snippets/parallel_fetch.py 패턴 참조
+7. services/[feature].py ← 흐름 조합
+8. api/[feature].py      ← 라우터 (main.py에 include)
+
+[검증]
+9.  § 3.3 검증 체크리스트 실행
+10. utils/scripts/setup_dev.py 로 환경 확인
+
+[보완]
+11. 재사용 가능한 패턴 발견 시 utils/에 저장
+12. framework_design.md에 반영할 변경이면 업데이트
+```
+
+### 3.2 새 기능 추가 (Frontend)
+
+```
+[계획]
+1. utils/templates/page_template.js 확인
+2. content.js에 추가할 문구 먼저 정의
+
+[실행]
+3. pages/[page].js  ← 상태: idle|loading|success|empty|error
+4. components/      ← 재사용 컴포넌트만 분리 (한 번만 쓰이면 페이지 내부)
+5. router.js에 메뉴 → 페이지 함수 등록
+6. content.js에 문구 추가
+
+[검증]
+7. 브라우저에서 5개 상태 전환 확인
+8. 비회원 상태에서 허용된 기능 동작 확인
+9. 토큰 없을 때 api.js가 올바르게 401 처리하는지 확인
+
+[보완]
+10. 재사용된 컴포넌트 패턴 있으면 utils/templates/에 추가
+```
+
+### 3.3 Topic 검증 체크리스트
+
+```
+Backend
+  [ ] ExternalSourceError 발생 시 전체 장애 없이 graceful 처리
+  [ ] LLM 응답에서 사실 필드(가격·좌표·시간) 직접 수신 없음
+  [ ] 미확인 값이 긍정(무료·가능·이용 가능)으로 변환되지 않음
+  [ ] Envelope {ok, data, error} 형식 응답
+  [ ] Trace 각 단계에 step() 기록
+  [ ] Core 테스트 전체 통과
+
+Frontend
+  [ ] 5개 상태(idle·loading·success·empty·error) 모두 렌더링
+  [ ] API 오류 시 error 상태로 표시 (콘솔 에러 아님)
+  [ ] AI 고지 문구 표시
+  [ ] 비회원 허용 범위 내 동작 확인
+```
+
+---
+
+## 4. 새 프로젝트 시작 절차
+
+해커톤 당일 full-framework 브랜치 기반으로 새 프로젝트를 시작할 때.
+
+```
+[계획 — 30분]
+1. 주제 발표 확인
+2. 필요한 외부 API 파악
+3. 핵심 기능 1개 정의 (MVP)
+4. Topic Layer 파일 목록 작성
+
+[실행 — 순서대로]
+5.  content.js          브랜드명 · 메뉴 · 기본 문구
+6.  .env                Topic API 키 추가
+7.  models/[topic].py   핵심 스키마
+8.  sources/            외부 API 클라이언트 (template 복사)
+9.  domain/             정규화 → 판정 → 랭킹
+10. agent/pipeline.py   LangChain 파이프라인 (snippet 참조)
+11. api/[feature].py    라우터 (template 복사)
+12. pages/[page].js     화면 (template 복사)
+
+[검증]
+13. python utils/scripts/setup_dev.py
+14. uvicorn 실행 → GET /health 확인
+15. 핵심 기능 1회 end-to-end 테스트
+16. Core 테스트 전체 통과 확인
+
+[보완]
+17. 작동 확인 후 추가 기능으로 진행
+18. 막히면 konnect_study/02-code-index.md 참조
+```
+
+---
+
+## 5. konnect 참조 방법
+
+konnect_study/는 직접 편집하지 않는다. 참조만 한다.
+
+```bash
+# 파일 내용 확인 (체크아웃 없이)
+git show konnect:backend/app/core/auth.py
+
+# 함수 위치 찾기
+# → konnect_study/02-code-index.md 먼저 확인
+# → konnect_study/03-reverse-index.md 로 호출처 확인
+
+# 파일 가져오기 (필요한 경우만)
+git checkout konnect -- backend/app/core/auth.py
+# 가져온 후: KONNECT 전용 로직 제거 확인
+```
+
+**konnect에서 바로 쓸 수 있는 파일:**
+```
+core/auth.py          그대로
+core/trace.py         그대로
+core/exceptions.py    KonnectError → AppError 이름만 변경
+rag/embed.py          그대로
+rag/retrieve.py       그대로
+frontend/js/auth.js   그대로
+```
+
+**konnect에서 참조 후 새로 작성:**
+```
+config.py             KONNECT 전용 키 제거
+frontend/js/api.js    KONNECT 전용 엔드포인트 제거
+agent/orchestrator.py 패턴만 참조, 새로 설계
+domain/*.py           패턴만 참조, 주제에 맞게 새로 작성
+```
+
+---
+
+## 6. 개발 명령어
+
+```bash
+# ── 환경 확인 ────────────────────────────────
+python utils/scripts/setup_dev.py
+
+# ── Backend ──────────────────────────────────
+cd backend
+python3.12 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+cd ..
+python -m uvicorn app.main:app --app-dir backend --reload --port 8000
+
+# 헬스체크
+curl http://localhost:8000/health
+
+# ── Frontend ─────────────────────────────────
+cd frontend
+python -m http.server 5500
+# 브라우저: http://localhost:5500
+
+# ── 테스트 ───────────────────────────────────
+cd backend
+pytest tests/core/ -v              # Core 테스트만
+pytest tests/ -v                   # 전체
+
+# ── RAG 적재 (선택) ──────────────────────────
+cd backend
+python -m app.rag.ingest           # SUPABASE_DB_URL 필요
+
+# ── konnect 참조 ────────────────────────────
+git show konnect:<파일경로>
+```
+
+---
+
+## 7. utils/ 관리 원칙
+
+```
+작업 중 같은 패턴을 두 번 작성했다  → utils/snippets/에 저장
+새 기능 추가할 때 보일러플레이트가 반복된다 → utils/templates/에 저장
+저장 후 utils/README.md 목록 업데이트
+```
+
+**저장 형식:**
+- 파일 상단에 사용법 docstring
+- 교체할 부분은 `[PLACEHOLDER]` 표시
+- konnect에서 가져온 패턴은 검증 완료 여부 명시
+
+---
+
+## 8. 문서 업데이트 기준
+
+| 변경 사항 | 업데이트할 문서 |
+|---|---|
+| Core 기능 추가·변경 | `framework_design.md` §4 |
+| Topic 패턴 변경 | `framework_design.md` §5 |
+| 새 템플릿·스니펫 추가 | `utils/README.md` |
+| 개발 명령어 변경 | 이 파일 §6 |
+| 작업 절차 변경 | 이 파일 해당 섹션 |
+| konnect 참조 범위 변경 | 이 파일 §5 |
+
+---
+
+## 9. 위험 체크리스트 (작업 완료 전 필수)
+
+```
+Core 불변식
+  [ ] LLM이 사실(가격·시간·좌표·가용성)을 생성하지 않는다
+  [ ] 미확인을 긍정으로 바꾸지 않는다
+  [ ] 판정은 코드로, 설명은 LLM으로
+  [ ] Envelope {ok, data, error} 계약 유지
+  [ ] AppError 계층으로 예외 처리
+
+보안
+  [ ] API 키·시크릿이 코드·로그에 노출되지 않는다
+  [ ] .env 파일이 git에 포함되지 않는다
+  [ ] 프론트엔드에서 SUPABASE_SECRET_KEY 미사용
+
+배포 안전
+  [ ] git push 전 사용자 확인
+  [ ] Core 변경이면 전체 테스트 통과 확인
+  [ ] .env.example에 새 키 이름 추가 (값 없이)
+```

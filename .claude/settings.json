@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git ls-files*)",
+      "Bash(python utils/scripts/*.py)",
+      "Bash(python -m pytest tests/*)",
+      "Bash(uvicorn*)",
+      "Bash(python -m http.server*)"
+    ]
+  }
+}

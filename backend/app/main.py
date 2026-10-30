@@ -1,0 +1,71 @@
+from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from pydantic import ValidationError
+
+from app.config import settings
+from app.core.exceptions import AppError
+from app.models.common import Envelope
+from app.api import health
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    missing = settings.missing_keys()
+    if missing:
+        print(f"[startup] WARNING missing keys: {missing}")
+    else:
+        print(f"[startup] ✅ env ok | provider={settings.llm_provider} | rag={settings.rag_enabled}")
+    yield
+
+
+app = FastAPI(title="AI Hackathon Framework - 팀명: YourTeamName", lifespan=lifespan)
+
+# 정적 파일 제공 (frontend 디렉터리의 index.html 등을 루트 경로에 매핑)
+from fastapi.staticfiles import StaticFiles
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.exception_handler(AppError)
+async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
+    return JSONResponse(
+        status_code=exc.status_code,
+        content=Envelope.error_response(
+            code=type(exc).__name__,
+            message=exc.message,
+        ).model_dump(),
+    )
+
+
+@app.exception_handler(RequestValidationError)
+@app.exception_handler(ValidationError)
+async def validation_error_handler(request: Request, exc: ValidationError) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=Envelope.error_response(
+            code="ValidationError",
+            message=str(exc.errors()[0].get("msg", "Validation failed")),
+        ).model_dump(),
+    )
+
+
+# ── 라우터 등록 ────────────────────────────────────
+app.include_router(health.router)
+from app.api import topic
+app.include_router(topic.router)
+from app.api import ask
+app.include_router(ask.router)
+
+# The catch-all static mount must follow API routes.
+app.mount("/", StaticFiles(directory=Path(__file__).resolve().parents[2] / "frontend", html=True), name="frontend")

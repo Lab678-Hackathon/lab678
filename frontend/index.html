@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>문서 도우미</title>
+  <link rel="stylesheet" href="./css/tokens.css">
+  <link rel="stylesheet" href="./css/rag.css">
+</head>
+<body>
+  <main>
+    <header><span class="eyebrow">DOCUMENT ASSISTANT</span><h1>자료에 묻고,<br>근거로 답하다.</h1>
+      <p>등록된 문서를 바탕으로 답변하고, 참고한 내용을 함께 보여드려요.</p>
+    </header>
+    <section class="chat" aria-label="문서 질문과 답변">
+      <div class="toolbar"><span>문서 도우미</span><button type="button" id="clear">대화 지우기</button></div>
+      <div id="messages" role="log" aria-live="polite" aria-relevant="additions">
+        <article class="message assistant"><strong>도우미</strong><p>안녕하세요. 자료에 관해 궁금한 내용을 질문해 주세요.<br>관련 자료가 없으면 답변을 만들지 않고 안내해 드립니다.</p></article>
+      </div>
+      <form id="ask-form">
+        <label for="question">질문</label>
+        <div class="composer"><textarea id="question" name="question" rows="2" maxlength="4000" placeholder="자료에서 궁금한 내용을 물어보세요" required></textarea><button type="submit" id="send">질문하기 ↑</button></div>
+        <p id="status" role="status">각 질문은 독립적으로 검색합니다. 앞선 질문의 내용을 포함해 작성해 주세요.</p>
+      </form>
+    </section>
+    <footer>AI가 생성한 답변입니다. 중요한 내용은 참고 자료와 함께 확인해 주세요.</footer>
+  </main>
+  <script type="module" src="./js/rag.js"></script>
+</body>
+</html>
