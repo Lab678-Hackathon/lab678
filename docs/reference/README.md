@@ -15,7 +15,7 @@
 
 ### 후속 정리본 확인
 
-2026-10-31 사용자 요청으로 [docs/align-team-workflow](https://github.com/Lab678-Hackathon/lab678/tree/docs/align-team-workflow)도 확인했다. 커밋 `684a2b4850e418e1364c99d79e4dee252b7c24ec`에서 위 6개 파일을 현재 TEAM_WORKFLOW 기준으로 정리했다. 이 변경은 develop의 `c021a30`에 이미 병합되어 `dj/develop`에도 포함되어 있다. 현재 HEAD와 해당 정리본의 파일 내용은 동일하므로 별도 덮어쓰기나 병합은 필요하지 않다. 이 디렉터리의 보관본을 최신 정리본으로 오인하지 않는다.
+2026-10-31 사용자 요청으로 [docs/align-team-workflow](https://github.com/Lab678-Hackathon/lab678/tree/docs/align-team-workflow)도 확인했다. 커밋 `684a2b4850e418e1364c99d79e4dee252b7c24ec`에서 위 6개 파일을 현재 TEAM_WORKFLOW 기준으로 정리했다. 이 변경은 develop의 `c021a30`에 이미 병합되어 `dj/develop`에도 포함되어 있다. 개인 문서를 추가하기 전 기준 커밋의 파일 내용은 해당 정리본과 동일했다. 이후 개인 기록을 추가했지만 별도 덮어쓰기나 병합은 필요하지 않다. 이 디렉터리의 보관본을 최신 정리본으로 오인하지 않는다.
 
 ## 복사한 파일 목록
 
