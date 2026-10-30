@@ -1,0 +1,19 @@
+# 코드 색인
+
+자동 생성: `python utils/scripts/catalog.py --write`. 직접 편집하지 않는다.
+
+요약으로 위치를 찾은 뒤 필요한 코드만 읽는다. 해시는 내용 변경 확인용이며 토큰 절약량 측정값이 아니다.
+
+템플릿은 [templates/README.md](templates/README.md), 사용법은 [README.md](README.md)를 확인한다.
+
+| 파일 | 개요 | SHA-256 앞 12자 |
+|---|---|---|
+| [utils/scripts/catalog.py](../utils/scripts/catalog.py) | Build deterministic code indexes without importing source modules. | `c6d6d58dfa8c` |
+| [utils/scripts/commit_report.py](../utils/scripts/commit_report.py) | Commit an approved task with its complete UTF-8 report as the exact message. | `6db2e203612e` |
+| [utils/scripts/context.py](../utils/scripts/context.py) | Render a compact restart brief from explicit state, without guessing decisions. | `7448d261b179` |
+| [utils/scripts/harness.py](../utils/scripts/harness.py) | Run offline repository checks with explicit evidence and no auto-repair. | `3f5b351b0e75` |
+| [utils/scripts/loop.py](../utils/scripts/loop.py) | Record a bounded hypothesis-change-evidence loop without executing repair code. | `0ce011ac4c31` |
+| [utils/scripts/reuse.py](../utils/scripts/reuse.py) | Verify copied files and snapshot selected Git files without checkout or merge. | `a04a2ce3e588` |
+| [utils/scripts/verify_watch.py](../utils/scripts/verify_watch.py) | Smoke-test a running index watcher with a temporary documented source file. | `78a17133dfc1` |
+| [utils/scripts/watch.py](../utils/scripts/watch.py) | Refresh indexes and the short context on file changes until explicitly stopped. | `93276854efe9` |
+| [utils/tests/test_tools.py](../utils/tests/test_tools.py) | Exercise failure paths for indexes, copying, loops, context and commit guards. | `3363edea625f` |
