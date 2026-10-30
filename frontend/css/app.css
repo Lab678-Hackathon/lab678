@@ -1,0 +1,1224 @@
+/* KONNECT — 레이아웃/컴포넌트 스타일. 값은 tokens.css 의 var(--token)만 사용. */
+
+* { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--c-text);
+  /* 디바이스 프레임 바깥 배경(데스크톱에서만 보임) */
+  background: #d9dde0;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── 디바이스 프레임 ──
+   실제 모바일/에뮬레이션(좁은 뷰포트): max-width 없이 화면을 꽉 채운다.
+   ⚠ 높이는 '뷰포트 고정'(height:100dvh)으로 둔다 — min-height 로 두면 콘텐츠가 길 때
+   프레임이 뷰포트보다 커지고, 바텀시트(이 프레임 기준 absolute)가 화면 밖(아래)에 앵커돼
+   Done 버튼 등이 안 보인다. 내부 스크롤은 .app 이 담당. */
+.device-frame {
+  width: 100%;
+  height: 100dvh;
+  background: var(--c-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;                    /* 세로·가로 클립 → 바텀시트가 뷰포트 기준 */
+  position: relative;                  /* 바텀시트(absolute)의 기준 컨테이너 */
+}
+
+/* 데스크톱: Figma 프로토와 동일한 390×844 폰 비율 박스를 화면 중앙 정렬.
+   무거운 폰 크롬 없이 가벼운 테두리+그림자. 내부는 세로로 꽉 채움(CTA 바닥). */
+@media (min-width: 600px) {
+  body { display: flex; align-items: center; justify-content: center; padding: var(--space-20); }
+  .device-frame {
+    width: var(--frame-w);                                   /* 390px (Figma 기준) */
+    min-height: 0;
+    height: min(844px, calc(100dvh - 2 * var(--space-20)));  /* 844 (Figma), 작은 화면엔 맞춤 */
+    border-radius: 20px;
+    overflow: hidden;                                        /* 라운드 클립 → 내부 스크롤 */
+    box-shadow: 0 0 0 1px var(--c-border), 0 12px 32px rgba(13, 38, 46, 0.14);
+  }
+}
+
+.app {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-20);
+  /* 본문은 프레임 안에서만 스크롤 */
+  overflow-y: auto;
+}
+@media (min-width: 600px) {
+  .app { padding: 28px 24px var(--space-20); }  /* 데스크톱은 여백을 더 넉넉히 */
+}
+
+/* 입력 뷰: 높이를 꽉 채우고 CTA를 바닥에 고정(모바일·데스크톱 공통) */
+.input-view { flex: 1; display: flex; flex-direction: column; }
+
+/* ── 공통 헤더 ── */
+.app-header h1 { font-size: var(--fs-title); font-weight: var(--fw-semibold); margin: 0 0 var(--space-4); }
+.app-header p { margin: 0; font-size: var(--fs-body); color: var(--c-text-muted); }
+
+/* ── 입력 폼 (LF-02) ── */
+/* 필드들은 위로 모으고(섹션 gap), CTA만 바닥에 고정(margin-top:auto) */
+.form { flex: 1; display: flex; flex-direction: column; gap: var(--space-20); margin-top: var(--space-20); }
+.section { display: flex; flex-direction: column; gap: var(--space-14); }
+.section-head { display: flex; align-items: center; gap: var(--space-8); }
+.section-head h2 { font-size: var(--fs-meta); font-weight: var(--fw-bold); margin: 0; }
+.tag {
+  font-size: var(--fs-badge); font-weight: var(--fw-semibold);
+  padding: var(--space-2) var(--space-8); border-radius: var(--r-full);
+}
+.tag--required { background: var(--c-primary-tint); color: var(--c-primary); }
+.tag--optional { background: var(--c-bg); color: var(--c-text-muted); border: 1px solid var(--c-border); }
+
+.field { display: flex; flex-direction: column; gap: var(--space-8); }
+.field > label { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.field input, .field textarea {
+  font-family: inherit; font-size: var(--fs-input); color: var(--c-text);
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--r-flag); padding: var(--space-12) var(--space-14);
+  width: 100%; min-width: 0;  /* UA 기본 min-width 무력화(모바일 가로 넘침 방지) */
+}
+.field input:focus, .field textarea:focus { outline: 2px solid var(--c-primary); border-color: var(--c-primary); }
+.field textarea { resize: none; min-height: 132px; }  /* Anything else 크게 + 리사이즈 비활성 */
+
+.loc-row { display: flex; gap: var(--space-8); }
+/* width:auto 로 .field input 의 width:100% 를 무효화 → flex 가 폭을 제어(버튼과 공유) */
+.loc-row input { flex: 1 1 0; min-width: 0; width: auto; }
+.btn-geo {
+  flex: 0 0 auto; cursor: pointer; white-space: nowrap;
+  background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-primary);
+  border-radius: var(--r-flag); padding: var(--space-10) var(--space-12);
+  font-size: var(--fs-badge); font-weight: var(--fw-semibold);
+}
+
+/* datetime-local 은 UA 최소폭이 완고(2열은 ~440px+ 필요) → 세로 스택으로 넘침 원천 차단.
+   모바일/폰목업 모두 Start·Done by 를 세로로 쌓는다(터치 타깃도 더 큼). */
+.time-row { display: flex; flex-direction: column; gap: var(--space-14); }
+.time-row .field { min-width: 0; }
+.time-row input { width: 100%; }
+
+/* 칩(가로 스크롤 — 예시/퀵셀렉트) */
+/* 예시 칩 — 3개가 한 줄에(가로 스크롤 없음). 좁으면 줄바꿈. */
+.chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.chip {
+  flex: 0 0 auto; cursor: pointer; white-space: nowrap;
+  background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-text-muted);
+  border-radius: var(--r-full); padding: var(--space-8) var(--space-12);
+  font-size: var(--fs-body); font-weight: var(--fw-medium);
+}
+.chip[aria-pressed="true"] { background: var(--c-primary-tint); border-color: var(--c-primary); color: var(--c-primary); font-weight: var(--fw-semibold); }
+/* 예시 칩(P-09 자유입력 보기) — 더 크고 진하게 (Figma v2: 13px Medium #1a2429, 지금 12px 회색) */
+.chip--example { font-size: var(--fs-meta); color: var(--c-text); }
+
+/* 3D 아이콘(공통) — 512px PNG 를 코드 크기로 축소. 선명하게 contain. */
+.icon-3d { display: inline-block; object-fit: contain; vertical-align: middle; flex: 0 0 auto; }
+
+/* 인라인 오류(추천 전 입력오류 — 시스템 예외 아님) */
+.form-error {
+  background: var(--c-flag-bg); color: var(--c-flag-text);
+  border-radius: var(--r-flag); padding: var(--space-10) var(--space-12);
+  font-size: var(--fs-body); font-weight: var(--fw-semibold);
+}
+.form-error[hidden] { display: none; }
+
+/* 하단 CTA */
+/* 조건 입력 CTA("Find experiences") — 스크롤을 내리면 내용 맨 아래에 놓인다(과거 sticky 로
+   화면 하단에 떠 다른 버튼 위를 덮던 문제 해소). 내용이 짧으면 margin-top:auto 로 바닥에 밀착. */
+.cta {
+  margin-top: auto;
+  padding-top: var(--space-12); padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.btn-cta {
+  width: 100%; border: 0; cursor: pointer;
+  background: var(--c-primary); color: var(--c-on-primary);
+  border-radius: var(--r-pill); padding: var(--space-14); font-size: var(--fs-button); font-weight: var(--fw-semibold);
+}
+.btn-cta:disabled { background: var(--c-border); color: var(--c-text-muted); cursor: not-allowed; }
+
+/* ── 채팅 루트 저장 바(Save this route) ── */
+.route-save-bar { display: flex; flex-direction: column; gap: var(--space-4); margin-top: var(--space-6); }
+.btn-save-route {
+  align-self: flex-start; cursor: pointer; border: 1px solid var(--c-primary);
+  background: var(--c-surface); color: var(--c-primary);
+  border-radius: var(--r-full); padding: var(--space-8) var(--space-12);
+  font-size: var(--fs-meta); font-weight: var(--fw-bold);
+}
+.btn-save-route:disabled { border-color: var(--c-border); color: var(--c-text-muted); cursor: default; }
+.route-save-note { font-size: var(--fs-badge); color: var(--c-text-muted); }
+
+/* ── 결과 뷰 ── */
+.ai-notice {
+  display: inline-block; margin: var(--space-12) 0;
+  padding: var(--space-6) var(--space-12); border-radius: var(--r-full);
+  background: var(--c-alt-bg); color: var(--c-alt-text);
+  font-size: var(--fs-badge); font-weight: var(--fw-semibold);
+}
+.conditions {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--space-8);
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--r-full); padding: var(--space-8) var(--space-14);
+  font-size: var(--fs-body); font-weight: var(--fw-semibold);
+}
+.conditions button { border: 0; background: none; color: var(--c-primary); font-weight: var(--fw-bold); cursor: pointer; font-size: var(--fs-body); }
+.map { width: 100%; height: 240px; border-radius: var(--r-card); overflow: hidden; margin: var(--space-12) 0; background: var(--c-border); }
+/* AI가 이해한 조건(parsed chips) */
+.parsed-chips { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-6); margin-top: var(--space-8); }
+.parsed-chips-label { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.parsed-chip { background: var(--c-primary-tint); color: var(--c-primary); border-radius: var(--r-full); padding: var(--space-3) var(--space-10); font-size: var(--fs-badge); font-weight: var(--fw-semibold); }
+.results { display: flex; flex-direction: column; gap: var(--space-14); margin-top: var(--space-12); }
+.status-line { font-size: var(--fs-badge); color: var(--c-text-muted); margin-top: var(--space-10); }
+.empty-msg { font-size: var(--fs-meta); color: var(--c-text-muted); margin-top: var(--space-20); }
+
+/* ── Result Card ── */
+.card {
+  position: relative;
+  background: var(--c-surface); border-radius: var(--r-card); box-shadow: var(--shadow-card);
+  padding: var(--space-14); display: flex; flex-direction: column; gap: var(--space-10);
+}
+/* Focus=Yes (스와이프/탭·핀 포커스) — DESIGN §3.1 */
+.card.is-focused { box-shadow: var(--shadow-card-focus); outline: 2px solid var(--c-primary); outline-offset: -2px; }
+/* Confirmed=Yes (현재 선택 확정) */
+.card.is-choice { box-shadow: 0 0 0 2px var(--c-primary), var(--shadow-card-focus); }
+.current-choice { align-self: flex-start; background: var(--c-primary); color: var(--c-on-primary); border-radius: var(--r-badge); padding: var(--space-2) var(--space-8); font-size: var(--fs-badge); font-weight: var(--fw-bold); }
+
+/* 현재 선택 재접근 배너 (홈/입력 뷰 상단) */
+.choice-banner { display: flex; align-items: center; gap: var(--space-8); margin-top: var(--space-14); padding: var(--space-10) var(--space-12); background: var(--c-primary-tint); border: 1px solid var(--c-primary); border-radius: var(--r-flag); }
+.choice-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.choice-label { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-primary-ink); }
+.choice-title { font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.choice-view { border: 0; cursor: pointer; background: var(--c-primary); color: var(--c-on-primary); border-radius: var(--r-pill); padding: var(--space-6) var(--space-14); font-size: var(--fs-body); font-weight: var(--fw-bold); }
+.choice-clear { border: 0; cursor: pointer; background: transparent; color: var(--c-primary-ink); font-size: var(--fs-meta); padding: var(--space-4); }
+.card-head { display: flex; flex-direction: column; gap: var(--space-6); }
+/* 공백 없는 긴 로마자 제목(예 'Daehanmingukgukakgwanhyeonakchukje')이 카드 밖으로 넘치지
+   않게 강제 줄바꿈. */
+.card-title { font-size: var(--fs-title); font-weight: var(--fw-bold); margin: 0; overflow-wrap: anywhere; }
+.badge {
+  align-self: flex-start; padding: var(--space-3) var(--space-8);
+  border-radius: var(--r-badge); font-size: var(--fs-badge); font-weight: var(--fw-semibold);
+}
+.badge[data-status="fits"]         { background: var(--c-fits-bg);  color: var(--c-fits-text); }
+.badge[data-status="check_needed"] { background: var(--c-check-bg); color: var(--c-check-text); }
+.badge[data-status="alternative"]  { background: var(--c-alt-bg);   color: var(--c-alt-text); }
+/* 반경 확대로 편입된 '조금 떨어진' 후보 — 분홍 "Far" 칩(투명 표시, farChip) */
+.far-chip {
+  align-self: flex-start; padding: var(--space-3) var(--space-8);
+  border-radius: var(--r-badge); font-size: var(--fs-badge); font-weight: var(--fw-semibold);
+  background: var(--c-far-bg); color: var(--c-far-text);
+}
+
+/* 등급 라벨을 버튼으로 쓸 때(누르면 아래 AI 분류 매칭 펼침) — 배지 외형 유지 + 토글 어포던스. */
+.badge-toggle {
+  border: none; cursor: pointer; font-family: inherit; line-height: 1;
+  display: inline-flex; align-items: center; gap: var(--space-3);
+}
+.badge-toggle::after {
+  content: "⌄"; font-size: 0.9em; opacity: 0.7; transition: transform 0.15s ease;
+}
+.badge-toggle.is-open::after { transform: rotate(180deg); }
+/* 등급 라벨 펼침 패널 — 카드 안 분류 매칭 칩 행(기본 접힘). */
+.card-signals { margin-top: calc(-1 * var(--space-4)); }
+.card-signals[hidden] { display: none; }
+
+.reasons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--space-3); }
+.reason { display: flex; align-items: flex-start; gap: var(--space-4); font-size: var(--fs-body); font-weight: var(--fw-medium); color: var(--c-primary-ink); }
+.reason-check { color: var(--c-primary); font-weight: var(--fw-bold); }
+
+.meta { display: flex; flex-wrap: wrap; gap: var(--space-4) var(--space-10); }
+.meta-item { font-size: var(--fs-meta); font-weight: var(--fw-semibold); }
+.meta-item.is-estimate { font-weight: var(--fw-medium); color: var(--c-primary-ink); }
+.meta-item.is-widened { font-weight: var(--fw-medium); color: var(--c-text-muted); }
+
+.flags { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+/* 칩은 자체 줄바꿈 금지(한 칩=한 줄 유지). 폰트·패딩을 조금 줄여 흔한 2개 flag
+   ('Hours need checking' + 'Booking may be required')가 한 행에 들어가게(2026-10-15). */
+.flag {
+  padding: var(--space-3) var(--space-6); border-radius: var(--r-flag); white-space: nowrap;
+  background: var(--c-flag-bg); color: var(--c-flag-text); font-size: 10px; font-weight: var(--fw-semibold);
+}
+
+/* AI 분류 근거 토글 버튼 — 카드 우측 상단. 누르면 키워드 칩 행이 토글된다(투명 UX). */
+.ai-signals-btn {
+  position: absolute; top: var(--space-10); right: var(--space-10);
+  width: 28px; height: 28px; padding: 0; border-radius: var(--r-full);
+  border: 1px solid var(--c-border); background: var(--c-surface); cursor: pointer;
+  font-size: 13px; line-height: 1; color: var(--c-primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.ai-signals-btn:hover { border-color: var(--c-primary); background: var(--c-primary-tint); }
+.ai-signals-btn.is-active { background: var(--c-primary); color: var(--c-on-primary); border-color: var(--c-primary); }
+/* 버튼이 있는 카드 헤더는 우측에 공간을 둬 긴 제목이 버튼 아래로 겹치지 않게. */
+.card-head:has(.ai-signals-btn) { padding-right: 30px; }
+/* 루트 스톱 제목줄 안에서는 absolute 대신 인라인으로 우측 배치. */
+.ai-signals-btn--inline { position: static; margin-left: auto; width: 24px; height: 24px; font-size: 12px; }
+/* 분류 근거 키워드 칩 — 기본 분류는 흰색(테두리), 사용자 요청과 매칭된 분류는 녹색(Fits 계열). */
+.signals { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+/* hidden 속성이 display:flex 에 눌리지 않게 — 토글 전엔 숨김(AI 버튼 눌러야 표시). */
+.signals[hidden] { display: none; }
+.signal {
+  padding: var(--space-3) var(--space-8); border-radius: var(--r-flag);
+  background: var(--c-surface); color: var(--c-text); border: 1px solid var(--c-border);
+  font-size: var(--fs-badge); font-weight: var(--fw-semibold);
+}
+.signal.is-matched {
+  background: var(--c-fits-bg); color: var(--c-fits-text); border-color: transparent;
+}
+
+.actions { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
+.links { display: flex; flex-direction: column; gap: var(--space-4); }
+.official-link { color: var(--c-primary); font-size: var(--fs-body); font-weight: var(--fw-semibold); text-decoration: none; }
+.official-link:hover { text-decoration: underline; }
+
+/* Select experience — 등급과 무관하게 모두 같은 연한 teal(tint) 디자인(2026-10-14, A·B 공통). */
+.btn-select {
+  border: 0; cursor: pointer; min-height: 34px; padding: 0 16px; border-radius: var(--r-pill);
+  font-size: var(--fs-title); font-weight: var(--fw-bold); /* 16px Bold — 카드 제목과 동일(v3 §1) */
+  background: var(--c-primary-tint); color: var(--c-primary);
+}
+/* 포커스(선택된) 카드의 Select 는 청록 채움 + 흰 글자로 강조(v3 issue #15 §1). */
+.card.is-focused .btn-select { background: var(--c-primary); color: var(--c-on-primary); }
+
+.toast {
+  position: absolute; left: 50%; bottom: var(--space-20); transform: translateX(-50%);
+  background: var(--c-text); color: var(--c-on-primary);
+  padding: var(--space-10) var(--space-14); border-radius: var(--r-pill);
+  font-size: var(--fs-body); font-weight: var(--fw-semibold); box-shadow: var(--shadow-card-focus);
+  z-index: 10;
+}
+/* 저장 toast (LF-09 9-1s) — 상단 리치 토스트: 체크 + 제목 + 보조. */
+.toast--rich { bottom: auto; top: calc(var(--space-14) + env(safe-area-inset-top, 0px)); left: var(--space-14); right: var(--space-14); transform: none; display: flex; align-items: flex-start; gap: var(--space-10); border-radius: var(--r-md); padding: var(--space-12) var(--space-14); }
+.toast--rich .toast-check { flex: 0 0 auto; width: 22px; height: 22px; border-radius: var(--r-full); background: var(--c-primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: var(--fw-bold); }
+.toast--rich .toast-text { display: flex; flex-direction: column; gap: 2px; }
+.toast--rich .toast-text strong { font-size: var(--fs-meta); font-weight: var(--fw-bold); }
+.toast--rich .toast-text span { font-size: var(--fs-body); color: rgba(255, 255, 255, 0.8); font-weight: var(--fw-medium); }
+
+/* LF-09 · 선택 상세 (저장 전 "Your pick" / 저장 후 "Your current choice").
+   클래스명 choice-page — 홈의 .choice-view(teal pill 버튼)와 충돌 방지. */
+.choice-page { flex: 1; display: flex; flex-direction: column; }
+.choice-body { display: flex; flex-direction: column; gap: var(--space-10); margin-top: var(--space-10); }
+.choice-stamp { margin: 0; font-size: var(--fs-badge); font-weight: var(--fw-semibold); letter-spacing: 0.06em; color: var(--c-text-muted); }
+.choice-title { margin: 0; font-size: 22px; line-height: var(--lh-tight); font-weight: var(--fw-bold); }
+.choice-page .badge { align-self: flex-start; }
+.choice-facts { display: flex; flex-direction: column; gap: var(--space-8); background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-12) var(--space-14); margin-top: var(--space-4); }
+/* 상세 번역 토글 행 — 🌐 를 우측 정렬(제목·가격 아래, facts 위). */
+.choice-translate-row { display: flex; justify-content: flex-end; margin: var(--space-4) 0 var(--space-8); }
+.choice-fact { display: flex; gap: var(--space-12); align-items: baseline; }
+.choice-fact-k { flex: 0 0 92px; font-size: var(--fs-meta); color: var(--c-text-muted); }
+.choice-fact-v { flex: 1; min-width: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); }
+.choice-fact-chip { display: inline-block; background: var(--c-check-bg); color: var(--c-check-text); border-radius: var(--r-flag); padding: var(--space-2) var(--space-8); font-size: var(--fs-badge); font-weight: var(--fw-semibold); }
+.choice-note { margin: var(--space-4) 0 0; background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-12) var(--space-14); font-size: var(--fs-body); color: var(--c-text-muted); line-height: 1.4; }
+.choice-actions { display: flex; flex-direction: column; gap: var(--space-8); margin-top: var(--space-6); }
+.choice-actions > button { width: 100%; }
+.btn-outline-pill { min-height: 44px; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-pill); color: var(--c-text); font-size: var(--fs-button); font-weight: var(--fw-semibold); cursor: pointer; padding: var(--space-10) var(--space-14); }
+.btn-outline-pill:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.btn-outline-pill:disabled { opacity: 0.5; cursor: default; }
+/* Directions ↗ — 앞 3D 목적지 아이콘(28) + 라벨. 아이콘은 hover 색반전 대상 아님. */
+.btn-outline-icon { display: inline-flex; align-items: center; justify-content: center; gap: var(--space-6); }
+.btn-outline-ico { width: 28px; height: 28px; flex: 0 0 auto; }
+/* 마지막 내비 버튼 — 조금 크게(16px Bold · 높이 50). v3 issue #15 §2. */
+.btn-outline-lg { min-height: 50px; font-size: var(--fs-title); font-weight: var(--fw-bold); }
+
+/* ── 인터랙션 (hover / press 색 반전·전환 피드백) ───────────── */
+.btn-cta, .btn-geo, .btn-select, .chip, .conditions button {
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease,
+    transform 0.08s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+/* 키보드 포커스 접근성 */
+.btn-cta:focus-visible, .btn-geo:focus-visible, .btn-select:focus-visible,
+.chip:focus-visible, .conditions button:focus-visible {
+  outline: 2px solid var(--c-primary); outline-offset: 2px;
+}
+/* Primary CTA: hover 진한 teal / press 더 진하게 + 눌림 */
+.btn-cta:hover:not(:disabled) { background: var(--c-primary-ink); }
+.btn-cta:active:not(:disabled) { transform: scale(0.985); box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.18); }
+/* 칩(Quick Select·Example): hover teal 외곽 / press 색 반전(teal 배경·흰 글자) */
+.chip:hover { border-color: var(--c-primary); color: var(--c-primary); }
+.chip:active { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); transform: scale(0.96); }
+/* 현재 위치 버튼: hover tint / press 반전 */
+.btn-geo:hover { background: var(--c-primary-tint); border-color: var(--c-primary); }
+.btn-geo:active { background: var(--c-primary); border-color: var(--c-primary); color: var(--c-on-primary); transform: scale(0.97); }
+/* 결과 Select 버튼: hover 살짝 진하게 / press 눌림 */
+.btn-select:hover { filter: brightness(0.96); }
+.btn-select:active { transform: scale(0.97); filter: brightness(0.92); }
+/* Edit(조건) 버튼 */
+.conditions button:hover { color: var(--c-primary-ink); }
+.conditions button:active { transform: scale(0.96); }
+
+/* 모션 최소화 선호 사용자: 전환·눌림 비활성화 */
+@media (prefers-reduced-motion: reduce) {
+  .btn-cta, .btn-geo, .btn-select, .chip, .conditions button { transition: none; }
+  .btn-cta:active, .chip:active, .btn-geo:active, .btn-select:active, .conditions button:active { transform: none; }
+  .map-pin-body, .map-pin-num, .map-pin-walk, .dot, .core-action { transition: none; }
+}
+
+/* ============================================================
+   LF-01~03 재레이아웃 (Figma 10/6 동기화)
+   - 풀블리드 뷰(웰컴·홈·결과)는 .app 패딩 제거, 뷰가 프레임을 꽉 채움.
+   ============================================================ */
+.app.app--bleed { padding: 0; overflow: hidden; position: relative; }
+
+/* ── 공통: 아이콘 뒤로가기 버튼 ── */
+.icon-back, .icon-home {
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: var(--r-full);
+  border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-text);
+  font-size: 18px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.icon-home:hover { color: var(--c-primary); border-color: var(--c-primary); }
+/* 상단 Home — 3D 집 28 (흰 원 40). Back 은 그대로 36. Figma v2. */
+.icon-home { width: 40px; height: 40px; padding: 0; }
+.icon-home .icon-3d { width: 28px; height: 28px; }
+
+/* ── W-0 · 웰컴 ──────────────────────────────────────────── */
+/* Get Started(W-0) — Figma 218:158 규격. 히어로 일러스트 600(390×844 기준) + 하단 흰 영역.
+   브랜드·제목·버튼 색은 brand teal #007385, 태그라인 #1a2429, 부제 #3d4a4f. */
+.welcome { position: absolute; inset: 0; display: flex; flex-direction: column; background: var(--c-surface); }
+.welcome-hero {
+  flex: 1 1 auto; min-height: 0; display: flex; justify-content: center;
+  padding-top: calc(46px + env(safe-area-inset-top, 0px));
+  /* center top 은 이미지 상단만 보여 하단 남산이 기기에 따라 크롭된다 → 세로 위치를 아래로
+     옮겨(이미지가 위로 올라와) 남산 밴드가 드러나게. 값(%)이 클수록 더 아래(남산 쪽)를 보여줌. */
+  background: #bfe0e4 url("../assets/img/welcome-hero.png") center 70% / cover no-repeat;
+}
+.welcome-brand { text-align: center; }
+.welcome-logo { margin: 0; font-size: 36px; font-weight: var(--fw-bold); letter-spacing: 0.04em; color: var(--c-primary); }
+.welcome-tagline { margin: var(--space-8) 0 0; font-size: 15px; font-weight: var(--fw-bold); color: var(--c-text); }
+/* 하단 흰 영역 — 제목 y28·부제 y98·버튼 y144(52px) 규격 → 상 42 / 하 34 패딩, 12 간격. */
+.welcome-foot {
+  flex: 0 0 auto; background: var(--c-surface); text-align: center;
+  display: flex; flex-direction: column; gap: var(--space-12);
+  padding: 42px var(--space-20) calc(34px + env(safe-area-inset-bottom, 0px));
+}
+.welcome-head { margin: 0; font-size: 23px; line-height: 1.26; font-weight: var(--fw-bold); color: var(--c-primary); }
+.welcome-sub { margin: 0; font-size: var(--fs-meta); color: #3d4a4f; line-height: 1.35; }
+.welcome-foot .btn-cta { min-height: 52px; border-radius: 26px; font-weight: var(--fw-bold); box-shadow: 0 6px 16px rgba(13, 38, 46, 0.18); }
+
+/* ── LF-01 · 홈 ──────────────────────────────────────────── */
+.home { position: absolute; inset: 0; overflow-y: auto; background: var(--c-bg); }
+/* 헤더(Figma 440:2750) — 250px·하단 라운드. 서울 일러스트를 흐릿하게(soft) 깔고 teal 틴트.
+   브랜드·인사는 흰색으로 올라간다(content z-index 1). */
+.home-header-bg {
+  position: absolute; top: 0; left: 0; right: 0; height: 250px; z-index: 0;
+  border-radius: 0 0 28px 28px; overflow: hidden;
+  background: linear-gradient(180deg, #1a7e8c 0%, #2a8a93 100%);
+}
+/* 흐릿한 서울 일러스트 — 남산타워가 보이는 산 밴드로 크롭(center 42%), 부드럽게 blur. */
+.home-header-bg::before {
+  content: ""; position: absolute; inset: -8px;
+  background: url("../assets/img/welcome-hero.png") center 42% / cover no-repeat;
+  filter: blur(2px) saturate(0.9); opacity: 0.72;
+  /* iOS Safari는 filter 걸린 자식을 부모 overflow+radius로 못 깎는다 → 자체 라운드.
+     inset -8px(8px 더 큼) 보정해 28+8=36px. 하단만 둥글게. */
+  border-radius: 0 0 36px 36px;
+}
+/* teal 틴트 — 상단(텍스트 뒤)은 짙게, 중단은 옅게(산·타워 비침), 하단은 teal. */
+.home-header-bg::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(18, 92, 103, 0.62) 0%, rgba(20, 105, 112, 0.26) 46%, rgba(26, 122, 124, 0.36) 100%);
+  border-radius: 0 0 28px 28px; /* 컨테이너와 동일(inset 0) */
+}
+.home-content {
+  position: relative; z-index: 1; min-height: 100%;
+  padding: calc(var(--space-20) + env(safe-area-inset-top, 0px)) var(--space-20) var(--space-20);
+  display: flex; flex-direction: column;
+}
+.home-brand { display: flex; align-items: center; gap: var(--space-8); }
+.home-logo { font-size: var(--fs-title); font-weight: var(--fw-bold); letter-spacing: 0.04em; color: #fff; }
+.home-brand-right { margin-left: auto; display: flex; align-items: center; gap: var(--space-8); }
+.home-lang {
+  border: 1px solid rgba(255, 255, 255, 0.55); background: rgba(255, 255, 255, 0.22);
+  border-radius: var(--r-full); padding: var(--space-2) var(--space-10); font-size: var(--fs-badge);
+  font-weight: var(--fw-semibold); color: #fff;
+}
+/* 프로필 — 흰 원 32 + 3D 프로필 아이콘 28(로그인 전) / teal 이니셜(로그인 후). Figma v2. */
+.home-account {
+  width: 32px; height: 32px; border-radius: var(--r-full); border: 0;
+  background: var(--c-surface); color: var(--c-primary); font-size: var(--fs-meta);
+  font-weight: var(--fw-bold); cursor: pointer; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18); overflow: hidden; padding: 0;
+}
+.home-account .icon-3d { width: 28px; height: 28px; }
+.home-account:hover { box-shadow: 0 0 0 2px var(--c-primary); }
+.home-account:disabled { opacity: 0.6; cursor: default; }
+.home-greeting { margin-top: var(--space-20); }
+.home-stamp { margin: 0 0 var(--space-6); font-size: var(--fs-badge); font-weight: var(--fw-semibold); letter-spacing: 0.06em; color: rgba(255, 255, 255, 0.88); }
+.home-head { margin: 0; font-size: var(--fs-display); line-height: var(--lh-tight); font-weight: var(--fw-bold); max-width: 320px; color: #fff; }
+
+/* 현재 선택 카드 (M-2) */
+.choice-card { background: var(--c-surface); border-radius: var(--r-card); box-shadow: var(--shadow-card); padding: var(--space-12); margin-top: var(--space-20); display: flex; flex-direction: column; gap: var(--space-10); cursor: pointer; }
+.choice-card-head { display: flex; align-items: center; gap: var(--space-8); }
+.choice-tag { background: var(--c-primary-tint); color: var(--c-primary); border-radius: var(--r-full); padding: var(--space-3) var(--space-8); font-size: var(--fs-badge); font-weight: var(--fw-bold); }
+.choice-when { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.choice-card-head .choice-clear { margin-left: auto; }
+.mini-map { height: 150px; border-radius: var(--r-md); overflow: hidden; background: var(--c-border); }
+.choice-card-info { display: flex; align-items: center; gap: var(--space-8); }
+.choice-card-texts { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.choice-card-title { font-size: var(--fs-meta); font-weight: var(--fw-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.choice-card-sub { font-size: var(--fs-body); color: var(--c-text-muted); }
+.choice-card-view { flex: 0 0 auto; color: var(--c-primary); font-size: var(--fs-meta); font-weight: var(--fw-bold); }
+
+/* 코어 액션 A/B */
+.core-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-12); margin-top: var(--space-12); }
+.core-action {
+  text-align: left; font-family: inherit; cursor: pointer; padding: 0;
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-card);
+  overflow: hidden; display: flex; flex-direction: column;
+  transition: box-shadow 0.15s ease, transform 0.08s ease;
+}
+.core-action:not(.is-disabled):hover { box-shadow: var(--shadow-card); }
+.core-action:not(.is-disabled):active { transform: scale(0.98); }
+/* 카드 그림(Figma v2) — 169폭 카드에 맞춘 일러스트(home.js 가 background-image 주입). 색은 로드 전 폴백. */
+.core-illo { position: relative; height: 180px; background-color: #cfe7e4; background-size: cover; background-position: center top; background-repeat: no-repeat; }
+.core-action:nth-child(2) .core-illo { background-color: #d7e3f0; }
+.soon-badge { position: absolute; top: var(--space-8); right: var(--space-8); background: rgba(13, 38, 46, 0.55); color: #fff; border-radius: var(--r-full); padding: var(--space-2) var(--space-8); font-size: 10px; font-weight: var(--fw-bold); }
+.core-body { flex: 1; display: flex; flex-direction: column; gap: var(--space-6); padding: var(--space-12); }
+.core-kicker { font-size: 9.5px; letter-spacing: 0.05em; font-weight: var(--fw-bold); color: var(--c-primary); }
+/* color 명시 필수 — 미지정 시 iOS Safari가 button UA 기본색(시스템 블루)으로 렌더함. */
+.core-title { margin: 0; font-size: 15px; line-height: 1.2; font-weight: var(--fw-bold); color: var(--c-text); }
+.core-sub { flex: 1; margin: 0; font-size: 11.5px; color: var(--c-text-muted); }
+.core-cta { align-self: flex-start; margin-top: var(--space-4); background: var(--c-primary); color: var(--c-on-primary); border-radius: var(--r-full); padding: var(--space-6) var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-bold); }
+.core-action.is-disabled { cursor: not-allowed; opacity: 0.72; }
+.core-action.is-disabled .core-illo { filter: grayscale(0.35); }
+.core-action.is-disabled .core-cta { background: var(--c-border); color: var(--c-text-muted); }
+
+/* 신뢰 안내 — 한 줄 (박스 없음, 카드와 간격 넓힘). 13px muted. */
+
+/* Log in (비활성·저우선) — 화면 최하단(Figma), 밑줄 없음 */
+.home-login { display: flex; align-items: center; justify-content: center; margin-top: auto; padding-top: var(--space-20); }
+.home-login-btn { background: none; border: 0; color: var(--c-text-muted); font-size: var(--fs-meta); font-weight: var(--fw-bold); text-decoration: underline; cursor: pointer; }
+.home-login-btn:disabled { cursor: default; text-decoration: none; opacity: 0.6; }
+.sheet-soon { color: var(--c-text-muted); }
+
+/* ── LF-02 · 입력 (Figma 274:2272 정본) ──────────────────── */
+.input-nav { display: flex; align-items: center; gap: var(--space-8); margin: calc(-1 * var(--space-4)) 0 0; }
+.nav-back { display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; margin-left: calc(-1 * var(--space-4)); border: 0; background: none; color: var(--c-text); cursor: pointer; }
+.nav-back-icon { display: flex; }
+.nav-title { font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); }
+/* 상단 이동(10/8): 우상단 Home. 터치 44px 확보. */
+.nav-home { margin-left: auto; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; margin-right: calc(-1 * var(--space-6)); border: 0; background: none; color: var(--c-text); cursor: pointer; }
+.nav-home:hover { color: var(--c-primary); }
+.nav-home-icon { display: flex; }
+.input-head { margin: var(--space-14) 0 var(--space-4); }
+.input-title { margin: 0 0 var(--space-6); font-size: 22px; line-height: 1.2; font-weight: var(--fw-bold); }
+.input-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); }
+
+/* 섹션 헤더 */
+.section-head h2 { font-size: var(--fs-title); }
+
+/* Field Row (아이콘 + 라벨/값 + Change/Set) */
+.field-row {
+  position: relative; display: flex; align-items: center; gap: var(--space-12);
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md);
+  padding: var(--space-10) var(--space-14); min-height: 60px;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+.field-row.is-focused { border-color: var(--c-primary); box-shadow: 0 0 0 1px var(--c-primary); }
+/* 필수 입력 미입력 강조 — 빨간 테두리 + 링(제출 시도 시). 2px 링으로 폭 변화 없이 강조. */
+.field-row.is-error { border-color: var(--c-error); background: var(--c-error-bg); box-shadow: 0 0 0 2px var(--c-error); }
+.fr-icon { flex: 0 0 auto; display: flex; color: var(--c-primary); }
+.field-row.is-error .fr-icon { color: var(--c-error); }
+.fr-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; cursor: pointer; }
+.fr-label { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.fr-value { font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fr-value.is-empty { color: var(--c-text-muted); font-weight: var(--fw-medium); }
+.fr-action { flex: 0 0 auto; background: none; border: 0; cursor: pointer; color: var(--c-primary); font-size: var(--fs-meta); font-weight: var(--fw-bold); }
+.field-row.is-error .fr-action { color: var(--c-error); }
+/* 투명 네이티브 datetime 피커 오버레이 — 행 전체 탭 시 피커 오픈 */
+.fr-native { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; opacity: 0; cursor: pointer; }
+.fr-native::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+
+/* 위치 인라인 편집 */
+.loc-edit { display: flex; flex-direction: column; gap: var(--space-10); margin-top: calc(-1 * var(--space-6)); }
+.loc-edit[hidden] { display: none; }
+.loc-edit-input {
+  font-family: inherit; font-size: var(--fs-meta); color: var(--c-text);
+  background: var(--c-surface); border: 1px solid var(--c-primary); border-radius: var(--r-flag);
+  padding: var(--space-10) var(--space-14); width: 100%; min-width: 0;
+}
+.loc-edit-input:focus { outline: 2px solid var(--c-primary); }
+.chip--geo { color: var(--c-primary); border-color: var(--c-primary); font-weight: var(--fw-semibold); }
+
+/* 종료 미선택 안내 (amber) */
+.field-hint-amber { margin: calc(-1 * var(--space-6)) 0 0; font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--c-check-text); }
+.field-hint-amber[hidden] { display: none; }
+
+/* 자연어 입력 카드 + sparkle 푸터 */
+.nl-input { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md); padding: var(--space-14); display: flex; flex-direction: column; gap: var(--space-10); }
+.nl-input:focus-within { border-color: var(--c-primary); box-shadow: 0 0 0 1px var(--c-primary); }
+.nl-textarea { font-family: inherit; font-size: var(--fs-input); color: var(--c-text); border: 0; outline: none; resize: none; min-height: 96px; width: 100%; background: none; }
+.nl-footer { display: flex; align-items: center; gap: var(--space-6); font-size: var(--fs-badge); color: var(--c-text-muted); }
+.nl-sparkle { display: flex; color: var(--c-primary); }
+.nl-sparkle svg { width: 14px; height: 14px; }
+
+.other-plans-link { align-self: flex-start; background: none; border: 0; cursor: pointer; color: var(--c-primary); font-size: var(--fs-body); font-weight: var(--fw-bold); padding: 0; }
+
+.about-info { display: flex; align-items: center; justify-content: center; gap: var(--space-6); margin: var(--space-10) 0 0; font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.about-icon { display: flex; }
+.about-icon svg { width: 14px; height: 14px; }
+
+/* ── LF-03 · 결과(지도 박스 + 하단 카드 캐러셀) ───────────
+   지도는 정해진 박스 안에 꽉 채운다(풀스크린 아님) — NAVER 로고가 카드/버튼을
+   가리지 않도록. 상단 바 → 지도 박스(flex:1) → 하단 덱의 세로 컬럼. */
+.results-view { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--c-bg); }
+
+.results-top { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-8); padding: var(--space-14); padding-top: calc(var(--space-14) + env(safe-area-inset-top, 0px)); }
+.results-top-row { display: flex; align-items: center; gap: var(--space-10); }
+.results-top .icon-back { flex: 0 0 auto; }
+.cond-pill { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--space-8); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-8) var(--space-14); }
+.cond-text { flex: 1; min-width: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cond-edit { flex: 0 0 auto; border: 0; cursor: pointer; background: var(--c-primary-tint); color: var(--c-primary); border-radius: var(--r-full); padding: var(--space-4) var(--space-10); font-size: var(--fs-body); font-weight: var(--fw-bold); }
+.understood-pill {
+  display: flex; align-items: center; gap: var(--space-6);
+  background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full);
+  padding: var(--space-6) var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-semibold);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.understood-label { color: var(--c-primary); font-weight: var(--fw-bold); }
+
+/* 0건-세이프 등 안내 — 조건을 다 못 지켰음을 투명하게(check 상태 amber 팔레트) */
+.result-notice {
+  display: flex; align-items: flex-start; gap: var(--space-6);
+  background: var(--c-check-bg); color: var(--c-check-text);
+  border-radius: var(--r-card); padding: var(--space-8) var(--space-12);
+  font-size: var(--fs-body); font-weight: var(--fw-semibold); line-height: 1.35;
+}
+.result-notice-icon { flex: 0 0 auto; margin-top: 1px; display: flex; }
+.result-notice-text { color: var(--c-text); font-weight: var(--fw-medium); }
+
+/* 지도 박스 — 남는 세로 공간을 꽉 채움(충분히 큼). Naver SDK가 position 을
+   relative 로 덮어써도 부모(map-box, flex 높이 확정) 기준으로 높이 유지. */
+.map-box { flex: 1 1 auto; min-height: 200px; position: relative; margin: 0 var(--space-14); border-radius: var(--r-card); overflow: hidden; background: var(--c-border); }
+.map-canvas { position: absolute; inset: 0; width: 100%; height: 100%; background: var(--c-border); }
+
+.results-deck { flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-8); padding: var(--space-12) 0 calc(var(--space-14) + env(safe-area-inset-bottom, 0px)); }
+
+/* 세로가 짧은 실제 폰: 고정 단일화면 레이아웃이 덱(카드·Select)을 화면 밖으로 클립하지 않게
+   전체를 스크롤 가능으로 전환하고 지도는 고정 높이로 둔다(지도가 공간을 다 먹지 않게). */
+@media (max-height: 760px) {
+  .results-view { overflow-y: auto; }
+  .map-box { flex: 0 0 auto; height: 240px; }
+}
+
+/* ✦ AI 배지(저강조) — 탭하면 아래 패널 펼침. 결과 핵심 정보보다 약하게(10/8 §2). */
+.deck-head { display: flex; align-items: center; padding: 0 var(--space-14); }
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 3px; border: 0; cursor: pointer;
+  background: none; color: var(--c-primary-ink);
+  font-size: var(--fs-badge); font-weight: var(--fw-bold); letter-spacing: 0.04em;
+  padding: var(--space-4) 0;
+}
+.ai-badge-spark { color: var(--c-primary); }
+.ai-badge.is-active { color: var(--c-primary); }
+
+/* 결과 상단 Translate 토글 — 한글 원문을 온디맨드 영어 의미번역으로 교체(기본=결정론 표시). */
+.translate-toggle {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;
+  border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-primary-ink);
+  /* 크기·폰트를 Select(.btn-select)에 맞춤 — font-size=body, 세로 padding 8px(+1px 테두리 상·하
+     = Select 의 9px 무테두리와 동일 높이), 가로 padding=space-14. 테두리·배경은 토글 정체성 유지. */
+  font-size: var(--fs-body); font-weight: var(--fw-bold); letter-spacing: 0.02em;
+  padding: 8px var(--space-14); border-radius: var(--r-full);
+}
+.translate-toggle:hover { border-color: var(--c-primary); }
+.translate-toggle[aria-pressed="true"] { background: var(--c-primary-tint); border-color: var(--c-primary); color: var(--c-primary); }
+.translate-toggle.is-busy { opacity: 0.65; cursor: default; }
+/* 결과 A 카드: Translate 토글을 Select 와 한 묶음으로 우측에 배치(별도 행 없이 높이 안정). */
+.actions-right { display: flex; align-items: center; gap: var(--space-8); }
+.ai-panel {
+  margin: 0 var(--space-14); background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--r-md); padding: var(--space-10) var(--space-12);
+  display: flex; flex-direction: column; gap: var(--space-8);
+}
+.ai-panel[hidden] { display: none; }
+.ai-panel-note { margin: 0; font-size: var(--fs-body); color: var(--c-text-muted); }
+.ai-panel-sub { margin: 0; font-size: var(--fs-badge); font-weight: var(--fw-bold); color: var(--c-text); }
+
+/* 개수 + Directions 한 줄 — 개수 왼쪽, 외부 지도 오른쪽(10/8 §9). */
+.deck-countrow { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); padding: 0 var(--space-14); }
+.count-pill { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-6) var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-text); }
+/* Directions 칩 — 청록 채움 + 흰 Bold + 앞 3D 목적지 아이콘(20), 높이 30 (v3 issue #15 §1). */
+.directions-chip { min-height: 30px; display: inline-flex; align-items: center; gap: 4px; background: var(--c-primary); border: 1px solid var(--c-primary); border-radius: var(--r-full); padding: 0 var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-on-primary); cursor: pointer; }
+.directions-chip-ico { width: 20px; height: 20px; flex: 0 0 auto; }
+.directions-chip:hover { filter: brightness(0.96); }
+/* 루트 카드 안의 ✦ AI(요약 아래) — 패널은 카드 폭에 맞춰 margin 0(인라인). */
+.route-ai { display: flex; flex-direction: column; gap: var(--space-6); margin-top: var(--space-6); }
+.route-ai .ai-panel { margin: 0; }
+
+/* A 결과의 ✦ AI 패널은 말풍선 팝오버 — 맵 위로 떠서 carousel 배치를 건드리지 않는다. */
+.results-deck { position: relative; }
+.results-deck > .ai-panel {
+  position: absolute; left: var(--space-14); right: var(--space-14); bottom: 100%;
+  margin: 0 0 var(--space-8); max-height: 44vh; overflow-y: auto;
+  box-shadow: var(--shadow-card-focus); z-index: 30;
+}
+.results-deck > .ai-panel::after {
+  content: ""; position: absolute; top: 100%; left: 18px;
+  border: 7px solid transparent; border-top-color: var(--c-surface);
+  filter: drop-shadow(0 1px 1px rgba(13, 38, 46, 0.12));
+}
+
+.carousel { display: flex; gap: var(--space-12); overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding-inline: 28px; padding: var(--space-4) var(--space-14) var(--space-2); scrollbar-width: none; }
+.carousel::-webkit-scrollbar { display: none; }
+.carousel .card { flex: 0 0 calc(100% - 56px); max-width: var(--card-w); scroll-snap-align: center; transition: box-shadow 0.2s ease; }
+/* 0건: 지도를 작게 고정(거대한 지도로 NAVER 로고가 밀려나지 않게) + 아래에 경고 */
+.results-view--empty .map-box { flex: 0 0 auto; height: 180px; }
+.result-warning { display: flex; flex-direction: column; align-items: center; text-align: center; gap: var(--space-10); padding: var(--space-20) var(--space-20) var(--space-4); }
+.result-warning-icon {
+  width: 64px; height: 64px; border-radius: var(--r-full);
+  background: var(--c-error-bg); color: var(--c-error);
+  display: flex; align-items: center; justify-content: center;
+}
+.result-warning-title { margin: 0; font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); }
+.result-warning-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); max-width: 28ch; }
+
+.dots { display: flex; justify-content: center; gap: var(--space-6); }
+.dot { width: 6px; height: 6px; border-radius: var(--r-full); background: rgba(13, 38, 46, 0.22); transition: width 0.2s ease, background-color 0.2s ease; }
+.dot.is-active { width: 18px; background: var(--c-primary); }
+
+.deck-actions { display: flex; gap: var(--space-10); padding: var(--space-2) var(--space-14) 0; }
+.btn-ghost { flex: 1; background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-primary); border-radius: var(--r-full); padding: var(--space-12); font-size: var(--fs-meta); font-weight: var(--fw-bold); cursor: pointer; }
+.btn-ghost:hover { background: var(--c-primary-tint); }
+.btn-ghost:active { transform: scale(0.98); }
+
+/* ── LF-03 로딩(조회 대기) ─────────────────────────────────── */
+.loading-view { padding: 0; }
+.loading-title { font-size: var(--fs-title); font-weight: var(--fw-bold); margin: 0; }
+.cond-summary {
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--r-flag); padding: var(--space-12) var(--space-14);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.cond-summary-where { margin: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); }
+.cond-summary-cond { margin: 0; font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+
+.loading-center {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center;
+  gap: var(--space-10); text-align: center; padding: var(--space-20) var(--space-20) var(--space-14);
+}
+.loading-spark {
+  width: 72px; height: 72px; border-radius: var(--r-full);
+  background: var(--c-primary-tint); color: var(--c-primary);
+  display: flex; align-items: center; justify-content: center;
+  animation: konnect-pulse 1.6s ease-in-out infinite;
+}
+.loading-headline { margin: 0; font-size: 22px; font-weight: var(--fw-bold); color: var(--c-text); }
+.loading-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); min-height: 1.3em; transition: opacity 0.2s ease; }
+
+/* 스켈레톤 카드 리스트(shimmer) — 실제 결과 카드 레이아웃을 흉내 */
+.skeleton-list { flex: 1 1 auto; overflow: hidden; display: flex; flex-direction: column; gap: var(--space-14); padding: 0 var(--space-14); }
+.skeleton-card {
+  display: flex; gap: var(--space-14); align-items: center;
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  border-radius: var(--r-card); padding: var(--space-14); box-shadow: var(--shadow-card);
+}
+.skeleton-lines { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-10); }
+.skeleton { background: var(--c-border); border-radius: var(--r-flag); position: relative; overflow: hidden; }
+.skeleton::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.65) 50%, transparent 100%);
+  transform: translateX(-100%);
+  animation: konnect-shimmer 1.4s ease-in-out infinite;
+}
+.skeleton-media { flex: 0 0 auto; width: 64px; height: 64px; border-radius: var(--r-md); }
+.skeleton-line { height: 12px; }
+.skeleton-line.w-90 { width: 90%; }
+.skeleton-line.w-80 { width: 80%; }
+.skeleton-line.w-55 { width: 55%; }
+
+.loading-cancel-row { flex: 0 0 auto; display: flex; justify-content: center; padding: var(--space-14) var(--space-14) calc(var(--space-20) + env(safe-area-inset-bottom, 0px)); }
+.loading-cancel { border: 0; background: none; color: var(--c-text-muted); font-size: var(--fs-meta); font-weight: var(--fw-semibold); cursor: pointer; padding: var(--space-8) var(--space-20); }
+.loading-cancel:hover { color: var(--c-text); }
+
+@keyframes konnect-shimmer {
+  to { transform: translateX(100%); }
+}
+@keyframes konnect-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.92; }
+  50% { transform: scale(1.08); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loading-spark { animation: none; }
+  .skeleton::after { animation: none; }
+}
+
+/* ── LF-03 오류(조회 실패) 전용 화면 ──────────────────────── */
+.error-center {
+  flex: 1 1 auto; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; text-align: center; gap: var(--space-10);
+  padding: var(--space-20);
+}
+.error-icon {
+  width: 72px; height: 72px; border-radius: var(--r-full);
+  background: var(--c-error-bg); color: var(--c-error);
+  display: flex; align-items: center; justify-content: center;
+}
+.error-title { margin: 0; font-size: 22px; font-weight: var(--fw-bold); color: var(--c-text); }
+.error-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); max-width: 30ch; }
+.error-actions {
+  flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; gap: var(--space-10);
+  padding: 0 var(--space-14) calc(var(--space-20) + env(safe-area-inset-bottom, 0px));
+}
+.error-retry { width: 100%; }
+.error-edit { border: 0; background: none; color: var(--c-primary); font-size: var(--fs-meta); font-weight: var(--fw-bold); padding: var(--space-10); cursor: pointer; }
+
+/* 카드 head 를 썸네일+텍스트 가로 배치로(캐러셀 카드) */
+.card-head { flex-direction: row; align-items: center; }
+.card-thumb { position: relative; flex: 0 0 auto; width: 52px; height: 52px; border-radius: var(--r-md); background: var(--c-primary-tint) center / cover no-repeat; display: flex; align-items: center; justify-content: center; }
+.card-thumb-glyph { font-size: 22px; line-height: 1; }
+.card-thumb-icon { width: 40px; height: 40px; }
+.card-num { position: absolute; top: -6px; left: -6px; width: 22px; height: 22px; border-radius: var(--r-full); background: var(--c-primary); color: var(--c-on-primary); font-size: 12px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid var(--c-surface); box-shadow: var(--shadow-pin); }
+.card-head-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-6); }
+
+/* ── 지도 핀 (번호+유형, 선택 시 부드럽게 확대) ───────────── */
+/* 출발점 — 남색 점 + 회색 후광(Figma v2). 미니맵·풀맵 공용. */
+.start-pin { width: 18px; height: 18px; border-radius: 50%; background: var(--c-ink-pin); border: 3px solid #fff; box-shadow: var(--shadow-pin), 0 0 0 5px rgba(42, 47, 69, 0.14); }
+/* 출발점 래퍼 — 왼쪽 3D 얼굴(44) 바로 옆(정확한 왼쪽)에 남색 점(점 중심이 좌표). */
+.start-pin-wrap { position: relative; width: 58px; height: 44px; }
+.start-pin-wrap .start-face { position: absolute; left: 0; top: 0; width: 44px; height: 44px; }
+.start-pin-wrap .start-pin { position: absolute; left: 40px; top: 13px; }
+/* B 루트 핀 — 번호만(순서 중요). 청록 원 30 · 흰 테두리 2 · 흰 숫자. */
+.num-pin { width: 30px; height: 30px; border-radius: 50%; background: var(--c-primary); border: 2px solid #fff; color: #fff; font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-pin); }
+/* A 결과 지도 핀 — 흰 원 40 + 3D 유형 아이콘 28 + 회색 테두리 1.5 (Figma v2).
+   선택: 원 48 · 아이콘 34 · 청록 테두리 3 (transform scale 1.2). 번호는 우상단 청록 원 18. */
+.map-pin { position: relative; width: 40px; height: 40px; }
+.map-pin-body {
+  width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1.5px solid var(--c-border);
+  display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-pin);
+  transform-origin: center;
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.28s ease, border-width 0.28s ease;
+}
+.map-pin-icon { width: 28px; height: 28px; object-fit: contain; }
+.map-pin-num { position: absolute; top: -4px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: var(--r-full); background: var(--c-primary); color: #fff; font-size: 11px; font-weight: 800; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; box-shadow: var(--shadow-pin); transition: transform 0.28s ease; }
+.map-pin-walk { position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%) scale(0.9); transform-origin: bottom center; opacity: 0; white-space: nowrap; background: var(--c-primary); color: #fff; font-size: 11px; font-weight: var(--fw-bold); padding: 3px 8px; border-radius: var(--r-full); box-shadow: var(--shadow-pin); transition: opacity 0.2s ease, transform 0.2s ease; pointer-events: none; }
+.map-pin.is-sel .map-pin-body { transform: scale(1.2); background: #fff; border: 3px solid var(--c-primary); }
+.map-pin.is-sel .map-pin-num { transform: scale(1.06); }
+.map-pin.is-sel .map-pin-walk { opacity: 1; transform: translateX(-50%) scale(1); }
+
+/* ── 로그인 유도 바텀시트 (LF-06, 비활성 OAuth) ──────────── */
+/* 바텀시트는 device-frame 안에 absolute 로 담긴다(데스크톱 목업 밖으로 안 나가게).
+   너비는 컨테이너(모바일=화면, 데스크톱=목업)를 꽉 채운다. */
+.sheet-scrim { position: absolute; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center; background: rgba(13, 38, 46, 0); transition: background-color 0.22s ease; }
+.sheet-scrim.is-open { background: rgba(13, 38, 46, 0.45); }
+.sheet { width: 100%; max-width: 100%; max-height: 90%; overflow-y: auto; overscroll-behavior: contain; background: var(--c-surface); border-radius: 20px 20px 0 0; padding: var(--space-20) var(--space-20) calc(var(--space-20) + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: var(--space-12); transform: translateY(100%); transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1); }
+.sheet-scrim.is-open .sheet { transform: translateY(0); }
+/* grip zone: 터치 영역을 넓혀 그랩 바를 쉽게 끌 수 있게(아래로 스와이프 → 닫기) */
+.sheet-grip-zone { align-self: stretch; display: flex; justify-content: center; padding: var(--space-6) 0 var(--space-10); margin-top: calc(-1 * var(--space-10)); touch-action: none; cursor: grab; }
+.sheet-grip-zone:active { cursor: grabbing; }
+/* align-self:center → 자체 .sheet(column flex)에 grip 을 직접 넣는 로그인 시트에서도 중앙 정렬
+   (time-sheet 의 중앙 grip-zone 에선 무해). */
+.sheet-grip { width: 40px; height: 4px; align-self: center; border-radius: var(--r-full); background: var(--c-border); pointer-events: none; }
+.sheet-title { margin: 0; font-size: 18px; font-weight: var(--fw-bold); }
+.sheet-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); }
+.btn-google { border: 0; border-radius: var(--r-pill); padding: var(--space-14); font-size: var(--fs-meta); font-weight: var(--fw-bold); background: var(--c-primary); color: var(--c-on-primary); cursor: not-allowed; }
+.btn-google:disabled { background: var(--c-border); color: var(--c-text-muted); }
+.sheet-soon { text-align: center; font-size: var(--fs-badge); }
+.sheet-dismiss { background: none; border: 0; color: var(--c-text-muted); font-size: var(--fs-meta); font-weight: var(--fw-bold); padding: var(--space-8); cursor: pointer; }
+
+/* ============================================================
+   LF-02 인터랙션 바텀시트 (Start from · 시간 · 확인) + 접힘/칩
+   ============================================================ */
+/* 공통 시트 head */
+.sheet-head { display: flex; align-items: center; justify-content: space-between; }
+.sheet-cancel { background: none; border: 0; cursor: pointer; color: var(--c-text-muted); font-size: var(--fs-meta); font-weight: var(--fw-bold); padding: var(--space-4); }
+.chip.is-active { background: var(--c-primary-tint); border-color: var(--c-primary); color: var(--c-primary); font-weight: var(--fw-semibold); }
+
+/* ── Start from 시트 ── */
+.loc-sheet { display: flex; flex-direction: column; gap: var(--space-12); }
+.loc-search { display: flex; align-items: center; gap: var(--space-8); background: var(--c-bg); border: 1px solid var(--c-border); border-radius: var(--r-flag); padding: var(--space-10) var(--space-12); }
+.loc-search:focus-within { border-color: var(--c-primary); }
+.loc-search-icon { display: flex; color: var(--c-text-muted); }
+.loc-search-input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-family: inherit; font-size: var(--fs-input); color: var(--c-text); }
+.loc-current { display: flex; align-items: center; gap: var(--space-12); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md); padding: var(--space-12) var(--space-14); cursor: pointer; text-align: left; font-family: inherit; }
+.loc-current.is-selected { border-color: var(--c-primary); box-shadow: 0 0 0 1px var(--c-primary); }
+.loc-radio { flex: 0 0 auto; width: 18px; height: 18px; border-radius: 50%; border: 2px solid var(--c-primary); position: relative; }
+.loc-current.is-selected .loc-radio::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--c-primary); }
+.loc-current-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.loc-current-title { font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); }
+.loc-current-sub { font-size: var(--fs-badge); color: var(--c-text-muted); }
+.loc-check { color: var(--c-primary); font-weight: var(--fw-bold); }
+.loc-current.is-locating { opacity: 0.6; }
+.loc-section-label { margin: var(--space-4) 0 0; font-size: var(--fs-badge); font-weight: var(--fw-bold); letter-spacing: 0.06em; color: var(--c-text-muted); }
+.loc-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.loc-footer { margin: var(--space-4) 0 0; font-size: var(--fs-badge); color: var(--c-text-muted); }
+
+/* ── 시간 시트 (휠 피커) ── */
+.time-sheet { display: flex; flex-direction: column; gap: var(--space-14); }
+.time-quick { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.time-wheel { position: relative; display: flex; justify-content: center; gap: var(--space-20); padding: var(--space-4) 0; }
+.wheel-center { position: absolute; top: 50%; left: var(--space-14); right: var(--space-14); height: 40px; transform: translateY(-50%); background: var(--c-bg); border-radius: var(--r-flag); pointer-events: none; }
+.wheel-col { position: relative; z-index: 1; height: 120px; overflow-y: auto; scroll-snap-type: y mandatory; scrollbar-width: none; text-align: center; }
+.wheel-col::-webkit-scrollbar { display: none; }
+.wheel-pad { height: 40px; }
+.wheel-item { height: 40px; line-height: 40px; scroll-snap-align: center; font-size: 20px; font-weight: var(--fw-semibold); color: var(--c-text-muted); opacity: 0.45; transition: opacity 0.12s ease, color 0.12s ease; }
+.wheel-item.is-active { color: var(--c-text); opacity: 1; font-weight: var(--fw-bold); }
+.time-summary { margin: 0; text-align: center; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-primary-ink); }
+.time-summary.is-warn { color: var(--c-error); }
+.time-note { margin: 0; text-align: center; font-size: var(--fs-badge); color: var(--c-text-muted); }
+
+/* ── 확인 시트 (Here's what we understood) ── */
+.confirm-sheet { display: flex; flex-direction: column; gap: var(--space-10); }
+.confirm-title-row { display: flex; align-items: center; gap: var(--space-8); }
+.confirm-spark { display: flex; color: var(--c-primary); }
+.confirm-label { margin: var(--space-6) 0 0; font-size: var(--fs-badge); font-weight: var(--fw-bold); letter-spacing: 0.06em; color: var(--c-text-muted); }
+.confirm-where { margin: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); }
+.confirm-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.confirm-chip { display: inline-flex; align-items: center; gap: var(--space-6); background: var(--c-primary-tint); color: var(--c-primary); border-radius: var(--r-full); padding: var(--space-6) var(--space-10); font-size: var(--fs-body); font-weight: var(--fw-semibold); }
+.confirm-chip-x { background: none; border: 0; cursor: pointer; color: var(--c-primary); font-size: var(--fs-body); line-height: 1; padding: 0; opacity: 0.75; }
+.confirm-chip-x:hover { opacity: 1; }
+.confirm-empty { margin: 0; font-size: var(--fs-body); color: var(--c-text-muted); }
+/* 다룰 수 없는 요청 안내 — 경고가 아니라 '이건 범위 밖'을 편안히 알리는 톤(앰버 flag 팔레트). */
+.confirm-unsupported {
+  background: var(--c-flag-bg); border-radius: var(--r-flag);
+  padding: var(--space-10) var(--space-12);
+  display: flex; flex-direction: column; gap: var(--space-4);
+}
+.confirm-unsupported-title { margin: 0; font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-flag-text); }
+.confirm-unsupported-sub { margin: 0; font-size: var(--fs-badge); color: var(--c-flag-text); }
+.confirm-sheet .btn-cta { margin-top: var(--space-6); }
+.confirm-edit { background: none; border: 0; cursor: pointer; color: var(--c-primary); font-size: var(--fs-body); font-weight: var(--fw-bold); padding: var(--space-6); }
+
+/* ── 입력: note 편집 중 Where&when 접힘 + 시간 안내 ── */
+/* 접힘 pill: 입력 뷰는 세로 컬럼이라 .cond-pill 의 flex:1 이 세로로 늘어난다 → 고정 */
+.cond-pill--collapse { display: none; flex: 0 0 auto; margin-top: var(--space-12); }
+.cond-pill-icon { display: flex; color: var(--c-primary); }
+.note-editing .input-head, .note-editing .where-section { display: none; }
+.note-editing .cond-pill--collapse { display: flex; }
+.field-duration { margin: calc(-1 * var(--space-6)) 0 0; font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-primary-ink); }
+
+/* ── P9-1 선호 온보딩 (L2) ── */
+.onboarding { display: flex; flex-direction: column; gap: var(--space-16); padding-top: var(--space-12); }
+.onboarding-head { display: flex; flex-direction: column; gap: var(--space-6); }
+.onboarding-title { margin: 0; font-size: var(--fs-title); font-weight: var(--fw-bold); }
+.onboarding-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); line-height: 1.45; }
+.onboarding-label { margin: var(--space-4) 0 0; font-size: var(--fs-body); font-weight: var(--fw-semibold); }
+.onboarding-chips { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.onboarding-walk { display: flex; align-items: center; gap: var(--space-10); font-size: var(--fs-meta); font-weight: var(--fw-semibold); cursor: pointer; padding: var(--space-4) 0; }
+.onboarding-walk input { width: 20px; height: 20px; accent-color: var(--c-primary); cursor: pointer; }
+.onboarding-actions { display: flex; flex-direction: column; gap: var(--space-6); margin-top: auto; padding-top: var(--space-12); }
+.onboarding-kicker { margin: 0 0 var(--space-4); font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); }
+.onboarding-title { font-size: 22px; line-height: var(--lh-tight); } /* 디자인 큰 제목 */
+.onboarding-foot { margin: 0; font-size: var(--fs-badge); color: var(--c-text-muted); }
+
+/* 온보딩 Save 확인 모달(이름·이메일 + 해석 결과) */
+.onb-confirm { display: flex; flex-direction: column; gap: var(--space-12); }
+.onb-confirm-acct { display: flex; align-items: center; gap: var(--space-10); background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-10) var(--space-12); }
+.onb-confirm-acct-text { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.onb-confirm-results { display: flex; flex-direction: column; gap: var(--space-6); min-height: 24px; }
+.onb-confirm-label { margin: var(--space-4) 0 0; font-size: var(--fs-badge); font-weight: var(--fw-bold); letter-spacing: 0.04em; color: var(--c-text-muted); text-transform: uppercase; }
+.onb-confirm .btn-cta { margin-top: var(--space-6); }
+
+/* P9-2 선호폼: 관심사 + 자유입력 + "We'll remember" (공용 — 온보딩·My Page) */
+.pref-form { display: flex; flex-direction: column; gap: var(--space-10); }
+.nl-footer2 { display: flex; justify-content: flex-end; }
+.nl-counter { font-size: var(--fs-badge); color: var(--c-text-muted); }
+.remember { background: var(--c-primary-tint); border-radius: var(--r-md); padding: var(--space-10) var(--space-12); display: flex; flex-direction: column; gap: var(--space-8); }
+.remember[hidden] { display: none; }
+.remember-label { margin: 0; font-size: var(--fs-badge); font-weight: var(--fw-bold); color: var(--c-primary-ink); }
+.remember-chips { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.remember-chip { display: inline-flex; align-items: center; gap: var(--space-6); background: var(--c-surface); border: 1px solid var(--c-primary); color: var(--c-primary); border-radius: var(--r-full); padding: var(--space-4) var(--space-10); font-size: var(--fs-badge); font-weight: var(--fw-semibold); }
+.remember-chip-x { border: 0; background: none; color: var(--c-primary); cursor: pointer; font-size: 11px; line-height: 1; padding: 0; display: flex; min-width: 16px; min-height: 16px; align-items: center; justify-content: center; }
+.remember-hint { margin: 0; font-size: var(--fs-badge); color: var(--c-text-muted); }
+/* 해석 상태 한 줄(힌트 / Reading your note… / 결과 없음) */
+.pref-status { margin: 0; font-size: var(--fs-badge); color: var(--c-text-muted); display: flex; align-items: center; gap: var(--space-6); line-height: 1.4; }
+.pref-status[hidden] { display: none; }
+.pref-spinner { flex: 0 0 auto; width: 14px; height: 14px; border-radius: var(--r-full); border: 2px solid var(--c-border); border-top-color: var(--c-primary); animation: pref-spin 0.7s linear infinite; }
+@keyframes pref-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .pref-spinner { animation: none; } }
+/* 선택된 관심사 칩에 체크(디자인 P9-2b/c). */
+.pref-form .chip[aria-pressed="true"]::before { content: "✓ "; }
+
+/* ── MP-1~3 My Page (L3) · 10/8 MP-1b/2c ── */
+.mypage { flex: 1; display: flex; flex-direction: column; gap: var(--space-14); }
+.mypage-body { flex: 1; display: flex; flex-direction: column; gap: var(--space-14); }
+.mypage-loading { color: var(--c-text-muted); font-size: var(--fs-meta); }
+
+/* 계정 — 아바타 + 이름 */
+.mypage-account { display: flex; align-items: center; gap: var(--space-12); }
+.mypage-avatar { flex: 0 0 auto; width: 44px; height: 44px; border-radius: var(--r-full); background: var(--c-primary-tint); color: var(--c-primary); font-size: var(--fs-title); font-weight: var(--fw-bold); display: flex; align-items: center; justify-content: center; }
+.mypage-account-text { display: flex; flex-direction: column; gap: 1px; }
+.mypage-account-name { margin: 0; font-size: var(--fs-title); font-weight: var(--fw-bold); }
+.mypage-account-sub { font-size: var(--fs-meta); color: var(--c-text-muted); }
+
+/* 현재 선택 카드(teal 테두리) / 빈 상태 */
+.mypage-cc { display: flex; align-items: center; gap: var(--space-12); width: 100%; text-align: left; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-card); padding: 18px 16px; cursor: pointer; }
+.mypage-cc.has-choice, .mypage-cc:hover { border-color: var(--c-primary); }
+.mypage-cc-texts { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: var(--space-2); }
+.mypage-cc-label { font-size: var(--fs-badge); font-weight: var(--fw-bold); letter-spacing: 0.04em; color: var(--c-primary); }
+.mypage-cc-title { font-size: 15px; font-weight: var(--fw-bold); color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mypage-cc-sub { font-size: 13px; color: var(--c-text-muted); }
+.mypage-cc-arrow { flex: 0 0 auto; color: var(--c-primary); font-size: var(--fs-title); font-weight: var(--fw-bold); }
+.mypage-cc-explore { flex: 0 0 auto; color: var(--c-primary); font-size: var(--fs-meta); font-weight: var(--fw-bold); }
+/* My Pick · My Route 바로가기 — 동일 디자인(.mypage-cc 재사용) 버튼 2개 스택. */
+.mypage-saved { display: flex; flex-direction: column; gap: var(--space-8); }
+.mypage-cc:disabled { cursor: default; opacity: 0.65; }
+.mypage-cc-sub.is-empty { font-style: italic; color: var(--c-text-muted); }
+
+/* 선호 카드 */
+.mypage-prefs { background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-14); display: flex; flex-direction: column; gap: var(--space-8); }
+.mypage-prefs-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-8); }
+.mypage-prefs-title { margin: 0; font-size: var(--fs-title); font-weight: var(--fw-bold); }
+.mypage-prefs-sub { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); line-height: 1.4; }
+.mypage-link { background: none; border: 0; cursor: pointer; color: var(--c-primary); font-size: var(--fs-meta); font-weight: var(--fw-bold); padding: var(--space-4); align-self: flex-start; }
+/* Reset — 파괴적 링크지만 경보 톤은 낮춘 흐린 적색(2026-10-15 톤다운). */
+.mypage-link--danger { color: #b56b6b; margin-top: var(--space-4); }
+.mypage-pref-chips { display: flex; flex-wrap: wrap; gap: var(--space-6); margin-top: var(--space-2); }
+.mypage-pref-empty { margin: 0; font-size: var(--fs-meta); color: var(--c-text-muted); }
+.mypage-pref-also { margin: var(--space-4) 0 0; font-size: var(--fs-meta); color: var(--c-text-muted); }
+.mypage-pref-also-list { margin: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); }
+.mypage-pref-actions { display: flex; flex-direction: column; gap: var(--space-6); margin-top: var(--space-8); }
+
+/* 하단 Sign out */
+/* Get started CTA 처럼 바닥에 밀착하되(짧은 내용에서도) 하단에서 살짝 띄운다 — margin-top:auto
+   로 바닥으로 내리고 margin-bottom 으로 가장자리에서 띄움(2026-10-15). */
+.mypage-signout { align-self: center; margin-top: auto; margin-bottom: var(--space-20); background: none; border: 0; cursor: pointer; color: var(--c-text-muted); font-size: var(--fs-meta); font-weight: var(--fw-bold); padding: var(--space-8); }
+.mypage-signout:hover { color: var(--c-text); }
+
+.reset-confirm { display: flex; flex-direction: column; gap: var(--space-12); }
+
+/* ───────────────────────── AG-4 · 단일 챗봇 (chat) ───────────────────────── */
+.chat { position: absolute; inset: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--c-bg); }
+.chat-header { flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-10); padding: var(--space-12) var(--space-14) var(--space-6); }
+.chat-title { font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); }
+/* 헤더 우측 Home 아이콘 버튼(옛 Clear 자리). */
+.chat-home { margin-left: auto; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: transparent; border: 0; border-radius: var(--r-full); color: var(--c-text-muted); cursor: pointer; }
+.chat-home:hover { color: var(--c-text); background: var(--c-surface); }
+/* 상단 바 — Clear 버튼(옛 location 칩 자리, 좌측). */
+.chat-topbar { flex: 0 0 auto; display: flex; padding: 0 var(--space-14) var(--space-6); }
+.chat-clear { background: transparent; border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-4) var(--space-12); font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); cursor: pointer; }
+.chat-clear:hover { color: var(--c-text); border-color: var(--c-text-muted); }
+/* 필수 입력 3폼 — 하단 입력창 바로 위(구분선 아래). */
+.chat-trip { flex: 0 0 auto; display: flex; gap: var(--space-6); padding: var(--space-8) var(--space-14); flex-wrap: wrap; border-top: 1px solid var(--c-border); }
+.trip-chip { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-4) var(--space-10); font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text); cursor: pointer; }
+.trip-chip--cal { display: inline-flex; align-items: center; gap: var(--space-4); }
+/* 위치 칩 — 긴 지역명은 '…'로 생략(2줄 방지). 아이콘 + 라벨(말줄임). */
+.trip-chip--loc { display: inline-flex; align-items: center; gap: var(--space-4); max-width: 42vw; min-width: 0; }
+.trip-chip-ico { flex: 0 0 auto; }
+.trip-chip-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+
+/* 날짜 선택 바텀시트 — "Pick a date"(빠른 칩 + 월 그리드). */
+.date-sheet { display: flex; flex-direction: column; gap: var(--space-12); }
+.date-quick { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.date-quick-chip { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-6) var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--c-text); cursor: pointer; }
+.date-quick-chip.is-active { background: var(--c-primary-tint); border-color: var(--c-primary); color: var(--c-primary); }
+.date-month-row { display: flex; align-items: center; justify-content: space-between; }
+.date-month-label { font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); }
+.date-navs { display: flex; gap: var(--space-4); }
+.date-nav { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border: 0; border-radius: var(--r-full); background: transparent; color: var(--c-text); cursor: pointer; }
+.date-nav:hover { background: var(--c-surface); }
+.date-nav:disabled { color: var(--c-border); cursor: default; }
+.date-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-4); }
+.date-dow { margin-bottom: calc(-1 * var(--space-6)); }
+.date-dow-cell { text-align: center; font-size: var(--fs-badge); font-weight: var(--fw-bold); color: var(--c-text-muted); padding: var(--space-4) 0; }
+.date-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border: 0; background: transparent; border-radius: var(--r-full); font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: var(--c-text); cursor: pointer; }
+.date-cell.is-empty { visibility: hidden; cursor: default; }
+.date-cell.is-past { color: var(--c-border); cursor: default; }
+.date-cell.is-today { outline: 1.5px solid var(--c-primary); outline-offset: -1.5px; }
+.date-cell.is-selected { background: var(--c-primary); color: var(--c-on-primary); outline: 0; }
+.date-selected { margin: 0; font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-primary); }
+.chat-ai-notice { flex: 0 0 auto; margin: 0; padding: 0 var(--space-14) var(--space-6); font-size: var(--fs-badge); color: var(--c-text-muted); }
+
+.chat-log { flex: 1 1 auto; overflow-y: auto; padding: var(--space-8) var(--space-14) var(--space-12); display: flex; flex-direction: column; gap: var(--space-10); }
+.chat-row { display: flex; }
+.chat-row--user { justify-content: flex-end; }
+.chat-row--assistant { justify-content: flex-start; }
+.chat-bubble { max-width: 80%; padding: var(--space-8) var(--space-12); border-radius: var(--r-card); font-size: var(--fs-body); line-height: 1.4; white-space: pre-wrap; word-break: break-word; }
+.chat-bubble--user { background: var(--c-primary); color: var(--c-on-primary); border-bottom-right-radius: var(--space-4); }
+.chat-bubble--assistant { background: var(--c-surface); border: 1px solid var(--c-border); color: var(--c-text); border-bottom-left-radius: var(--space-4); }
+.chat-answer-text { margin: 0; }
+.chat-cites { margin-top: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-4); align-items: center; }
+.chat-cites-label { font-size: var(--fs-badge); color: var(--c-text-muted); }
+.chat-cite { font-size: var(--fs-badge); background: var(--c-check-bg); color: var(--c-check-text); border-radius: var(--r-full); padding: 1px var(--space-8); }
+/* 응답 생성 중 안내 문구 — 추천A 'Anything else' placeholder 와 동일 스타일
+   (fs-input 16px·자간 normal·normal style·muted, 2026-10-15). */
+.chat-typing { font-size: var(--fs-input); letter-spacing: normal; font-style: normal; color: var(--c-text-muted); }
+
+/* 넓은 결과(카드·루트)는 전체폭 블록 */
+.chat-block { width: 100%; }
+.chat-cards { display: flex; flex-direction: column; gap: var(--space-12); }
+.chat-map { height: 180px; border-radius: var(--r-card); overflow: hidden; background: var(--c-border); margin-bottom: var(--space-8); }
+.chat-weather { display: flex; align-items: flex-start; gap: var(--space-8); background: var(--c-check-bg); color: var(--c-text); border-radius: var(--r-card); padding: var(--space-8) var(--space-12); font-size: var(--fs-body); font-weight: var(--fw-medium); line-height: 1.35; }
+.chat-weather-icon { flex: 0 0 auto; }
+.chat .btn-select { display: inline-block; } /* 챗 추천 결과도 저장(Select) 가능 */
+.chat .card { max-width: 100%; }
+
+.chat-suggest { display: flex; flex-direction: column; gap: var(--space-6); align-items: flex-start; margin-top: auto; }
+.chat-suggest-chip { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-full); padding: var(--space-6) var(--space-12); font-size: var(--fs-body); color: var(--c-text); cursor: pointer; text-align: left; }
+.chat-suggest-chip:hover { border-color: var(--c-primary); color: var(--c-primary); }
+
+.chat-input-bar { flex: 0 0 auto; display: flex; align-items: flex-end; gap: var(--space-8); padding: var(--space-8) var(--space-14) calc(var(--space-12) + env(safe-area-inset-bottom, 0px)); background: var(--c-bg); }
+/* 폰트 14px — 입력 placeholder 가 한 줄에 다 보이도록(16px 에서 잘리던 문제, 2026-10-14). */
+.chat-textarea { flex: 1 1 auto; font-family: inherit; font-size: 14px; color: var(--c-text); background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-card); padding: var(--space-8) var(--space-12); resize: none; outline: none; max-height: 120px; }
+.chat-textarea:focus { border-color: var(--c-primary); }
+.chat-send { flex: 0 0 auto; width: 40px; height: 40px; border-radius: var(--r-full); border: 0; background: var(--c-primary); color: var(--c-on-primary); font-size: 18px; font-weight: var(--fw-bold); cursor: pointer; }
+.chat-send:hover { opacity: 0.92; }
+
+/* ── Route Card (LF-05/08) — 하나의 코스로 ── */
+.route-card { background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-card); padding: var(--space-14); display: flex; flex-direction: column; gap: var(--space-12); }
+.route-card-head { display: flex; flex-direction: column; gap: var(--space-2); }
+.route-translate-row { display: flex; justify-content: flex-end; margin-bottom: var(--space-4); }
+.route-when { margin: 0; font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.route-card-name { margin: 0; font-size: 20px; line-height: 1.2; font-weight: var(--fw-bold); color: var(--c-text); }
+.route-stop-summary { margin: var(--space-2) 0 0; font-size: var(--fs-meta); color: var(--c-text-muted); }
+
+/* WHY THIS ROUTE + 루트 상태 */
+.route-why { display: flex; flex-direction: column; gap: var(--space-6); background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-10) var(--space-12); }
+.route-why-label { margin: 0; font-size: 10px; letter-spacing: 0.06em; font-weight: var(--fw-bold); color: var(--c-text-muted); }
+.route-why-reason { margin: 0; display: flex; align-items: flex-start; gap: var(--space-6); font-size: var(--fs-body); color: var(--c-text); }
+.route-status { align-self: flex-start; font-size: var(--fs-body); font-weight: var(--fw-bold); border-radius: var(--r-full); padding: var(--space-4) var(--space-10); }
+.route-status[data-status="fits"] { background: var(--c-fits-bg); color: var(--c-fits-text); }
+.route-status[data-status="check_needed"] { background: var(--c-check-bg); color: var(--c-check-text); }
+.route-status[data-status="alternative"] { background: var(--c-alt-bg, var(--c-check-bg)); color: var(--c-alt-text, var(--c-check-text)); }
+
+/* 가기 전 확인할 것(집계) */
+.route-check { border: 1px solid var(--c-check-text); background: var(--c-check-bg); border-radius: var(--r-md); padding: var(--space-8) var(--space-12); }
+.route-check-title { margin: 0 0 var(--space-4); font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-check-text); }
+.route-check-list { margin: 0; padding-left: var(--space-14); font-size: var(--fs-badge); color: var(--c-text); }
+
+/* 범례 */
+.route-legend { display: flex; flex-wrap: wrap; gap: var(--space-6); }
+.route-legend-item { font-size: 10px; font-weight: var(--fw-semibold); border-radius: var(--r-full); padding: 1px var(--space-8); border: 1px solid var(--c-border); color: var(--c-text-muted); }
+.route-legend-item.lg-official { color: var(--c-fits-text); border-color: var(--c-fits-text); }
+.route-legend-item.lg-check { color: var(--c-check-text); border-color: var(--c-check-text); }
+
+/* 타임라인 (Figma v2) — 좌측 거터: 걷는사람·남색점·번호원28·세로선 / 우측: 장소 카드.
+   세로선은 걷기 구간 진한 청록, 머무는 구간 연한 청록(28%). 거터 중앙 x=50. */
+.route-timeline { display: flex; flex-direction: column; }
+.route-start, .route-seg, .route-stop, .route-end { position: relative; padding-left: 60px; }
+/* 세로선은 라운드캡 없이 모서리를 맞대 '한 줄로' 이어지게(각 행 경계에서 끊겨 보이던 문제
+   2026-10-15). 걷기 구간·번호 진입부는 진한 청록, 머무는 구간만 연한 청록. */
+.route-start::before, .route-seg::before, .route-end::before {
+  content: ""; position: absolute; left: 48px; width: 4px; top: 0; bottom: 0;
+}
+.route-seg::before { background: var(--c-primary); }              /* 걷는 구간 — 진하게 */
+.route-start::before { background: var(--c-primary); top: 30px; } /* 점 아래에서 시작 */
+/* 깃발 진입부도 번호 진입부처럼 진한 청록으로(2026-10-15). */
+.route-end::before { background: var(--c-primary); bottom: auto; height: 18px; }
+/* 스톱 — 번호 원(중심 y≈30) 위쪽은 진한 청록(걷기→원 자연 연결), 원 중심 아래는 연한 청록(머무름). */
+.route-stop::before { content: ""; position: absolute; left: 48px; width: 4px; top: 0; height: 30px; background: var(--c-primary); }
+.route-stop::after { content: ""; position: absolute; left: 48px; width: 4px; top: 30px; bottom: 0; background: rgba(0, 115, 133, 0.28); }
+
+.route-start, .route-end { display: flex; align-items: center; gap: var(--space-8); min-height: 36px; font-size: var(--fs-body); font-weight: var(--fw-semibold); }
+.route-start { color: var(--c-text); }
+.route-end { color: var(--c-text-muted); }
+.route-start-time { margin-left: auto; font-size: var(--fs-badge); color: var(--c-text-muted); }
+.route-start-walker { position: absolute; left: 2px; top: 50%; transform: translateY(-50%); }
+/* 시작·도착 점 — 세로선 위 남색 점(대칭). 도착점도 시작점과 동일하게 찍는다(2026-10-15). */
+.route-start-dot, .route-end-dot { position: absolute; left: 41px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; border-radius: 50%; background: var(--c-ink-pin); border: 3px solid #fff; box-shadow: var(--shadow-pin); z-index: 1; }
+/* 깃발 — 시작 사람 이모티콘(left:2px·36 box)과 같은 좌측 열·동일 선상, 조금 더 크게. */
+.route-end-flag { position: absolute; left: 2px; width: 36px; text-align: center; top: 50%; transform: translateY(-50%); font-size: 30px; line-height: 1; color: var(--c-primary-ink); z-index: 1; }
+
+/* 걷는 구간 글자 — 청록 13 SemiBold(이모지 없이). */
+.route-seg { min-height: 30px; display: flex; align-items: center; }
+.route-seg-text { font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: var(--c-primary-ink); }
+
+/* 번호 원 28 — 세로선 위(거터 중앙). */
+.route-stop { padding-top: var(--space-8); padding-bottom: var(--space-8); }
+/* 흰 테두리를 없애 세로선(같은 청록)이 원 안으로 자연스럽게 이어지게(2026-10-15). */
+.route-stop-num { position: absolute; left: 36px; top: 16px; width: 28px; height: 28px; border-radius: 50%; background: var(--c-primary); color: var(--c-on-primary); font-size: var(--fs-meta); font-weight: 800; display: flex; align-items: center; justify-content: center; border: 0; z-index: 1; }
+/* 장소 카드 — 흰 카드·테두리·radius·패딩 16. */
+.route-stop-body { display: flex; flex-direction: column; gap: var(--space-6); min-width: 0; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md); padding: var(--space-14); }
+.route-stop-title-line { display: flex; align-items: flex-start; gap: var(--space-6); flex-wrap: wrap; }
+.route-stop-title { flex: 1 1 auto; min-width: 0; font-size: var(--fs-title); font-weight: var(--fw-bold); color: var(--c-text); line-height: 1.25; overflow-wrap: anywhere; }
+/* 유형 태그 — 3D 아이콘 24 + 이름 13 SemiBold. 높이 30, 좌6·우10. */
+.route-stop-type { display: inline-flex; align-items: center; gap: var(--space-4); height: 30px; padding: 0 var(--space-10) 0 var(--space-6); border-radius: var(--r-full); background: var(--c-primary-tint); border: 0; flex: 0 0 auto; }
+.route-stop-type.is-toggle { cursor: pointer; }
+.route-stop-type-label { font-size: var(--fs-meta); font-weight: var(--fw-semibold); color: var(--c-primary-ink); white-space: nowrap; }
+.route-stop-reasons { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.route-stop-when { display: flex; align-items: center; gap: var(--space-6); }
+.route-stop-time { font-size: var(--fs-body); font-weight: var(--fw-bold); color: var(--c-primary); }
+/* 공식 러닝타임 미확인(공연·예약형) — 숫자 대신 '확인 필요' 톤(앰버 flag 색). */
+.route-stop-time--check { color: var(--c-flag-text); }
+.route-visit-badge { font-size: 10px; font-weight: var(--fw-bold); border-radius: var(--r-full); padding: 1px var(--space-6); }
+.route-visit-badge[data-prov="confirmed"] { background: var(--c-fits-bg); color: var(--c-fits-text); }
+.route-visit-badge[data-prov="planned"] { background: var(--c-check-bg); color: var(--c-check-text); }
+.route-stop-meta { display: flex; flex-wrap: wrap; gap: var(--space-8); }
+.route-stop-actions { display: flex; align-items: center; gap: var(--space-10); margin-top: var(--space-2); }
+.route-remove { border: 0; background: none; color: var(--c-text-muted); font-size: var(--fs-badge); font-weight: var(--fw-semibold); cursor: pointer; padding: 0; }
+.route-remove:hover { color: var(--c-error, #b00); }
+.badge--sm { font-size: 10px; padding: 1px var(--space-6); }
+
+/* 총계 */
+.route-totals { display: flex; flex-direction: column; gap: var(--space-4); background: var(--c-bg); border-radius: var(--r-md); padding: var(--space-10) var(--space-12); }
+.route-total-row { display: flex; justify-content: space-between; font-size: var(--fs-body); }
+.route-total-k { color: var(--c-text-muted); }
+.route-total-v { font-weight: var(--fw-bold); color: var(--c-text); }
+.route-stay-note { margin: 0; font-size: var(--fs-badge); color: var(--c-text-muted); font-style: italic; }
+
+/* ── Directions 오버레이 (인앱 풀스크린 개요 지도) ──
+   Naver 외부 길찾기 페이지는 iframe 임베드 불가(X-Frame-Options: DENY)라, 측정된 경로선이
+   있는 인앱 지도로 개요를 보여주고 상세는 외부 링크로 연결한다. X 로 바로 복귀. */
+.dir-overlay {
+  position: absolute; inset: 0; z-index: 60;
+  display: flex; flex-direction: column;
+  background: var(--c-bg);
+  opacity: 0; transition: opacity 0.2s ease;
+}
+.dir-overlay.is-open { opacity: 1; }
+.dir-head {
+  flex: 0 0 auto; display: flex; align-items: center; gap: var(--space-12);
+  padding: calc(var(--space-14) + env(safe-area-inset-top, 0px)) var(--space-14) var(--space-12);
+  border-bottom: 1px solid var(--c-border); background: var(--c-surface);
+}
+.dir-close {
+  flex: 0 0 auto; width: 36px; height: 36px; border-radius: var(--r-full);
+  border: 1px solid var(--c-border); background: var(--c-surface); color: var(--c-text);
+  font-size: 16px; line-height: 1; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.dir-close:hover { color: var(--c-primary); border-color: var(--c-primary); }
+.dir-title { min-width: 0; display: flex; flex-direction: column; }
+.dir-title-eyebrow { font-size: var(--fs-badge); font-weight: var(--fw-semibold); color: var(--c-text-muted); }
+.dir-title-main { font-size: var(--fs-meta); font-weight: var(--fw-bold); color: var(--c-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dir-map-wrap { flex: 1 1 auto; position: relative; min-height: 0; background: var(--c-border); display: flex; align-items: center; justify-content: center; }
+.dir-map-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.dir-map-fallback { margin: 0; padding: var(--space-20); text-align: center; font-size: var(--fs-body); color: var(--c-text-muted); }
+/* "내 위치" 플로팅 버튼 — 지도 우하단. 흰 원 안에 3D 위치 아이콘. follow ON(is-active)이면 청록 링. */
+.dir-locate {
+  position: absolute; right: 14px; bottom: 14px; z-index: 5;
+  width: 44px; height: 44px; border-radius: var(--r-full); padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--c-surface); border: 1px solid var(--c-border);
+  cursor: pointer; box-shadow: var(--shadow-pin);
+}
+.dir-locate-ico { display: block; }
+.dir-locate.is-active { border-color: var(--c-primary); box-shadow: 0 0 0 2px var(--c-primary), var(--shadow-pin); }
+.dir-locate:disabled { opacity: 0.45; cursor: default; }
+.dir-foot {
+  flex: 0 0 auto; display: flex; flex-direction: column; gap: var(--space-10);
+  padding: var(--space-14) var(--space-14) calc(var(--space-14) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--c-border); background: var(--c-surface);
+}
+.dir-summary { font-size: var(--fs-body); font-weight: var(--fw-semibold); color: var(--c-text); }
+.dir-summary.is-estimate { color: var(--c-text-muted); font-style: italic; }
+.dir-open {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  background: var(--c-surface); color: var(--c-primary); border: 1px solid var(--c-primary);
+  border-radius: var(--r-full); padding: var(--space-12); font-size: var(--fs-meta);
+  font-weight: var(--fw-bold); cursor: pointer;
+}
+.dir-open:disabled { opacity: 0.5; cursor: default; }
+
+/* 실시간 현재 위치 마커 — 빨간 점 + 바깥으로 번지는 pulse 링(다른 지도 앱의 '현 위치'처럼).
+   표시 전용: 이동하면 점만 따라오고 경로 재계산은 없다(§6 #7). 중앙 정렬(26x26, anchor 13,13). */
+.live-loc { position: relative; width: 26px; height: 26px; }
+.live-loc-dot {
+  position: absolute; top: 50%; left: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px;
+  border-radius: 50%; background: #e5342b; border: 2.5px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.18), var(--shadow-pin);
+}
+.live-loc-ring {
+  position: absolute; top: 50%; left: 50%; width: 26px; height: 26px; margin: -13px 0 0 -13px;
+  border-radius: 50%; background: rgba(229, 52, 43, 0.35);
+  animation: live-loc-pulse 1.6s ease-out infinite;
+}
+@keyframes live-loc-pulse {
+  0% { transform: scale(0.55); opacity: 0.85; }
+  100% { transform: scale(2.6); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .live-loc-ring { animation: none; opacity: 0.35; transform: scale(1.3); }
+}

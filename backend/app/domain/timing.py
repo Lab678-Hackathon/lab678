@@ -1,0 +1,408 @@
+"""운영시간·휴무 판정 (A3, PRD §5.3·§6.2).
+
+TourAPI 상세(detailIntro2)의 자유기술 운영시간/휴무를 파싱해 사용자의 가용시간
+[start_at, end_at] 안에 '실제로 방문 가능한가'를 판정한다.
+
+신뢰 원칙:
+- 확실할 때만 CLOSED(Hard 제외). 계절·복수시설·'문의' 등 애매하면 CLOSED 로 단정하지
+  않고 UNCERTAIN(추가 확인 필요)으로 둔다. 미확인을 영업중으로도 추정하지 않는다.
+- 숫자 운영시간은 결정론적 코드로만 비교(LLM 미사용).
+"""
+
+from __future__ import annotations
+
+import re
+from datetime import date, datetime, time, timedelta
+from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
+
+
+class TimingVerdict(str, Enum):
+    OPEN = "open"  # 가용시간 안에 확실히 영업
+    CLOSED = "closed"  # 휴무/영업시간 외 — Hard 충돌(제외)
+    UNCERTAIN = "uncertain"  # 판단 불가 — 추가 확인 필요
+
+
+class EventPeriod(str, Enum):
+    """날짜형 콘텐츠(축제·공연·행사)의 개최 기간 상태 — '끝난 것 금지' 판정용."""
+
+    ACTIVE = "active"  # 방문일이 개최 기간 내 → 유지
+    ENDED = "ended"  # 종료일 지남 → Hard 제외(이미 끝난 콘텐츠 금지)
+    UPCOMING = "upcoming"  # 방문일 이전 시작 → 그 날엔 아직 없음, Hard 제외
+    UNKNOWN = "unknown"  # 날짜 미상 → 기간 근거로 제외하지 않음(추정 금지)
+
+
+def _parse_yyyymmdd(s: Any) -> date | None:
+    t = str(s or "").strip()
+    if len(t) != 8 or not t.isdigit():
+        return None
+    try:
+        return date(int(t[:4]), int(t[4:6]), int(t[6:8]))
+    except ValueError:
+        return None
+
+
+def judge_event_period(intro: dict[str, Any], ref_date: date) -> EventPeriod:
+    """TourAPI eventstartdate/eventenddate 로 개최 기간 판정(방문일 기준).
+
+    종료일이 방문일 이전이면 ENDED(이미 끝남), 시작일이 방문일 이후면 UPCOMING(아직 안 함).
+    날짜가 하나도 없으면 UNKNOWN(기간으로 제외하지 않음 — 미확인을 '끝남'으로 단정 금지).
+    """
+    start = _parse_yyyymmdd(intro.get("eventstartdate"))
+    end = _parse_yyyymmdd(intro.get("eventenddate"))
+    if end and end < ref_date:
+        return EventPeriod.ENDED
+    if start and start > ref_date:
+        return EventPeriod.UPCOMING
+    if start or end:
+        return EventPeriod.ACTIVE
+    return EventPeriod.UNKNOWN
+
+
+class ExtractedHours(BaseModel):
+    """LLM이 공식 운영시간 자유텍스트에서 '추출'한 구조값 (생성 아님, A5 3단계).
+
+    LLM은 쓰여있는 것만 추출한다. 확정 불가면 determinable=false → UNCERTAIN 유지.
+    판정은 judge_extracted_hours(코드)가 하며, LLM 단독으로 Hard 제외(CLOSED)는 하지
+    않는다(보수적 — 오추출로 유효 후보를 지우지 않게). UNCERTAIN→OPEN 승격만 허용.
+    """
+
+    determinable: bool = Field(
+        description="True only if operating hours for the visit date are clearly stated in the text."
+    )
+    always_open: bool = Field(default=False, description="Open 24 hours / all day.")
+    open_time: str | None = Field(
+        default=None,
+        description="Opening time 'HH:MM' (24h) for the visit date, else null.",
+    )
+    close_time: str | None = Field(
+        default=None,
+        description="Closing time 'HH:MM' (24h) for the visit date, else null.",
+    )
+    last_admission: str | None = Field(
+        default=None, description="Last admission 'HH:MM' (24h) if stated, else null."
+    )
+
+
+_HOURS_KEYS = [
+    "usetime",
+    "usetimeculture",
+    "usetimefestival",
+    "opentime",
+    "usetimeleports",
+]
+_REST_KEYS = ["restdate", "restdateculture", "restdatefestival", "restdateleports"]
+
+_WEEKDAYS = {
+    "monday": 0,
+    "tuesday": 1,
+    "wednesday": 2,
+    "thursday": 3,
+    "friday": 4,
+    "saturday": 5,
+    "sunday": 6,
+}
+
+_RANGE_RE = re.compile(r"(\d{1,2}):(\d{2})\s*[-~–—]\s*(\d{1,2}):(\d{2})")
+_LAST_ADM_RE = re.compile(
+    r"(?:last admission|last entry|last ticket|입장마감)\D*?(\d{1,2}):(\d{2})",
+    re.IGNORECASE,
+)
+_MONTH_RE = re.compile(
+    r"\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)", re.IGNORECASE
+)
+_CAVEAT_WORDS = (
+    "inquire",
+    "by appointment",
+    "reservation",
+    "vary",
+    "varies",
+    "seasonal",
+    "문의",
+    "상이",
+    "계절",
+)
+_LODGING = ("check-in", "check in", "check-out", "checkout")
+_ALWAYS_OPEN = ("open all year", "no closed", "everyday", "연중무휴", "없음")
+_ALL_DAY = ("24 hr", "24 hour", "24-hour", "24 hours", "open 24", "24시간", "24시")
+
+
+def _first(d: dict[str, Any], keys: list[str]) -> str:
+    for k in keys:
+        v = d.get(k)
+        if v and str(v).strip():
+            return str(v).strip()
+    return ""
+
+
+def _to_time(h: int, m: int) -> time | None:
+    if h == 24 and m == 0:
+        return time(23, 59)  # 24:00 = 하루 끝
+    if 0 <= h <= 23 and 0 <= m <= 59:
+        return time(h, m)
+    return None
+
+
+def parse_time_ranges(text: str) -> list[tuple[time, time]]:
+    out: list[tuple[time, time]] = []
+    for h1, m1, h2, m2 in _RANGE_RE.findall(text):
+        s = _to_time(int(h1), int(m1))
+        e = _to_time(int(h2), int(m2))
+        if s and e and e > s:  # 자정 넘김(overnight)은 제외(문화시설엔 희귀)
+            out.append((s, e))
+    return out
+
+
+def parse_last_admission(text: str) -> time | None:
+    m = _LAST_ADM_RE.search(text)
+    if m:
+        return _to_time(int(m.group(1)), int(m.group(2)))
+    return None
+
+
+def summarize_hours(text: str) -> str | None:
+    """자유기술 운영시간 → 카드 meta 용 '간결한 한 줄'(결정론, 생성 아님).
+
+    긴 원문을 글자수로 자르면 단어 중간이 끊긴다(텍스트 짤림) → 깔끔한 시각 범위만 뽑는다.
+    **시각 범위가 정확히 1개일 때만** 그 범위를 보여준다. 2개 이상이면(계절·요일별·시설별 등
+    — 예: '평일 12:00-18:00 / 주말 12:00-19:00') 어느 게 그날인지 단정할 수 없어 None 으로
+    두고 호출부가 '미확인 + 공식 링크'로 넘긴다(신뢰 §6: 시간 지어내지 않음). 복수 범위를
+    '·'로 이어 붙이면 하루 두 타임처럼 오해를 주므로 합치지 않는다. 계절·'문의/상이/vary'
+    표현도 None.
+    """
+    if not text:
+        return None
+    low = text.lower()
+    if any(w in low for w in _ALL_DAY):
+        return "Open 24 hours"
+    if _MONTH_RE.search(low) or any(w in low for w in _CAVEAT_WORDS):
+        return None
+    ranges = parse_time_ranges(text)
+    if len(ranges) != 1:  # 0개(파싱 불가) 또는 2개 이상(요일/시설별 변형) → 애매
+        return None
+    s, e = ranges[0]
+    return f"{s.strftime('%H:%M')}–{e.strftime('%H:%M')}"
+
+
+def parse_closed_weekdays(restdate: str) -> set[int]:
+    """휴무 요일 집합(0=월~6=일). 파싱 불가(공휴일 등)는 빈 집합."""
+    low = restdate.lower()
+    if any(w in low for w in _ALWAYS_OPEN):
+        return set()
+    closed: set[int] = set()
+    if "weekend" in low:
+        closed |= {5, 6}
+    if "weekday" in low and "weekdays" in low:  # 'closed on weekdays' (드묾)
+        closed |= {0, 1, 2, 3, 4}
+    for name, idx in _WEEKDAYS.items():
+        if name in low:
+            closed.add(idx)
+    return closed
+
+
+def _has_caveat(text: str, n_ranges: int) -> bool:
+    low = text.lower()
+    return (
+        n_ranges > 1
+        or any(w in low for w in _CAVEAT_WORDS)
+        or bool(_MONTH_RE.search(low))
+    )
+
+
+def _parse_yyyymmdd(s: str | None) -> date | None:
+    s = (s or "").strip()
+    if len(s) == 8 and s.isdigit():
+        try:
+            return date(int(s[:4]), int(s[4:6]), int(s[6:8]))
+        except ValueError:
+            return None
+    return None
+
+
+def judge_event_dates(
+    intro: dict[str, Any], visit_date: date
+) -> tuple[TimingVerdict, str] | None:
+    """축제·공연(type 85)의 행사 기간 판정. 방문일이 기간 밖이면 CLOSED(Hard).
+
+    기간 정보가 없으면 None(행사 날짜로는 판단 안 함 → 운영시간 판정으로 진행).
+    """
+    start = _parse_yyyymmdd(intro.get("eventstartdate"))
+    end = _parse_yyyymmdd(intro.get("eventenddate"))
+    if end and visit_date > end:
+        return TimingVerdict.CLOSED, "event has ended"
+    if start and visit_date < start:
+        return TimingVerdict.CLOSED, "event has not started yet"
+    return None
+
+
+def _window_end_time(start_dt: datetime, end_dt: datetime) -> time:
+    # 종료가 다음날 자정(00:00)이면 '그날 끝(23:59)'으로 본다(FR-A2 경계).
+    if end_dt.time() == time(0, 0) and end_dt.date() != start_dt.date():
+        return time(23, 59)
+    return end_dt.time()
+
+
+def judge_timing(
+    intro: dict[str, Any], start_dt: datetime, end_dt: datetime
+) -> tuple[TimingVerdict, str]:
+    """행사기간·운영시간·휴무 → (판정, 사유). 사유는 trace/설명용."""
+    # 0) 행사 기간 (축제·공연): 방문일이 기간 밖이면 Hard(종료/미개막)
+    event = judge_event_dates(intro, start_dt.date())
+    if event is not None:
+        return event
+
+    # 1) 요일 휴무 (확인되면 Hard)
+    closed = parse_closed_weekdays(_first(intro, _REST_KEYS))
+    if start_dt.weekday() in closed:
+        return TimingVerdict.CLOSED, "closed on this day of the week"
+
+    # 2) 운영시간
+    hours = _first(intro, _HOURS_KEYS)
+    if not hours:
+        return TimingVerdict.UNCERTAIN, "operating hours not provided"
+    low = hours.lower()
+    if any(k in low for k in _LODGING):
+        return TimingVerdict.UNCERTAIN, "only lodging hours available"
+    if any(k in low for k in _ALL_DAY):
+        return TimingVerdict.OPEN, "open 24 hours"
+    ranges = parse_time_ranges(hours)
+    if not ranges:
+        return TimingVerdict.UNCERTAIN, "operating hours not parseable"
+
+    caveat = _has_caveat(hours, len(ranges))
+    word_caveat = any(w in low for w in _CAVEAT_WORDS)
+    ws = start_dt.time()
+    we = _window_end_time(start_dt, end_dt)
+    overlap = any(s < we and e > ws for s, e in ranges)
+    last = parse_last_admission(hours)
+    too_late = last is not None and ws > last
+
+    if not caveat:
+        if not overlap:
+            return TimingVerdict.CLOSED, "closed during your time window"
+        if too_late:
+            return TimingVerdict.CLOSED, "after last admission"
+        return TimingVerdict.OPEN, "open during your time window"
+    # 계절·복수시설·문의 등 → 기본은 단정하지 않음(UNCERTAIN). 단, caveat 가 월/복수범위에서만
+    # 비롯했고(단어형 'vary/문의/계절' 없음) 파싱된 범위가 '전부' 창과 안 겹치면 CLOSED 로 둔다:
+    # 계절 변형은 날짜상 상호배타적이라 어느 시즌이든 닫힘 → 오탈락 위험 없이 Hard 제외가 안전
+    # (예: 22:10 창에 09:00-18:00/09:00-17:00 둘 다 마감). 단어형 caveat 는 숫자가 예시일 수
+    # 있어 그대로 보류한다.
+    if ranges and not overlap and not word_caveat:
+        return TimingVerdict.CLOSED, "closed during your time window (all listed hours)"
+    return TimingVerdict.UNCERTAIN, "operating hours need checking"
+
+
+# regex 로 UNCERTAIN(파싱불가/caveat) 이 된 자유텍스트만 LLM 파서로 재시도하기 위한 표식.
+_LLM_RETRY_REASONS = ("operating hours not parseable", "operating hours need checking")
+
+
+def operating_hours_text(intro: dict[str, Any]) -> str:
+    """운영시간 자유텍스트(타입별 필드 중 첫 값). 없으면 ''. (LLM 파서 입력용)"""
+    return _first(intro, _HOURS_KEYS)
+
+
+def should_retry_hours_with_llm(verdict: TimingVerdict, reason: str) -> bool:
+    """regex 가 '텍스트는 있으나 파싱 애매'로 UNCERTAIN 판정한 경우에만 LLM 재시도.
+    빈값('not provided')·숙박전용은 LLM으로도 못 얻으므로 제외."""
+    return verdict is TimingVerdict.UNCERTAIN and reason in _LLM_RETRY_REASONS
+
+
+def _hhmm(s: str | None) -> time | None:
+    m = re.fullmatch(r"\s*(\d{1,2}):(\d{2})\s*", s or "")
+    return _to_time(int(m.group(1)), int(m.group(2))) if m else None
+
+
+_MIN_WINDOW = timedelta(minutes=30)
+
+
+def shift_to_request_date(
+    start_at: datetime, end_at: datetime, request_date: str | None
+) -> tuple[datetime, datetime]:
+    """조회 날짜(cond.date, 'YYYY-MM-DD')가 오면 시각은 유지하고 날짜만 그 날로 이동한다(#2a).
+
+    두 시각을 같은 일수만큼 평행이동 → 창 길이·시작/종료 관계 보존. 과거 날짜·형식오류는 무시
+    (추정으로 바꾸지 않는다). 프론트가 이미 start_at 을 옮겨 보낸 경우엔 delta=0 이라 무변경.
+    """
+    if not request_date:
+        return start_at, end_at
+    try:
+        target = date.fromisoformat(request_date.strip())
+    except (ValueError, AttributeError):
+        return start_at, end_at
+    delta = (target - start_at.date()).days
+    if delta <= 0:  # 같은 날이거나 과거면 그대로(과거로 끌어가지 않음)
+        return start_at, end_at
+    return start_at + timedelta(days=delta), end_at + timedelta(days=delta)
+
+
+def resolve_prose_window(
+    start_at: datetime,
+    form_end_at: datetime,
+    start_time: str | None,
+    end_time: str | None,
+    duration_minutes: int | None,
+) -> tuple[datetime, datetime, str | None]:
+    """산문에 '명시된' 시작/종료 시각으로 가용창을 재구성한다(2026-10-15 Product — 챗 전체 창 반영).
+
+    effective_end_at 의 narrow-only(좁히기만)와 달리, 사용자가 프롬프트에 직접 밝힌 시각은 '사용자가
+    스스로 말한 시간'이라 폼/칩 기본값을 덮어쓴다(확장 허용). 이는 숫자 지어내기(불변식 #3)가 아니다 —
+    근거가 사용자 발화다. 명시된 bound 만 바꾸고 미명시 bound 는 그대로 둔다. 날짜는 start_at 의 날짜를
+    유지한다(조회 날짜는 이미 shift_to_request_date 로 반영됨).
+
+    - start_time 있으면 시작 시각 override. end_time 있으면 종료 override; 없고 duration 있으면
+      (새)시작+duration. 결과가 역전/30분 미만이면 적용하지 않고 폼 값 유지(지어내지 않음·추천 안 막음).
+    반환: (start, end, applied) — applied 는 trace 라벨('start'|'end'|'start+end'|'duration'|None).
+    """
+    s = _hhmm(start_time)
+    e = _hhmm(end_time)
+    has_duration = bool(duration_minutes and duration_minutes > 0)
+    if s is None and e is None and not has_duration:
+        return start_at, form_end_at, None
+    new_start = (
+        datetime.combine(start_at.date(), s, tzinfo=start_at.tzinfo) if s else start_at
+    )
+    if e is not None:
+        new_end = datetime.combine(new_start.date(), e, tzinfo=start_at.tzinfo)
+    elif has_duration:
+        new_end = new_start + timedelta(minutes=duration_minutes or 0)
+    else:
+        new_end = form_end_at
+    if new_end - new_start < _MIN_WINDOW:  # 역전·과소 → 지어내지 않고 폼 유지
+        return start_at, form_end_at, None
+    if new_start == start_at and new_end == form_end_at:
+        return start_at, form_end_at, None
+    if s is not None and e is not None:
+        applied = "start+end"
+    elif s is not None:
+        applied = "start"
+    elif e is not None:
+        applied = "end"
+    else:
+        applied = "duration"
+    return new_start, new_end, applied
+
+
+def judge_extracted_hours(
+    h: ExtractedHours, start_dt: datetime, end_dt: datetime
+) -> tuple[TimingVerdict, str]:
+    """LLM 추출값으로 재판정. **OPEN 승격만** — 확정 못하면 UNCERTAIN(기존 유지).
+    LLM 단독 Hard 제외(CLOSED)는 하지 않는다(보수적, 오추출 방어)."""
+    if not h.determinable:
+        return TimingVerdict.UNCERTAIN, "hours not determinable from text"
+    if h.always_open:
+        return TimingVerdict.OPEN, "open 24 hours (parsed)"
+    s = _hhmm(h.open_time)
+    e = _hhmm(h.close_time)
+    if not (s and e and e > s):
+        return TimingVerdict.UNCERTAIN, "hours not determinable from text"
+    ws = start_dt.time()
+    we = _window_end_time(start_dt, end_dt)
+    if not (s < we and e > ws):  # 안 겹쳐도 LLM 단독 CLOSED 안 함 → UNCERTAIN 유지
+        return TimingVerdict.UNCERTAIN, "parsed hours do not overlap"
+    last = _hhmm(h.last_admission)
+    if last is not None and ws > last:
+        return TimingVerdict.UNCERTAIN, "after last admission (parsed)"
+    return TimingVerdict.OPEN, "open during your time window (parsed)"

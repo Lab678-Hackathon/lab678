@@ -1,0 +1,342 @@
+"""Agentic while-loop 단위 테스트 (rollout 3). LLM·tool 실행은 모킹.
+
+검증: 다단계 tool 호출 → 코드 결과 보관 → 구조화 ChatResponse 렌더(§6.4), 멀티의도,
+필수사실 미비 clarify, max_steps·graceful. 실제 LLM/소스 호출 없음(결정론).
+"""
+
+from __future__ import annotations
+
+import asyncio
+from datetime import datetime
+
+from langchain_core.messages import AIMessage
+
+from app.agent import agent_loop as al
+from app.agent import orchestrator as orch
+from app.core.trace import Trace
+from app.models.chat import ChatContext, ChatKind
+from app.models.rag import RagAnswer
+from app.models.recommend import (
+    Candidate,
+    RecommendData,
+    ResultStatus,
+    StartLocation,
+)
+from app.models.route import RouteData
+
+
+class _FakeLLM:
+    """scripted AIMessage 들을 순서대로 돌려주는 가짜 LLM(bind_tools no-op)."""
+
+    def __init__(self, scripted):
+        self.scripted = scripted
+        self.i = 0
+
+    def bind_tools(self, tools):
+        return self
+
+    async def ainvoke(self, messages):
+        msg = self.scripted[min(self.i, len(self.scripted) - 1)]
+        self.i += 1
+        return msg
+
+
+def _patch_llm(monkeypatch, scripted):
+    fake = _FakeLLM(scripted)
+    monkeypatch.setattr(al, "ChatOpenAI", lambda **kw: fake)
+    return fake
+
+
+def _tool_call(name, args, cid="c1"):
+    return AIMessage(content="", tool_calls=[{"name": name, "args": args, "id": cid}])
+
+
+def _final(text):
+    return AIMessage(content=text)  # tool_calls 없음 → 루프 종료
+
+
+def _ctx():
+    return ChatContext(
+        start_location=StartLocation(label="Gwanghwamun", lat=37.57, lng=126.98),
+        start_at=datetime(2026, 10, 8, 13, 0),
+        end_at=datetime(2026, 10, 8, 18, 0),
+    )
+
+
+def _recdata(*titles):
+    return RecommendData(
+        candidates=[
+            Candidate(id=f"t-{i}", title=t, status=ResultStatus.FITS)
+            for i, t in enumerate(titles)
+        ]
+    )
+
+
+def _run(msg, context, history=None):
+    return asyncio.run(al.run_chat_loop(msg, context, Trace(), history=history))
+
+
+def test_faq_only(monkeypatch):
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("AnswerTravelQuestion", {"query": "subway?"}),
+            _final("Here you go."),
+        ],
+    )
+
+    async def fake_answer(q, trace):
+        return RagAnswer(answer="Use a T-money card.", grounded=True)
+
+    monkeypatch.setattr(al, "answer_knowledge", fake_answer)
+
+    resp = _run("how do i take the subway?", _ctx())
+    assert resp.kind is ChatKind.ANSWER
+    assert resp.answer.answer == "Use a T-money card."
+    assert resp.message == "Here you go."
+    assert resp.tool == "AnswerTravelQuestion"
+
+
+def test_recommend(monkeypatch):
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("RecommendExperiences", {"preferences": "traditional"}),
+            _final("A few ideas near you."),
+        ],
+    )
+
+    async def fake_rec(ctx, trace, saved=None, walks=None, open_prefs=None, **kw):
+        return _recdata("Gyeongbokgung", "Bukchon")
+
+    monkeypatch.setattr(orch, "recommend_a", fake_rec)
+
+    resp = _run("what can I do?", _ctx())
+    assert resp.kind is ChatKind.RECOMMENDATION
+    assert [c.title for c in resp.recommendation.candidates] == [
+        "Gyeongbokgung",
+        "Bukchon",
+    ]
+
+
+def test_multi_intent_recommendation_wins_and_both_tools(monkeypatch):
+    # 한 턴에 FAQ + 추천 두 tool → recommendation 우선 제시, 둘 다 tools_used.
+    _patch_llm(
+        monkeypatch,
+        [
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "AnswerTravelQuestion",
+                        "args": {"query": "subway?"},
+                        "id": "a",
+                    },
+                    {
+                        "name": "RecommendExperiences",
+                        "args": {"preferences": "indoor"},
+                        "id": "b",
+                    },
+                ],
+            ),
+            _final("Here's info and some ideas."),
+        ],
+    )
+
+    async def fake_answer(q, trace):
+        return RagAnswer(answer="T-money.", grounded=True)
+
+    async def fake_rec(ctx, trace, saved=None, walks=None, open_prefs=None, **kw):
+        return _recdata("Leeum Museum")
+
+    monkeypatch.setattr(al, "answer_knowledge", fake_answer)
+    monkeypatch.setattr(orch, "recommend_a", fake_rec)
+
+    resp = _run("subway? and what to do indoors?", _ctx())
+    assert resp.kind is ChatKind.RECOMMENDATION  # primary = route > rec > answer
+    assert "AnswerTravelQuestion" in resp.tool and "RecommendExperiences" in resp.tool
+    # 멀티의도: 추천 AND 답을 모두 실어야 한다(한쪽을 버리지 않음).
+    assert resp.recommendation is not None
+    assert resp.answer is not None and resp.answer.answer == "T-money."
+
+
+def test_missing_trip_context_clarifies(monkeypatch):
+    _patch_llm(
+        monkeypatch,
+        [_tool_call("RecommendExperiences", {"preferences": "art"}), _final("...")],
+    )
+    # context 없음 → recommend_a 호출 전에 clarify 로 단락
+    resp = _run("what can I do?", None)
+    assert resp.kind is ChatKind.CLARIFY
+    assert resp.message == al._CLARIFY_NEED_TRIP
+
+
+def test_no_tool_greeting_clarifies(monkeypatch):
+    _patch_llm(monkeypatch, [_final("Hi! What would you like to do in Seoul?")])
+    resp = _run("hello", _ctx())
+    assert resp.kind is ChatKind.CLARIFY
+    assert resp.message == "Hi! What would you like to do in Seoul?"
+
+
+def test_empty_message_clarifies():
+    resp = _run("   ", _ctx())
+    assert resp.kind is ChatKind.CLARIFY
+
+
+def test_max_steps_graceful(monkeypatch):
+    # LLM 이 계속 tool 만 부르면 상한 도달 → 지금까지 결과로 graceful 종료.
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("RecommendExperiences", {"preferences": "x"}, cid=f"c{i}")
+            for i in range(10)
+        ],
+    )
+
+    async def fake_rec(ctx, trace, saved=None, walks=None, open_prefs=None, **kw):
+        return _recdata("Place")
+
+    monkeypatch.setattr(orch, "recommend_a", fake_rec)
+    resp = _run("ideas", _ctx())
+    assert resp.kind is ChatKind.RECOMMENDATION  # best-so-far
+
+
+def test_llm_failure_graceful(monkeypatch):
+    class _BoomLLM:
+        def bind_tools(self, tools):
+            return self
+
+        async def ainvoke(self, messages):
+            raise RuntimeError("network")
+
+    monkeypatch.setattr(al, "ChatOpenAI", lambda **kw: _BoomLLM())
+    resp = _run("ideas", _ctx())
+    assert resp.kind is ChatKind.CLARIFY
+    assert resp.message == al._FALLBACK
+
+
+def test_empty_route_suppresses_llm_prose(monkeypatch):
+    # §6 환각 가드: 루트 tool 이 0건을 내면 LLM 의 자유 서술(공식데이터 밖 장소 추천)을
+    # 그대로 내보내지 않고 route.unmet 결정론 문구로 대체한다.
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("PlanCultureRoute", {"preferences": "palaces"}),
+            _final("I suggest starting at Gyeongbokgung Palace, then Bukchon Village!"),
+        ],
+    )
+    from app.agent import route_orchestrator as ro
+
+    async def empty_route(ctx, trace, *a, **kw):
+        return RouteData(routes=[], origin=None, unmet="No route from what's open now.")
+
+    monkeypatch.setattr(ro, "recommend_route", empty_route)
+    resp = _run("plan my evening", _ctx())
+    assert "Gyeongbokgung" not in (resp.message or "")  # 환각 서술 억제
+    assert resp.message == "No route from what's open now."
+
+
+def test_empty_route_without_unmet_uses_no_results(monkeypatch):
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("PlanCultureRoute", {"preferences": "palaces"}),
+            _final("Here's a lovely walking route for you! Enjoy."),
+        ],
+    )
+    from app.agent import route_orchestrator as ro
+
+    async def empty_route(ctx, trace, *a, **kw):
+        return RouteData(routes=[], origin=None)
+
+    monkeypatch.setattr(ro, "recommend_route", empty_route)
+    resp = _run("plan my evening", _ctx())
+    assert resp.message == al._NO_RESULTS
+    assert "lovely walking route" not in (resp.message or "")
+
+
+def test_prompt_window_overrides_short_form_window(monkeypatch):
+    # 폼/칩 기본 창이 짧아도(25분) 프롬프트가 1–5 PM 을 명시하면 '30분 미만'으로 거부되지 않고
+    # 루트 경로가 실행된다 — 검증이 프롬프트 창 반영 '후'에 돌기 때문(프롬프트 > 폼, §6 Request 우선).
+    # (실제 창 적용·available_minutes 산정은 orchestrator 가 하므로 여기선 호출 성사만 확인.)
+    from app.agent import route_orchestrator as ro
+    from app.models.recommend import ParsedConditions
+
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("PlanCultureRoute", {"when": "from 1pm to 5pm"}),
+            _final("Here's a route."),
+        ],
+    )
+
+    async def fake_parse(text, today=None):
+        return ParsedConditions(start_time="13:00", end_time="17:00")
+
+    captured: dict = {}
+
+    async def fake_route(ctx, trace, *a, **kw):
+        captured["called"] = True
+        return RouteData(routes=[], origin=None, unmet="x")
+
+    monkeypatch.setattr(al, "parse_note", fake_parse)
+    monkeypatch.setattr(ro, "recommend_route", fake_route)
+
+    short_form = ChatContext(
+        start_location=StartLocation(label="Gwanghwamun", lat=37.57, lng=126.98),
+        start_at=datetime(2026, 10, 8, 11, 35),
+        end_at=datetime(2026, 10, 8, 12, 0),  # 25분(<30) — 프롬프트 없으면 거부됐을 창
+    )
+    resp = _run("plan a cultural route from 1pm to 5pm", short_form)
+    # 30분 미만 clarify 가 아니라 실제 루트 경로가 실행됐어야 한다(검증이 프롬프트 창으로 통과).
+    assert "30 minutes" not in (resp.message or "")
+    assert captured.get("called") is True
+
+
+def test_fresh_request_with_origin_resets_accumulation(monkeypatch):
+    # 독립된 새 요청('starting at …')은 이전 대화와 합쳐지지 않고 '이 메시지'만 파싱된다 —
+    # 2번째 요청(Anguk)이 1번째(Gwanghwamun) 결과로 고정 렌더되는 버그 방지.
+    from app.agent import route_orchestrator as ro
+    from app.models.chat import ChatTurn
+    from app.models.recommend import ParsedConditions
+
+    _patch_llm(
+        monkeypatch,
+        [
+            _tool_call("PlanCultureRoute", {"when": "Oct 16 from 2pm to 10pm"}),
+            _final("Route from Anguk."),
+        ],
+    )
+
+    seen: dict = {}
+
+    async def fake_parse(text, today=None):
+        seen["text"] = text
+        return ParsedConditions()
+
+    captured: dict = {}
+
+    async def fake_route(ctx, trace, *a, **kw):
+        captured["origin"] = ctx.start_location.label
+        return RouteData(routes=[], origin=None, unmet="x")
+
+    monkeypatch.setattr(al, "parse_note", fake_parse)
+    monkeypatch.setattr(ro, "recommend_route", fake_route)
+
+    history = [
+        ChatTurn(
+            role="user",
+            content="create a route from 1pm to 5pm starting at Gwanghwamun",
+        ),
+        ChatTurn(role="assistant", content="Planned a route: A → B"),
+    ]
+    _run(
+        "create any cultural route for Oct 16 from 2pm to 10pm, starting at Anguk.",
+        _ctx(),
+        history=history,
+    )
+    # 현재 메시지만 파싱됐어야 한다(이전 Gwanghwamun 요청이 섞이지 않음).
+    assert "Gwanghwamun" not in seen["text"]
+    assert "Anguk" in seen["text"]
+    # origin 도 긴 지명 우선매칭(gwanghwamun>anguk)에 고정되지 않고 현재 메시지의 Anguk 로 해석.
+    assert captured["origin"].lower().startswith("anguk")
