@@ -34,17 +34,21 @@ lab678/
       engineering-loop.md
       examples/
         demo-users.sample.json
+        outing-request.json
+        seoul-events.capture.json
       hackathon-server-usage-review.md
       konnect-reuse-reading-guide.md
       loops/
         tooling-index.json
       mobility-routing-review.md
       mvp-plan.md
+      outing-handoff.md
       repo_index.md
       repo_reverse_index.md
       repo_tree.md
       reports/
         2026-10-31-demo-server-reuse.md
+        2026-10-31-events.md
         2026-10-31-mobility-review.md
         2026-10-31-mvp-plan.md
         2026-10-31-tooling-setup.md
