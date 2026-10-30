@@ -47,7 +47,9 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <p class="kicker">문화 · 서울</p><h1>오늘은 어디로<br>나들이 갈까요?</h1>
 <p>출발할 곳과 가능한 시간을 알려주세요.<br>지도에서 전시와 공연을 함께 살펴볼 수 있어요.</p>
 <svg viewBox="0 0 540 110" aria-hidden="true"><g fill="none" stroke="#b5d8d4" stroke-width="2"><path d="M0 24h540M0 82h540M72 0v110M205 0v110M335 0v110M468 0v110"/></g><path d="M60 82h110q28 0 28-25t28-25h104q30 0 30 23t28 23h80" fill="none" stroke="#007385" stroke-width="5" stroke-linecap="round" stroke-dasharray="9 8"/><g fill="#007385" stroke="white" stroke-width="4"><circle cx="60" cy="82" r="10"/><circle cx="270" cy="32" r="12"/><circle cx="468" cy="78" r="14"/></g></svg>
-<button class="primary" id="begin">나들이 찾기</button></section>
+<button class="primary" id="begin">나들이 찾기</button>
+<button id="course-example" disabled>전시 코스 예시 확인</button>
+<small>청량리역 · 10월 31일 10:00~19:00 · 전시당 30분</small></section>
 <form id="form" class="panel" hidden>
 <p class="kicker">01 · 나들이 조건</p><h2 id="input-title" tabindex="-1">언제, 어디서 출발하세요?</h2>
 <fieldset id="fields" disabled aria-labelledby="input-title">
@@ -77,7 +79,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <p id="status" role="status"></p>
 <section id="results" hidden><p class="kicker">02 · 나들이 후보</p><h2 id="result-title" tabindex="-1">지도에서 살펴보세요</h2>
 <div class="actions"><button id="back">조건 바꾸기</button></div>
-<section class="panel" id="course-result" hidden><h3>두 곳 문화코스</h3><p id="course-text" class="facts"></p>
+<section class="panel" id="course-result" hidden><h3>두 곳 문화코스</h3><p id="course-conditions"></p><p id="course-text" class="facts"></p>
 <small>도보 예상 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · 예약 가능 여부는 각 행사 상세에서 확인해 주세요.</small></section>
 <p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
 <div class="actions"><h3>추천 행사</h3><button id="prev" aria-label="이전 행사">이전</button><button id="next" aria-label="다음 행사">다음</button></div>
@@ -109,6 +111,8 @@ function displayCourse(course, data) {
   const panel = document.querySelector("#course-result");
   panel.hidden = !course;
   if (!course) return;
+  document.querySelector("#course-conditions").textContent = "적용한 조건 · " + data.label + " · " +
+    data.start.replace("T"," ") + "~" + data.end.slice(11) + " (한국 시각) · " + data.category + " · 전시당 " + data.stay + "분";
   const lines = [course.message];
   if (course.venues) lines.push(data.label + " → " + course.venues[0].trim() + " → " + course.venues[1].trim(),
     "출발지부터 도보 약 " + course.walk_minutes[0] + "분 · 행사 사이 약 " + course.walk_minutes[1] + "분");
@@ -148,6 +152,19 @@ async function init() {
   fields.end.value = request.end_at.slice(0,16);
   fields.category.value = request.category;
   fields.fields.disabled = false;
+  const example = document.querySelector("#course-example");
+  example.disabled = false;
+  example.onclick = () => {
+    document.querySelector("#begin").click();
+    fields.kind.value = "course";
+    fields.kind.onchange();
+    fields.start.value = "2026-10-31T10:00";
+    fields.end.value = "2026-10-31T19:00";
+    fields.stay.value = "30";
+    fields.category.value = "전시";
+    fields.mode.value = "live";
+    form.requestSubmit();
+  };
 }
 
 let map;

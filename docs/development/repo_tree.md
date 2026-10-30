@@ -59,6 +59,7 @@ lab678/
         2026-10-31-audible-card.md
         2026-10-31-chrome-gugak.md
         2026-10-31-chrome-speech.md
+        2026-10-31-course-demo-check.md
         2026-10-31-demo-server-reuse.md
         2026-10-31-events.md
         2026-10-31-konnect-preview.md

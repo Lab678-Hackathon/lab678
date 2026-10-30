@@ -54,7 +54,10 @@ def schedule_pair(events, seconds, start, end, stay):
         if not opening:
             missing.append(event["venue"] + " 운영·회차 시간")
         if (closing and cursor > closing) or cursor > end or begin >= end:
-            return dict(status="conflict", message=event["venue"] + " 관람이 운영시간 또는 나들이 종료시각을 넘겨요.")
+            limit = min(end, closing) if closing else end
+            label = "행사 운영 종료" if closing and closing < end else "나들이 종료"
+            return dict(status="conflict", message=f"{event['venue'].strip()} 관람 시간이 부족해요. "
+                        f"{label} {limit:%H:%M}까지이며 예상 도착은 {arrival:%H:%M}입니다.")
         stops.append(dict(id=event["id"], title=event["title"], walk_min=math.ceil(walk / 60),
                           arrive=arrival.strftime("%H:%M"), begin=begin.strftime("%H:%M"), finish=cursor.strftime("%H:%M")))
     if missing:

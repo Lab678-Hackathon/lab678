@@ -7,7 +7,7 @@
 | 심볼 | 정의 위치 | 개요 |
 |---|---|---|
 | `broken_links` | [utils/scripts/harness.py:49](../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
-| `build_course` | [backend/course.py:65](../backend/course.py#L65) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
+| `build_course` | [backend/course.py:68](../backend/course.py#L68) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
 | `check` | [utils/scripts/catalog.py:225](../utils/scripts/catalog.py#L225) | Return missing or stale generated indexes; tolerate Git line endings. |
 | `code_checks` | [utils/scripts/harness.py:20](../utils/scripts/harness.py#L20) | Parse Python statically and require module/function/class docstrings. |
 | `compact` | [utils/scripts/catalog.py:63](../utils/scripts/catalog.py#L63) | Return one short Markdown-safe line from a docstring. |

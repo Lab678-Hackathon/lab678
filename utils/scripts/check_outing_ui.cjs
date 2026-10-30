@@ -11,6 +11,11 @@ async function main() {
   try {
     const page = await browser.newPage({viewport: {width:390,height:844}});
     await page.goto("http://127.0.0.1:8765");
+    await page.getByRole("button",{name:"전시 코스 예시 확인"}).click();
+    await page.locator("#course-text").filter({hasText:"예상 일정입니다"}).waitFor();
+    assert.match(await page.locator("#course-conditions").textContent(), /청량리역.*10:00~19:00.*전시당 30분/);
+    assert.equal((await page.locator("#course-text").textContent()).match(/도착 ·/g)?.length, 2);
+    await page.reload();
     await page.getByRole("button",{name:"나들이 찾기"}).click();
     assert.equal(await page.locator("#coords").getAttribute("open"), null);
     const submit = page.getByRole("button",{name:"추천받기"});
@@ -35,7 +40,7 @@ async function main() {
     await page.locator('[name="category"]').selectOption("국악");
     await submit.click();
     await itinerary.filter({hasText:"이전 조건에서 가능했던 일정"}).waitFor();
-    assert.match(await itinerary.textContent(), /도착할 수 없어요|넘겨요/);
+    assert.match(await itinerary.textContent(), /도착할 수 없어요|관람 시간이 부족해요/);
     console.log("live 국악 코스:", (await itinerary.textContent()).split("\n")[0]);
     await page.getByRole("button",{name:"조건 바꾸기"}).click();
     await page.locator('[name="kind"]').selectOption("place");
