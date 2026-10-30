@@ -72,7 +72,10 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
 <div class="actions"><h3>추천 행사</h3><button id="prev" aria-label="이전 행사">이전</button><button id="next" aria-label="다음 행사">다음</button></div>
 <ol id="list" aria-label="추천 행사 카드"></ol><p id="selection" role="status"></p>
-<button type="button" id="read" disabled>선택한 행사 읽기</button><p id="read-status" role="status"></p></section>
+<button type="button" id="read" disabled>선택한 행사 읽기</button>
+<button type="button" id="file-read" disabled>음성 파일로 듣기</button>
+<audio id="player" controls hidden aria-label="선택한 행사의 한국어 음성" style="width:100%;margin-top:10px"></audio>
+<p id="read-status" role="status"></p></section>
 <footer><small>문화정보 제공 · 서울특별시 서울문화포털</small></footer></main>
 <script>
 const form = document.querySelector("#form");
@@ -123,6 +126,7 @@ function selectEvent(item) {
   const card = [...list.children].find(entry => entry.dataset.id === item.id);
   readButton.dataset.text = card.querySelector("strong").textContent + ". " + card.querySelector("p").textContent;
   readButton.disabled = !window.speechSynthesis;
+  fileRead.disabled = false;
   for (const card of list.children) card.setAttribute("aria-current", String(card.dataset.id === item.id));
   card.scrollIntoView({block:"nearest", inline:"center"});
   prev.disabled = item === latestCandidates[0];
@@ -192,6 +196,9 @@ function showCard(item) {
 
 const voiceStatus = document.querySelector("#voice-status");
 const readButton = document.querySelector("#read");
+const fileRead = document.querySelector("#file-read");
+const player = document.querySelector("#player");
+let audioVersion = 0;
 const readStatus = document.querySelector("#read-status");
 const listenButton = document.querySelector("#listen");
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -200,10 +207,16 @@ let speaking;
 
 /** 현재 음성 재생을 중지하고 이전 카드의 읽기 상태를 지운다. */
 function stopReading() {
+  audioVersion++;
+  player.pause();
+  if (player.hasAttribute("src")) {
+    URL.revokeObjectURL(player.src); player.removeAttribute("src"); player.load();
+  }
+  player.hidden = true; fileRead.disabled = true;
   speaking = null;
   window.speechSynthesis?.cancel();
   readButton.textContent = "선택한 행사 읽기";
-  readStatus.textContent = window.speechSynthesis ? "" : "읽기 미지원 · 화면의 글을 확인해 주세요.";
+  readStatus.textContent = window.speechSynthesis ? "" : "브라우저 읽기 미지원 · 음성 파일로 들을 수 있어요.";
   readButton.disabled = true;
 }
 
@@ -259,10 +272,10 @@ function readSelection() {
   const synth = window.speechSynthesis;
   if (!synth || !readButton.dataset.text) return;
   if (speaking) {
-    stopReading(); readButton.disabled = false;
+    stopReading(); readButton.disabled = false; fileRead.disabled = false;
     readStatus.textContent = "읽기를 멈췄어요."; return;
   }
-  synth.cancel();
+  stopReading(); readButton.disabled = false; fileRead.disabled = false;
   const utterance = new SpeechSynthesisUtterance(readButton.dataset.text);
   speaking = utterance;
   utterance.lang = "ko-KR";
@@ -270,8 +283,8 @@ function readSelection() {
     if (speaking !== utterance) return;
     speaking = null; readButton.textContent = "선택한 행사 읽기"; readStatus.textContent = message;
   };
-  utterance.onend = () => finish("읽기 종료");
-  utterance.onerror = () => finish("읽기 실패 · 화면의 글을 확인해 주세요.");
+  utterance.onend = () => finish("읽기 종료 · 소리가 없었으면 ‘음성 파일로 듣기’를 눌러 주세요.");
+  utterance.onerror = () => finish("브라우저 읽기 실패 · ‘음성 파일로 듣기’를 눌러 주세요.");
   readButton.textContent = "읽기 멈추기";
   readStatus.textContent = "한국어 읽기 요청";
   synth.speak(utterance);
@@ -280,6 +293,26 @@ function readSelection() {
 listenButton.onclick = listen;
 document.querySelector("#apply-note").onclick = applyNote;
 readButton.onclick = readSelection;
+
+/** 선택 시점의 문장으로 WAV를 받아 재생하고 선택 변경 뒤 도착한 응답은 버린다. */
+fileRead.onclick = async () => {
+  stopReading();
+  const version = audioVersion;
+  readButton.disabled = !window.speechSynthesis;
+  readStatus.textContent = "한국어 음성을 준비하고 있어요.";
+  try {
+    const response = await fetch("/preview/voice", {method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text:readButton.dataset.text})});
+    if (!response.ok) throw new Error("한국어 음성을 준비하지 못했습니다.");
+    const blob = await response.blob();
+    if (audioVersion !== version) return;
+    player.src = URL.createObjectURL(blob); player.hidden = false;
+    readStatus.textContent = "플레이어에서 재생·일시정지와 음량을 조절할 수 있어요.";
+    try { await player.play(); }
+    catch { if (version === audioVersion) readStatus.textContent = "플레이어의 재생 버튼을 눌러 주세요."; }
+  } catch { if (version === audioVersion) readStatus.textContent = "한국어 음성 파일을 만들지 못했습니다."; }
+  finally { if (version === audioVersion) fileRead.disabled = false; }
+};
 
 /** 입력을 유지하면서 재조회하고 시도별 결과·실패를 구분한다. */
 async function search(event) {

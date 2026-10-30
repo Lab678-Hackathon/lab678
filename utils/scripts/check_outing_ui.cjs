@@ -102,6 +102,20 @@ async function main() {
     assert.equal(await page.evaluate(() => window.lastSpokenText), expected);
     await page.getByRole("button",{name:"읽기 멈추기"}).click();
     await page.getByText("읽기를 멈췄어요.").waitFor();
+    if (process.platform === "win32") {
+      await page.getByRole("button",{name:"음성 파일로 듣기"}).click();
+      const player = page.locator("#player");
+      await player.waitFor();
+      await page.waitForFunction(() => document.querySelector("#player").currentTime > 0.15);
+      const seconds = await player.evaluate(async el => {
+        const bytes = await (await fetch(el.src)).arrayBuffer();
+        const context = new OfflineAudioContext(1, 1, 24000);
+        const wave = await context.decodeAudioData(bytes);
+        return wave.getChannelData(0).some(sample => Math.abs(sample) > 0.01) ? wave.duration : 0;
+      });
+      assert.ok(seconds > 1);
+      console.log("Korean card WAV, decoded non-silent seconds:", seconds.toFixed(1));
+    }
     await page.getByRole("button",{name:"조건 바꾸기"}).click();
     assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
     console.log("PASS recorded/live, map sync/fallback, provider failure, simulated transcript/edit/permission/TTS, retained note");

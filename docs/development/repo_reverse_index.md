@@ -4,7 +4,7 @@
 
 ## 기능 → 파일
 
-- **문화행사 추천·점검 화면**: [backend/outing.py](../../backend/outing.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [backend/test_outing.py](../../backend/test_outing.py), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
+- **문화행사 추천·점검 화면**: [backend/outing.py](../../backend/outing.py), [backend/local_voice.py](../../backend/local_voice.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [backend/test_outing.py](../../backend/test_outing.py), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **문화외출 MVP 실행계획·시연 검증**: [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md), [docs/development/tasks.md](../../docs/development/tasks.md)
 - **작업 재개·대화 압축**: [docs/development/current-state.md](../../docs/development/current-state.md), [utils/scripts/context.py](../../utils/scripts/context.py)
 - **자동 색인·코드 재사용**: [utils/scripts/catalog.py](../../utils/scripts/catalog.py), [utils/scripts/watch.py](../../utils/scripts/watch.py), [utils/index.md](../../utils/index.md)
@@ -53,10 +53,10 @@
 | `OutingTests.test_end_boundary` | [backend/test_outing.py:27](../../backend/test_outing.py#L27) | 전시 종료 시각에 도착하는 입력은 단순 운영구간에서 제외한다. |
 | `OutingTests.test_recording_scope` | [backend/test_outing.py:48](../../backend/test_outing.py#L48) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
-| `Preview` | [backend/preview.py:10](../../backend/preview.py#L10) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
-| `Preview.do_GET` | [backend/preview.py:24](../../backend/preview.py#L24) | 점검 폼과 저장소의 대표 요청만 제공한다. |
-| `Preview.do_POST` | [backend/preview.py:33](../../backend/preview.py#L33) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
-| `Preview.reply` | [backend/preview.py:13](../../backend/preview.py#L13) | UTF-8 본문을 길이와 함께 응답한다. |
+| `Preview` | [backend/preview.py:11](../../backend/preview.py#L11) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
+| `Preview.do_GET` | [backend/preview.py:25](../../backend/preview.py#L25) | 점검 폼과 저장소의 대표 요청만 제공한다. |
+| `Preview.do_POST` | [backend/preview.py:34](../../backend/preview.py#L34) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.reply` | [backend/preview.py:14](../../backend/preview.py#L14) | UTF-8 본문을 길이와 함께 응답한다. |
 | `recommend` | [backend/outing.py:95](../../backend/outing.py#L95) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
 | `record` | [utils/scripts/loop.py:21](../../utils/scripts/loop.py#L21) | Append one evidenced attempt, rejecting terminal states and blind repeats. |
 | `refresh` | [utils/scripts/watch.py:30](../../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
@@ -64,6 +64,7 @@
 | `render` | [utils/scripts/context.py:22](../../utils/scripts/context.py#L22) | Render bounded, human-curated lists while preserving their decision status. |
 | `render_repo` | [utils/scripts/catalog.py:156](../../utils/scripts/catalog.py#L156) | Index every eligible file plus code symbols, features and directory layout. |
 | `render_utils` | [utils/scripts/catalog.py:118](../../utils/scripts/catalog.py#L118) | Render stable forward and reverse indexes with repository-relative links. |
+| `render_wave` | [backend/local_voice.py:25](../../backend/local_voice.py#L25) | 문자열을 표준 입력으로 전달해 메모리에서 합성하고, 실패·과부하 때 예외를 반환한다. |
 | `repo_files` | [utils/scripts/catalog.py:46](../../utils/scripts/catalog.py#L46) | Inventory repository files, including untracked work, without reading secrets. |
 | `review_text` | [utils/scripts/read_pdf.py:18](../../utils/scripts/read_pdf.py#L18) | Mask credential-related lines and two following lines before console output. |
 | `run` | [utils/scripts/harness.py:63](../../utils/scripts/harness.py#L63) | Execute finite static checks and optional isolated utility tests. |

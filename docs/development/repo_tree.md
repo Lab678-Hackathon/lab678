@@ -19,6 +19,7 @@ lab678/
   backend/
     AGENTS.md
     README.md
+    local_voice.py
     outing.py
     preview.html
     preview.py
@@ -52,6 +53,7 @@ lab678/
       repo_reverse_index.md
       repo_tree.md
       reports/
+        2026-10-31-audible-card.md
         2026-10-31-demo-server-reuse.md
         2026-10-31-events.md
         2026-10-31-konnect-preview.md

@@ -5,6 +5,7 @@ from pathlib import Path
 from urllib.error import URLError
 
 from outing import EXAMPLES, recommend
+from local_voice import render_wave
 
 
 class Preview(BaseHTTPRequestHandler):
@@ -15,7 +16,7 @@ class Preview(BaseHTTPRequestHandler):
         if content_type == "application/json":
             body = json.dumps(body, ensure_ascii=False).encode()
         self.send_response(status)
-        self.send_header("Content-Type", content_type + "; charset=utf-8")
+        self.send_header("Content-Type", content_type if content_type.startswith("audio/") else content_type + "; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
@@ -32,7 +33,7 @@ class Preview(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다."""
-        if self.path != "/preview/recommend":
+        if self.path not in {"/preview/recommend", "/preview/voice"}:
             self.send_error(404)
             return
         if self.headers.get_content_type() != "application/json":
@@ -45,6 +46,16 @@ class Preview(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("요청 형식을 확인해 주세요.")
+            if self.path == "/preview/voice":
+                try:
+                    audio = render_wave(data.get("text"))
+                except ValueError as exc:
+                    self.reply(400, dict(message=str(exc)))
+                except RuntimeError:
+                    self.reply(503, dict(message="이 PC에서 한국어 음성 파일을 만들지 못했습니다."))
+                else:
+                    self.reply(200, audio, "audio/wav")
+                return
             result = recommend(data, data.get("mode", "live"))
         except (ValueError, TypeError, KeyError):
             self.reply(400, dict(status="need_input", message="출발 좌표·분류·당일 시간 범위 또는 재생 가능한 기록을 확인해 주세요."))
