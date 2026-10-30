@@ -4,37 +4,76 @@
 <title>LAB678 나들이 찾기 · 개발 점검</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
 <style>
-#map {height: 260px}
-#list li {padding: .6rem}
-#list li[aria-current="true"] {outline: 3px solid #174d8c}
-.event-pin {background: white; border: 2px solid #174d8c; border-radius: 50%; text-align:center; color: #173854; font: bold 16px/26px sans-serif}
-.event-pin.active {background: #174d8c; color: white}
+:root {--teal:#007385; --ink:#17363b; --sub:#4e666a; --line:#d2e0df; --wash:#e3f1f3}
+* {box-sizing:border-box}
+body {margin:0; color:var(--ink); background:#f4f6f7; font:17px/1.55 system-ui,"Malgun Gothic",sans-serif}
+body {word-break:keep-all; overflow-wrap:anywhere}
+main {width:min(100%,780px); margin:auto; padding:0 clamp(14px,4vw,34px) 32px}
+header {display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--line)}
+.brand {font-weight:800; letter-spacing:.08em}.brand b {color:var(--teal)}
+header small,.muted {color:var(--sub)}
+h1,h2,h3,p {margin:0 0 .65em} h1,h2,h3 {line-height:1.3; text-wrap:balance}
+h1 {font-size:clamp(30px,5vw,44px)} h2 {font-size:26px} h3 {font-size:21px}
+.panel,#list li {background:white; border:1px solid var(--line); border-radius:18px; padding:clamp(16px,3vw,26px)}
+.panel,#results {margin-top:18px}
+#home {overflow:hidden; background:linear-gradient(150deg,#fff 40%,#dcefee); padding:clamp(24px,6vw,50px)}
+.kicker {font-size:15px; font-weight:700; color:#216673; letter-spacing:.04em}
+#home svg {display:block; width:100%; height:115px; margin:18px 0}
+button,input,select {font:inherit; min-height:46px; border-radius:12px; max-width:100%}
+button,summary {cursor:pointer} button {padding:8px 16px; background:white; border:1px solid #88a7a9; color:var(--ink); font-weight:650}
+button:disabled {opacity:.55; cursor:default}.primary {background:var(--teal); color:white; border:0; width:100%}
+:focus-visible {outline:3px solid #aa5100; outline-offset:2px}
+fieldset {border:0; margin:0; padding:0; min-width:0}
+.group {margin:20px 0; padding-top:16px; border-top:1px solid var(--line)}
+label {display:block; font-weight:650} input,select {display:block; width:100%; margin-top:3px; padding:8px; min-width:0; border:1px solid #849d9f; background:white; color:var(--ink)}
+.grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr)); gap:12px}
+.actions {display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-block:10px}
+summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:16px}
+[role=status]:empty {display:none}
+#status:not(:empty),#voice-status:not(:empty) {padding:10px 14px; margin-top:12px; background:var(--wash); border-radius:10px}
+#map {height:clamp(220px,35vh,340px); border-radius:16px}
+#list {display:flex; gap:12px; padding:5px 5px 15px; overflow-x:auto; scroll-snap-type:x mandatory; margin:0; list-style:none}
+#list li {flex:0 0 min(88%,365px); scroll-snap-align:start; overflow-wrap:anywhere}
+#list li[aria-current=true] {outline:3px solid var(--teal); outline-offset:-3px}
+.badge {display:inline-block; font-size:15px; font-weight:700; color:#47525c; background:#f1f3f5; padding:4px 10px; border-radius:14px; margin-bottom:12px}
+#list strong {display:block; font-size:20px; line-height:1.4}
+.facts {white-space:pre-line; margin:10px 0}
+.event-pin {background:white; border:2px solid var(--teal); border-radius:50%; text-align:center; color:var(--ink); font:bold 16px/24px sans-serif}
+.event-pin.active {background:var(--teal); color:white}
 </style>
-<h1>나들이 찾기</h1>
-<p>개발 점검 화면 · 출처 서울특별시 서울문화포털</p>
-<form id="form">
-<fieldset id="fields" disabled><legend>출발 조건</legend>
-<p><label>출발지 이름 <input name="label" required></label>
+<main>
+<header><span class="brand">LAB<b>678</b></span><small>서울 문화나들이</small></header>
+<section id="home" class="panel">
+<p class="kicker">문화 · 서울</p><h1>오늘은 어디로<br>나들이 갈까요?</h1>
+<p>출발할 곳과 가능한 시간을 알려주세요.<br>지도에서 전시와 공연을 함께 살펴볼 수 있어요.</p>
+<svg viewBox="0 0 540 110" aria-hidden="true"><g fill="none" stroke="#b5d8d4" stroke-width="2"><path d="M0 24h540M0 82h540M72 0v110M205 0v110M335 0v110M468 0v110"/></g><path d="M60 82h110q28 0 28-25t28-25h104q30 0 30 23t28 23h80" fill="none" stroke="#007385" stroke-width="5" stroke-linecap="round" stroke-dasharray="9 8"/><g fill="#007385" stroke="white" stroke-width="4"><circle cx="60" cy="82" r="10"/><circle cx="270" cy="32" r="12"/><circle cx="468" cy="78" r="14"/></g></svg>
+<button class="primary" id="begin">나들이 찾기</button></section>
+<form id="form" class="panel" hidden>
+<p class="kicker">01 · 나들이 조건</p><h2 id="input-title" tabindex="-1">언제, 어디서 출발하세요?</h2>
+<fieldset id="fields" disabled aria-labelledby="input-title">
+<div class="group"><label>출발지 <input name="label" required></label>
+<div class="actions"><button type="button" id="locate">현재 위치 사용</button><span id="location-status" role="status"></span></div>
+<details id="coords"><summary>출발 좌표 확인·수정</summary><div class="grid">
 <label>위도 <input name="lat" type="number" step="any" min="-90" max="90" required></label>
-<label>경도 <input name="lng" type="number" step="any" min="-180" max="180" required></label></p>
-<p>입력 좌표에서 가까운 순으로 검색합니다. 출발지를 바꾸면 좌표도 확인해 주세요.
-기본 위치 <a href="https://www.openstreetmap.org/node/3436803670">© OpenStreetMap contributors</a></p>
-<p><label>시작(한국 시각) <input name="start" type="datetime-local" required></label>
-<label>종료 <input name="end" type="datetime-local" required></label></p>
-<label>분류 <select name="category"><option>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label>
-<label>조회 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label>
-<p><label>추가 요청 메모 <input name="note" aria-describedby="voice-help"></label>
-<button type="button" id="listen">한 번 말하기</button>
-<button type="button" id="apply-note">분류 반영</button></p>
-<p id="voice-help">한국어 음성 또는 글로 입력하세요. 브라우저 음성 인식 서비스를 사용합니다.
-메모에서 분류 하나만 반영할 수 있습니다. 위치와 시간은 위 입력란에서 확인해 주세요.</p>
-<p id="voice-status" role="status"></p>
-<button>추천받기</button></fieldset></form>
+<label>경도 <input name="lng" type="number" step="any" min="-180" max="180" required></label></div>
+<small>기본 위치 <a href="https://www.openstreetmap.org/node/3436803670">청량리역 · © OpenStreetMap contributors</a></small></details></div>
+<div class="grid"><label>출발 시각 <input name="start" type="datetime-local" required></label>
+<label>종료 시각 <input name="end" type="datetime-local" required></label></div><small>한국 시각 기준</small>
+<div class="group"><label>어떤 활동을 찾으세요? <select name="category"><option>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label></div>
+<div class="group"><label>더 원하는 게 있으세요? <input name="note" placeholder="예: 전시를 보고 싶어요" aria-describedby="voice-help"></label>
+<div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
+<p class="muted" id="voice-help">한국어로 말하거나 글로 적어 주세요. 원하는 분류 하나를 반영할 수 있어요.</p>
+<p id="voice-status" role="status"></p></div>
+<div class="group"><label>문화정보 조회 방식 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label></div>
+<button class="primary">추천받기</button></fieldset></form>
 <p id="status" role="status"></p>
-<section id="results" hidden><button id="back">조건 바꾸기</button>
+<section id="results" hidden><p class="kicker">02 · 나들이 후보</p><h2 id="result-title" tabindex="-1">지도에서 살펴보세요</h2>
+<div class="actions"><button id="back">조건 바꾸기</button></div>
 <p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
-<p id="selection" role="status"></p><button type="button" id="read" disabled>선택한 행사 읽기</button>
-<p id="read-status" role="status"></p><ol id="list"></ol></section>
+<div class="actions"><h3>추천 행사</h3><button id="prev" aria-label="이전 행사">이전</button><button id="next" aria-label="다음 행사">다음</button></div>
+<ol id="list" aria-label="추천 행사 카드"></ol><p id="selection" role="status"></p>
+<button type="button" id="read" disabled>선택한 행사 읽기</button><p id="read-status" role="status"></p></section>
+<footer><small>문화정보 제공 · 서울특별시 서울문화포털</small></footer></main>
 <script>
 const form = document.querySelector("#form");
 const fields = form.elements;
@@ -42,6 +81,22 @@ const statusText = document.querySelector("#status");
 const results = document.querySelector("#results");
 const list = document.querySelector("#list");
 const selection = document.querySelector("#selection");
+const prev = document.querySelector("#prev");
+const next = document.querySelector("#next");
+document.querySelector("#begin").onclick = () => {
+  document.querySelector("#home").hidden = true;
+  form.hidden = false;
+  document.querySelector("#input-title").focus();
+};
+
+/** 현재 선택을 기준으로 이웃한 카드와 번호 핀을 함께 이동한다. */
+function stepCard(direction) {
+  const current = latestCandidates.findIndex(item => item.id === selection.dataset.id);
+  const item = latestCandidates[Math.max(0, current) + direction];
+  if (item) selectEvent(item);
+}
+prev.onclick = () => stepCard(-1);
+next.onclick = () => stepCard(1);
 
 /** 저장된 대표 입력으로 폼을 초기화한다. */
 async function init() {
@@ -69,6 +124,9 @@ function selectEvent(item) {
   readButton.dataset.text = card.querySelector("strong").textContent + ". " + card.querySelector("p").textContent;
   readButton.disabled = !window.speechSynthesis;
   for (const card of list.children) card.setAttribute("aria-current", String(card.dataset.id === item.id));
+  card.scrollIntoView({block:"nearest", inline:"center"});
+  prev.disabled = item === latestCandidates[0];
+  next.disabled = item === latestCandidates.at(-1);
   for (const [id, marker] of markers) marker.getElement()?.classList.toggle("active", id === item.id);
   const marker = markers.get(item.id);
   if (marker) map.panTo(marker.getLatLng(), {animate:false});
@@ -97,7 +155,7 @@ function drawMap() {
     const number = latestCandidates.indexOf(item) + 1;
     const icon = L.divIcon({className:"event-pin",html:String(number),iconSize:[26,26]});
     const marker = L.marker([item.lat,item.lng],{icon,title:item.title,alt:item.title}).addTo(markerGroup);
-    marker.on("click", () => { selectEvent(item); list.querySelector('[aria-current="true"]').scrollIntoView({block:"nearest"}); });
+    marker.on("click", () => selectEvent(item));
     marker.getElement().classList.toggle("active", selection.dataset.id === item.id);
     markers.set(item.id, marker);
   }
@@ -109,10 +167,17 @@ function showCard(item) {
   li.dataset.id = item.id;
   const title = document.createElement("strong");
   title.textContent = item.title;
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = (list.children.length + 1) + "번 · 추가 확인 필요";
   const detail = document.createElement("p");
+  detail.className = "facts";
   const distance = item.distance_km === null ? "위치 확인 필요" : "직선 " + item.distance_km + " km";
-  detail.textContent = [item.venue, distance, item.opening_info || "시간 미확인", item.fee_type || "요금 분류 미확인",
-    item.price_info || "상세 요금 미확인", item.audience || "이용 대상 확인 필요", ...item.checks_required].join(" · ");
+  detail.textContent = [
+    item.venue + " · " + distance, "운영  " + (item.opening_info || "시간 미확인"),
+    "요금  " + (item.fee_type || "분류 미확인") + " · " + (item.price_info || "상세 요금 미확인"),
+    "대상  " + (item.audience || "확인 필요"), ...item.checks_required
+  ].join("\n");
   const source = document.createElement("a");
   source.href = item.official_url;
   source.textContent = "서울문화포털 상세";
@@ -121,7 +186,7 @@ function showCard(item) {
   const select = document.createElement("button");
   select.textContent = "이 행사 선택";
   select.onclick = () => selectEvent(item);
-  li.append(title, detail, select, " ", source);
+  li.append(badge, title, detail, select, " ", source);
   list.append(li);
 }
 
@@ -137,6 +202,7 @@ let speaking;
 function stopReading() {
   speaking = null;
   window.speechSynthesis?.cancel();
+  readButton.textContent = "선택한 행사 읽기";
   readStatus.textContent = window.speechSynthesis ? "" : "읽기 미지원 · 화면의 글을 확인해 주세요.";
   readButton.disabled = true;
 }
@@ -192,12 +258,21 @@ function applyNote() {
 function readSelection() {
   const synth = window.speechSynthesis;
   if (!synth || !readButton.dataset.text) return;
+  if (speaking) {
+    stopReading(); readButton.disabled = false;
+    readStatus.textContent = "읽기를 멈췄어요."; return;
+  }
   synth.cancel();
   const utterance = new SpeechSynthesisUtterance(readButton.dataset.text);
   speaking = utterance;
   utterance.lang = "ko-KR";
-  utterance.onend = () => { if (speaking === utterance) readStatus.textContent = "읽기 종료"; };
-  utterance.onerror = () => { if (speaking === utterance) readStatus.textContent = "읽기 실패 · 화면의 글을 확인해 주세요."; };
+  const finish = message => {
+    if (speaking !== utterance) return;
+    speaking = null; readButton.textContent = "선택한 행사 읽기"; readStatus.textContent = message;
+  };
+  utterance.onend = () => finish("읽기 종료");
+  utterance.onerror = () => finish("읽기 실패 · 화면의 글을 확인해 주세요.");
+  readButton.textContent = "읽기 멈추기";
   readStatus.textContent = "한국어 읽기 요청";
   synth.speak(utterance);
 }
@@ -225,18 +300,49 @@ async function search(event) {
     if (!response.ok) throw new Error(body.message);
     form.hidden = true;
     results.hidden = false;
-    const scope = (body.mode === "live" ? "실시간" : "기록 재생") + " · 서울시 검색 " + body.source_total +
-      "건 중 조회 " + body.searched_count + "건 · 확인 " + body.source_checked_at;
+    const checked = new Date(body.source_checked_at).toLocaleString("ko-KR", {
+      timeZone:"Asia/Seoul", month:"long", day:"numeric", hour:"2-digit", minute:"2-digit"
+    });
+    const scope = (body.mode === "live" ? "실시간" : "기록 재생") + " · " + checked +
+      " 기준 · 서울시 검색 " + body.source_total + "건 중 " + body.searched_count + "건 조회";
     statusText.textContent = scope + (body.status === "no_results" ? " · 조회 범위에서 맞는 행사가 없습니다." : " · 후보 " + body.candidates.length + "건");
     body.candidates.forEach(showCard);
     latestCandidates = body.candidates;
+    prev.disabled = true;
+    next.disabled = latestCandidates.length < 2;
     drawMap();
+    document.querySelector("#result-title").focus();
   } catch (error) { statusText.textContent = error.message || "조회 실패"; }
   finally { fields.fields.disabled = false; }
 }
 
 form.onsubmit = search;
-fields.label.oninput = () => { fields.lat.value = ""; fields.lng.value = ""; };
+const coords = document.querySelector("#coords");
+const locationStatus = document.querySelector("#location-status");
+let locationVersion = 0;
+fields.label.oninput = () => {
+  locationVersion++;
+  fields.lat.value = ""; fields.lng.value = ""; coords.open = true;
+  locationStatus.textContent = "새 출발지의 좌표를 입력하거나 현재 위치를 사용해 주세요.";
+};
+coords.oninput = () => { locationVersion++; locationStatus.textContent = ""; };
+form.addEventListener("invalid", e => { if (coords.contains(e.target)) coords.open = true; }, true);
+/** 사용자가 요청한 기기 위치만 적용하고 이후에 수정한 값은 보존한다. */
+document.querySelector("#locate").onclick = () => {
+  const version = ++locationVersion;
+  if (!navigator.geolocation) {
+    coords.open = true; locationStatus.textContent = "현재 위치 미지원 · 좌표를 직접 입력해 주세요."; return;
+  }
+  locationStatus.textContent = "현재 위치를 확인하고 있어요.";
+  navigator.geolocation.getCurrentPosition(position => {
+    if (version !== locationVersion || form.hidden) return;
+    fields.label.value = "현재 위치"; fields.lat.value = position.coords.latitude; fields.lng.value = position.coords.longitude;
+    locationStatus.textContent = "현재 위치를 반영했어요.";
+  }, () => {
+    if (version !== locationVersion || form.hidden) return;
+    locationStatus.textContent = "위치를 확인하지 못했어요. 기존 출발지로 계속하거나 좌표를 수정해 주세요.";
+  }, {timeout:8000});
+};
 document.querySelector("#back").onclick = () => {
   stopReading(); results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
 };

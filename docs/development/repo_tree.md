@@ -54,6 +54,7 @@ lab678/
       reports/
         2026-10-31-demo-server-reuse.md
         2026-10-31-events.md
+        2026-10-31-konnect-preview.md
         2026-10-31-mobility-review.md
         2026-10-31-mvp-plan.md
         2026-10-31-preview-map.md
