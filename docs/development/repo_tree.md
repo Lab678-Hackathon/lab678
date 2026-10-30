@@ -19,10 +19,12 @@ lab678/
   backend/
     AGENTS.md
     README.md
+    course.py
     local_voice.py
     outing.py
     preview.html
     preview.py
+    test_course.py
     test_outing.py
     walking.py
   design/
@@ -71,6 +73,7 @@ lab678/
         2026-10-31-speech-trace.md
         2026-10-31-spoken-category.md
         2026-10-31-tooling-setup.md
+        2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
       state.json

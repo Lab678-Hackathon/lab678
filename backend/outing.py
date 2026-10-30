@@ -27,7 +27,7 @@ def validate(data):
     origin = data.get("start_location")
     if not isinstance(origin, dict) or not isinstance(origin.get("label"), str) or not origin["label"].strip():
         raise ValueError("출발지를 입력해 주세요.")
-    if data.get("request_kind") != "place" or data.get("category") not in CATEGORIES:
+    if data.get("request_kind") not in ("place", "course") or data.get("category") not in CATEGORIES:
         raise ValueError("장소 찾기와 지원하는 분류를 선택해 주세요.")
     start, end = (datetime.fromisoformat(data[key]) for key in ("start_at", "end_at"))
     if not start.tzinfo or not end.tzinfo:
@@ -133,7 +133,7 @@ def recommend(data, mode="live"):
                                fixed_start_at=(start.date().isoformat() + "T" + row["PRO_TIME"].strip().zfill(5) + ":00+09:00"
                                                if match is True and genres <= {"국악", "콘서트", "클래식", "연극"}
                                                else None),
-                               opening_info=row.get("PRO_TIME") or None, price_info=row.get("USE_FEE") or None,
+                               genre=row["CODENAME"], opening_info=row.get("PRO_TIME") or None, price_info=row.get("USE_FEE") or None,
                                fee_type=row.get("IS_FREE") or None, audience=row.get("USE_TRGT") or None,
                                status="check", checks_required=checks, source_checked_at=checked))
     candidates.sort(key=lambda item: (item["distance_km"] is None, item["distance_km"], item["id"]))

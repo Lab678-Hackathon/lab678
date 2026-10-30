@@ -51,6 +51,10 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <form id="form" class="panel" hidden>
 <p class="kicker">01 · 나들이 조건</p><h2 id="input-title" tabindex="-1">언제, 어디서 출발하세요?</h2>
 <fieldset id="fields" disabled aria-labelledby="input-title">
+<label>무엇을 추천받을까요? <select name="kind"><option value="place">행사 찾기</option><option value="course">두 곳 문화코스</option></select></label>
+<div class="group" id="course-fields" hidden><label>전시 한 곳에서 머물 시간(분)
+<input name="stay" type="number" min="1" max="240" step="1" value="30" required disabled></label>
+<small>공연은 공개된 회차 시간을 사용해요. 코스를 추천받으면 출발지와 행사장의 좌표를 Valhalla 도보 서비스로 보내요.</small></div>
 <div class="group"><label>출발지 <input name="label" required></label>
 <div class="actions"><button type="button" id="locate">현재 위치 사용</button><span id="location-status" role="status"></span></div>
 <details id="coords"><summary>출발 좌표 확인·수정</summary><div class="grid">
@@ -62,7 +66,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <div class="group"><label>어떤 활동을 찾으세요? <select name="category" required><option value="" disabled>분류를 선택해 주세요</option><option selected>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label></div>
 <div class="group"><label>더 원하는 게 있으세요? <input name="note" placeholder="예: 전시를 보고 싶어요" aria-describedby="voice-help"></label>
 <div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
-<p class="muted" id="voice-help">“국악을 듣고 싶어”처럼 분류 하나를 말하거나 적으면 위의 활동 선택에 반영됩니다. 추천 전에 직접 바꿀 수 있어요.</p>
+<p class="muted" id="voice-help">“국악을 듣고 싶어”, “전시 두 곳 코스로”처럼 말하거나 적어 보세요. 추천 전에 분류와 코스 조건을 바꿀 수 있어요.</p>
 <p id="voice-status" role="status"></p>
 <details id="voice-debug" hidden><summary>음성 인식 진단</summary>
 <textarea id="voice-log" aria-label="음성 진단 기록" readonly rows="10" style="width:100%;box-sizing:border-box"></textarea>
@@ -73,6 +77,8 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <p id="status" role="status"></p>
 <section id="results" hidden><p class="kicker">02 · 나들이 후보</p><h2 id="result-title" tabindex="-1">지도에서 살펴보세요</h2>
 <div class="actions"><button id="back">조건 바꾸기</button></div>
+<section class="panel" id="course-result" hidden><h3>두 곳 문화코스</h3><p id="course-text" class="facts"></p>
+<small>도보 예상 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · 예약 가능 여부는 각 행사 상세에서 확인해 주세요.</small></section>
 <p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
 <div class="actions"><h3>추천 행사</h3><button id="prev" aria-label="이전 행사">이전</button><button id="next" aria-label="다음 행사">다음</button></div>
 <ol id="list" aria-label="추천 행사 카드"></ol><p id="selection" role="status"></p>
@@ -90,6 +96,29 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <script>
 const form = document.querySelector("#form");
 const fields = form.elements;
+fields.kind.onchange = () => {
+  const course = fields.kind.value === "course";
+  document.querySelector("#course-fields").hidden = !course;
+  fields.stay.disabled = !course;
+};
+let previousCourse = "";
+let excludedIds = [];
+
+/** 가능한 일정과 확인이 필요한 조합을 구분하고 재계산 실패 때 이전 유효 일정을 보존한다. */
+function displayCourse(course, data) {
+  const panel = document.querySelector("#course-result");
+  panel.hidden = !course;
+  if (!course) return;
+  const lines = [course.message];
+  if (course.venues) lines.push(data.label + " → " + course.venues[0].trim() + " → " + course.venues[1].trim(),
+    "출발지부터 도보 약 " + course.walk_minutes[0] + "분 · 행사 사이 약 " + course.walk_minutes[1] + "분");
+  if (course.status === "ready") {
+    for (const [i, stop] of course.stops.entries())
+      lines.push((i+1) + ". " + stop.title + " · " + stop.arrive + " 도착 · " + stop.begin + "–" + stop.finish + " 관람");
+    previousCourse = data.start + " ~ " + data.end.slice(11) + " · 전시당 " + data.stay + "분\n" + lines.slice(1).join("\n");
+  } else if (previousCourse) lines.push("\n이전 조건에서 가능했던 일정", previousCourse);
+  document.querySelector("#course-text").textContent = lines.join("\n");
+}
 const statusText = document.querySelector("#status");
 const results = document.querySelector("#results");
 const list = document.querySelector("#list");
@@ -253,6 +282,17 @@ function showCard(item) {
   select.textContent = "이 행사 선택";
   select.onclick = () => selectEvent(item);
   li.append(badge, title, detail, select, " ", source);
+  if (fields.kind.value === "course") {
+    const exclude = document.createElement("button");
+    exclude.textContent = "이 행사 빼고 다시 추천";
+    exclude.onclick = () => {
+      excludedIds.push(item.id);
+      results.hidden = true;
+      form.hidden = false;
+      form.requestSubmit();
+    };
+    li.append(exclude);
+  }
   list.append(li);
 }
 
@@ -407,11 +447,18 @@ function listen() {
 function applyNote() {
   const note = fields.note.value.trim();
   const matches = [...fields.category.options].filter(o => o.value && note.includes(o.value));
+  const negated = /말고|제외|싫|아니|않|빼|아닌|말아|안\s*(?:듣|보|가|원)/.test(note);
+  const wantsCourse = /두\s*곳\s*(?:문화\s*)?코스|문화\s*코스/.test(note) && !negated && matches.length <= 1;
+  if (wantsCourse) {
+    fields.kind.value = "course";
+    fields.kind.onchange();
+  }
   if (!matches.length) {
-    voiceStatus.textContent = note ? "활동 분류를 목록에서 확인해 주세요." : "";
+    voiceStatus.textContent = wantsCourse ? "두 곳 문화코스를 선택했어요. 활동 분류와 시간을 확인해 주세요." :
+      note ? "활동 분류를 목록에서 확인해 주세요." : "";
     return;
   }
-  if (matches.length !== 1 || /말고|제외|싫|아니|않|빼|아닌|말아|안\s*(?:듣|보|가|원)/.test(note)) {
+  if (matches.length !== 1 || negated) {
     fields.category.value = "";
     voiceStatus.textContent = "원하는 분류를 목록에서 직접 선택해 주세요.";
     return;
@@ -485,27 +532,33 @@ async function search(event) {
   delete selection.dataset.id;
   try {
     const response = await fetch("/preview/recommend", {method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({request_kind:"place",start_location:{label:data.label,lat:data.lat,lng:data.lng},
+      body:JSON.stringify({request_kind:data.kind,stay_minutes:Number(data.stay),exclude_ids:excludedIds,start_location:{label:data.label,lat:data.lat,lng:data.lng},
         start_at:data.start + ":00+09:00",end_at:data.end + ":00+09:00",category:data.category,mode:data.mode})});
     const body = await response.json();
     if (!response.ok) throw new Error(body.message);
     form.hidden = true;
     results.hidden = false;
-    document.querySelector("#result-title").textContent = data.category + " 행사 추천";
+    document.querySelector("#result-title").textContent = data.category + (body.course ? " 도보 코스 결과" : " 행사 추천");
+    displayCourse(body.course, data);
     const checked = new Date(body.source_checked_at).toLocaleString("ko-KR", {
       timeZone:"Asia/Seoul", month:"long", day:"numeric", hour:"2-digit", minute:"2-digit"
     });
     const scope = (body.mode === "live" ? "실시간" : "기록 재생") + " · " + checked +
       " 기준 · 서울시 검색 " + body.source_total + "건 중 " + body.searched_count + "건 조회";
     statusText.textContent = scope + (body.status === "no_results" ? " · 조회 범위에서 맞는 행사가 없습니다." : " · 후보 " + body.candidates.length + "건");
-    body.candidates.forEach(showCard);
-    latestCandidates = body.candidates;
+    latestCandidates = body.course?.ids ? body.course.ids.map(id => body.candidates.find(item => item.id === id)) :
+      body.candidates.filter(item => !excludedIds.includes(item.id));
+    latestCandidates.forEach(showCard);
     resetWalk();
     prev.disabled = true;
     next.disabled = latestCandidates.length < 2;
     drawMap();
     document.querySelector("#result-title").focus();
-  } catch (error) { statusText.textContent = error.message || "조회 실패"; }
+  } catch (error) {
+    excludedIds = [];
+    statusText.textContent = error.message || "조회 실패";
+    if (data.kind === "course" && previousCourse) statusText.textContent += "\n이전 조건에서 가능했던 일정\n" + previousCourse;
+  }
   finally { fields.fields.disabled = false; }
 }
 
@@ -537,6 +590,7 @@ document.querySelector("#locate").onclick = () => {
   }, {timeout:8000});
 };
 document.querySelector("#back").onclick = () => {
+  excludedIds = [];
   stopReading(); results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
 };
 init().catch(() => { statusText.textContent = "대표 요청을 읽지 못했습니다. 새로고침해 주세요."; });
