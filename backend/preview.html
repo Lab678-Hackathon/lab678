@@ -63,7 +63,11 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <div class="group"><label>더 원하는 게 있으세요? <input name="note" placeholder="예: 전시를 보고 싶어요" aria-describedby="voice-help"></label>
 <div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
 <p class="muted" id="voice-help">한국어로 말하거나 글로 적어 주세요. 원하는 분류 하나를 반영할 수 있어요.</p>
-<p id="voice-status" role="status"></p></div>
+<p id="voice-status" role="status"></p>
+<details id="voice-debug" hidden><summary>음성 인식 진단</summary>
+<textarea id="voice-log" aria-label="음성 진단 기록" readonly rows="10" style="width:100%;box-sizing:border-box"></textarea>
+<button type="button" id="copy-voice">진단 복사</button><span id="copy-status" role="status"></span>
+</details></div>
 <div class="group"><label>문화정보 조회 방식 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label></div>
 <button class="primary">추천받기</button></fieldset></form>
 <p id="status" role="status"></p>
@@ -204,6 +208,48 @@ const listenButton = document.querySelector("#listen");
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let session;
 let speaking;
+let attemptNumber = 0;
+const voiceDebug = document.querySelector("#voice-debug");
+const voiceLog = document.querySelector("#voice-log");
+const copyStatus = document.querySelector("#copy-status");
+
+/** 한 번의 시도에만 경과 시간과 이벤트를 기록한다. 권한 조회는 마이크를 요청하지 않는다. */
+function beginVoiceTrace() {
+  const attempt = ++attemptNumber;
+  const started = performance.now();
+  const api = window.SpeechRecognition ? "SpeechRecognition" : Recognition ? "webkitSpeechRecognition" : "미지원";
+  const lines = [
+    "음성 인식 시도 #" + attempt + " · " + new Date().toISOString(),
+    navigator.userAgent, "페이지 " + location.origin + " · 보안 컨텍스트 " + window.isSecureContext,
+    "API " + api + " · 언어 ko-KR · 브라우저 온라인 표시 " + navigator.onLine
+  ];
+  voiceDebug.hidden = false;
+  copyStatus.textContent = "";
+  const log = message => {
+    if (attempt !== attemptNumber) return;
+    lines.push("+" + Math.round(performance.now() - started) + " ms  " + message);
+    voiceLog.value = lines.join("\n");
+  };
+  log("listen-click");
+  if (navigator.permissions?.query) {
+    navigator.permissions.query({name:"microphone"}).then(
+      p => log("마이크 권한 조회: " + p.state),
+      () => log("마이크 권한 조회: 확인 불가")
+    );
+  } else log("마이크 권한 조회: 미지원");
+  return log;
+}
+
+/** 현재 표시된 진단만 복사하고 클립보드를 쓸 수 없으면 수동 복사를 안내한다. */
+document.querySelector("#copy-voice").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(voiceLog.value);
+    copyStatus.textContent = "복사했어요.";
+  } catch {
+    voiceLog.focus(); voiceLog.select();
+    copyStatus.textContent = "선택된 진단 기록을 복사해 주세요.";
+  }
+};
 
 /** 현재 음성 재생을 중지하고 이전 카드의 읽기 상태를 지운다. */
 function stopReading() {
@@ -227,7 +273,8 @@ function showListenError(code) {
     "not-allowed": "마이크 권한 거부 · 브라우저와 Windows 설정에서 마이크 접근을 확인해 주세요.",
     "service-not-allowed": "이 브라우저에서 음성 인식 서비스를 사용할 수 없어요.",
     "audio-capture": "마이크 입력을 열 수 없어요. 연결된 입력 장치를 확인해 주세요.",
-    "network": "음성 인식 서비스와 통신하지 못했어요.",
+    "network": "음성 엔진에서 통신 오류를 보고했어요. 내장 브라우저라면 같은 주소를 Microsoft Edge 주소창에 붙여 넣어 비교해 주세요.",
+    "empty-result": "음성 인식이 끝났지만 문장이 비어 있어요.",
     "no-speech": "목소리가 감지되지 않았어요. 듣기를 시작한 뒤 다시 말해 주세요.",
     "language-not-supported": "이 환경의 음성 인식 서비스가 한국어를 지원하지 않아요.",
     "aborted": "브라우저가 듣기를 중단했어요."
@@ -236,46 +283,63 @@ function showListenError(code) {
     ? "이 입력칸에서 Windows 키 + H로 받아쓰거나 직접 입력할 수 있어요."
     : "이 입력칸에 직접 입력할 수 있어요.";
   voiceStatus.textContent = (hints[code] || "음성 인식을 시작하지 못했어요.") + " (" + code + ") " + alternate;
+  voiceDebug.open = true;
   fields.note.focus();
 }
 
 /** 사용자 클릭에서만 한국어 한 번 듣기를 시작하고 실패 시 메모를 보존한다. */
 function listen() {
+  if (session) { session.stop(); return; }
+  const log = beginVoiceTrace();
   if (!Recognition) {
+    log("API 없음");
     showListenError("unsupported");
     return;
   }
-  if (session) { session.stop(); return; }
   let recognition;
   try { recognition = new Recognition(); }
-  catch (error) { showListenError(error.name || "start-failed"); return; }
+  catch (error) { log("constructor 예외 " + error.name); showListenError(error.name || "start-failed"); return; }
   session = recognition;
   recognition.lang = "ko-KR";
   recognition.interimResults = false;
   listenButton.textContent = "듣기 종료";
   voiceStatus.textContent = "듣기를 시작하고 있어요.";
-  recognition.onstart = () => { if (session === recognition) voiceStatus.textContent = "말씀해 주세요."; };
+  recognition.onstart = () => {
+    log("start");
+    if (session === recognition) voiceStatus.textContent = "말씀해 주세요.";
+  };
+  for (const name of ["audiostart","soundstart","speechstart","speechend","soundend","audioend","nomatch"]) {
+    recognition["on" + name] = () => log(name);
+  }
   recognition.onresult = event => {
     if (session !== recognition) return;
-    const words = event.results[0][0].transcript;
+    const words = (event.results?.[event.resultIndex ?? 0]?.[0]?.transcript || "").trim();
+    log("result · 전사 " + words.length + "자 (내용 제외)");
+    if (!words) { showListenError("empty-result"); return; }
     fields.note.value = [fields.note.value.trim(), words].filter(Boolean).join(" ");
     voiceStatus.textContent = "전사한 문장을 확인·수정한 뒤 분류를 반영해 주세요.";
   };
   recognition.onerror = event => {
+    log("error " + (event.error || "unknown") + " · 엔진 메시지: " + (event.message?.slice(0,300) || "제공되지 않음"));
     if (session !== recognition) return;
     session = null;
     listenButton.textContent = "한 번 말하기";
     showListenError(event.error || "unknown");
   };
   recognition.onend = () => {
+    log("end");
     if (session !== recognition) return;
     session = null; listenButton.textContent = "한 번 말하기";
     if (["말씀해 주세요.", "듣기를 시작하고 있어요."].includes(voiceStatus.textContent)) {
       showListenError("no-result");
     }
   };
+  log("start() 호출");
   try { recognition.start(); }
-  catch (error) { session = null; listenButton.textContent = "한 번 말하기"; showListenError(error.name || "start-failed"); }
+  catch (error) {
+    log("start() 예외 " + error.name + " · " + error.message);
+    session = null; listenButton.textContent = "한 번 말하기"; showListenError(error.name || "start-failed");
+  }
 }
 
 /** 기술 검증에서 명확한 분류 단어 한 개만 사용자가 확인해 적용하도록 한다. */

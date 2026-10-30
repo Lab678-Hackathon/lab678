@@ -67,8 +67,11 @@ async function main() {
     await page.addInitScript(() => {
       window.SpeechRecognition = class {
         start() {
-          if (window.speechError) this.onerror({error:window.speechError});
-          else this.onresult({results:[[{transcript:"전시를 보고 싶어요"}]]});
+          if (window.speechError) {
+            if (window.speechError !== "network") this.onaudiostart();
+            this.onerror({error:window.speechError, message:"test engine detail"});
+          }
+          else this.onresult({results:[[{transcript:window.emptyResult ? "" : "전시를 보고 싶어요"}]]});
           this.onend();
         }
       };
@@ -92,9 +95,21 @@ async function main() {
       await page.evaluate(value => { window.speechError = value; }, code);
       await page.getByRole("button",{name:"한 번 말하기"}).click();
       assert.ok((await page.locator("#voice-status").textContent()).includes("(" + code + ")"));
+      assert.equal(await page.locator("#voice-debug").getAttribute("open"), "");
+      const log = await page.locator("#voice-log").inputValue();
+      assert.match(log, /\+\d+ ms  start\(\) 호출/);
+      assert.match(log, /ms  end/);
+      assert.ok(log.includes("error " + code + " · 엔진 메시지: test engine detail"));
+      assert.equal(log.includes("audiostart"), code !== "network");
+      assert.ok(!log.includes("국악을 듣고 싶어요") && !log.includes("전시를 보고 싶어요"));
       assert.equal(await page.locator('[name="note"]').evaluate(el => el === document.activeElement),true);
       assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
     }
+    await page.evaluate(() => { window.speechError = ""; window.emptyResult = true; });
+    await page.getByRole("button",{name:"한 번 말하기"}).click();
+    assert.match(await page.locator("#voice-status").textContent(), /empty-result/);
+    assert.match(await page.locator("#voice-log").inputValue(), /전사 0자/);
+    assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
     await page.locator('[name="category"]').selectOption("전체");
     await page.locator('[name="mode"]').selectOption("recorded");
     await submit.click();
