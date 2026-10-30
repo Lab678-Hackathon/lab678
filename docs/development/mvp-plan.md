@@ -57,3 +57,5 @@
 **5a 입력 점검** · [x] 오류 원인별 표시·재시도·입력 보존, Edge 모의 오류 5종 통과. [ ] 동조님 실기기 오류 코드 확인과 실제 발화 재검증.
 
 **5a 원인 점검** · [x] 사용자 로그에서 권한 허용·캡처 시작 뒤 network 확인. [x] Edge 가상 입력의 빈 전사와 모의 오류 구분, 메모 보존. [x] 동조님 PC 일반 Chrome 실제 한국어 발화 비교. 10/31 06:58 KST, 1,519ms speechstart → 3,505ms result(13자) → 3,594ms end. 내장 브라우저의 network 실패는 별도 기록.
+
+**5a 추가 실기록** · 07:01 KST 새 시도: 브라우저 온라인 표시 false, 권한 granted, audiostart 404ms, audioend/error network 406ms, end 409ms. [ ] 외부 사이트 접속과 온라인 복구 뒤 시연 기기 재시험.

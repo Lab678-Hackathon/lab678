@@ -273,13 +273,15 @@ function showListenError(code) {
     "not-allowed": "마이크 권한 거부 · 브라우저와 Windows 설정에서 마이크 접근을 확인해 주세요.",
     "service-not-allowed": "이 브라우저에서 음성 인식 서비스를 사용할 수 없어요.",
     "audio-capture": "마이크 입력을 열 수 없어요. 연결된 입력 장치를 확인해 주세요.",
-    "network": "음성 엔진에서 통신 오류를 보고했어요. 내장 브라우저라면 같은 주소를 일반 Chrome 주소창에 붙여 넣어 다시 시도해 주세요.",
+    "network": navigator.onLine
+      ? "음성 엔진에서 통신 오류를 보고했어요. 새 탭에서 외부 사이트가 열리는지 확인해 주세요. 내장 브라우저라면 일반 Chrome에서도 비교할 수 있어요."
+      : "브라우저가 오프라인으로 표시돼요. 인터넷 연결을 확인한 뒤 ‘한 번 말하기’를 다시 눌러 주세요.",
     "empty-result": "음성 인식이 끝났지만 문장이 비어 있어요.",
     "no-speech": "목소리가 감지되지 않았어요. 듣기를 시작한 뒤 다시 말해 주세요.",
     "language-not-supported": "이 환경의 음성 인식 서비스가 한국어를 지원하지 않아요.",
     "aborted": "브라우저가 듣기를 중단했어요."
   };
-  const alternate = /Windows/i.test(navigator.userAgent)
+  const alternate = navigator.onLine && /Windows/i.test(navigator.userAgent)
     ? "이 입력칸에서 Windows 키 + H로 받아쓰거나 직접 입력할 수 있어요."
     : "이 입력칸에 직접 입력할 수 있어요.";
   voiceStatus.textContent = (hints[code] || "음성 인식을 시작하지 못했어요.") + " (" + code + ") " + alternate;
@@ -320,6 +322,7 @@ function listen() {
     voiceStatus.textContent = "전사한 문장을 확인·수정한 뒤 분류를 반영해 주세요.";
   };
   recognition.onerror = event => {
+    log("오류 시점 브라우저 온라인 표시 " + navigator.onLine);
     log("error " + (event.error || "unknown") + " · 엔진 메시지: " + (event.message?.slice(0,300) || "제공되지 않음"));
     if (session !== recognition) return;
     session = null;

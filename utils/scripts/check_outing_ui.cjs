@@ -105,6 +105,15 @@ async function main() {
       assert.equal(await page.locator('[name="note"]').evaluate(el => el === document.activeElement),true);
       assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
     }
+    await page.context().setOffline(true);
+    try {
+      await page.evaluate(() => { window.speechError = "network"; });
+      await page.getByRole("button",{name:"한 번 말하기"}).click();
+      assert.match(await page.locator("#voice-status").textContent(), /오프라인/);
+      assert.doesNotMatch(await page.locator("#voice-status").textContent(), /Windows 키/);
+      assert.match(await page.locator("#voice-log").inputValue(), /오류 시점 브라우저 온라인 표시 false/);
+      assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
+    } finally { await page.context().setOffline(false); }
     await page.evaluate(() => { window.speechError = ""; window.emptyResult = true; });
     await page.getByRole("button",{name:"한 번 말하기"}).click();
     assert.match(await page.locator("#voice-status").textContent(), /empty-result/);
