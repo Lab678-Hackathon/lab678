@@ -103,6 +103,9 @@ def recommend(data, mode="live"):
         raise
     candidates = []
     for row in rows:
+        genres = {part.strip() for part in row["CODENAME"].split("/")}
+        if data["category"] != "전체" and data["category"] not in genres:
+            continue
         url = urlsplit(row.get("HMPG_ADDR") or "")
         ids = parse_qs(url.query).get("cultcode", [])
         if url.scheme not in {"http", "https"} or url.hostname != "culture.seoul.go.kr" or not ids or not ids[0].isdigit():

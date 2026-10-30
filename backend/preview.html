@@ -59,10 +59,10 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <small>기본 위치 <a href="https://www.openstreetmap.org/node/3436803670">청량리역 · © OpenStreetMap contributors</a></small></details></div>
 <div class="grid"><label>출발 시각 <input name="start" type="datetime-local" required></label>
 <label>종료 시각 <input name="end" type="datetime-local" required></label></div><small>한국 시각 기준</small>
-<div class="group"><label>어떤 활동을 찾으세요? <select name="category"><option>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label></div>
+<div class="group"><label>어떤 활동을 찾으세요? <select name="category" required><option value="" disabled>분류를 선택해 주세요</option><option selected>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label></div>
 <div class="group"><label>더 원하는 게 있으세요? <input name="note" placeholder="예: 전시를 보고 싶어요" aria-describedby="voice-help"></label>
 <div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
-<p class="muted" id="voice-help">한국어로 말하거나 글로 적어 주세요. 원하는 분류 하나를 반영할 수 있어요.</p>
+<p class="muted" id="voice-help">“국악을 듣고 싶어”처럼 분류 하나를 말하거나 적으면 위의 활동 선택에 반영됩니다. 추천 전에 직접 바꿀 수 있어요.</p>
 <p id="voice-status" role="status"></p>
 <details id="voice-debug" hidden><summary>음성 인식 진단</summary>
 <textarea id="voice-log" aria-label="음성 진단 기록" readonly rows="10" style="width:100%;box-sizing:border-box"></textarea>
@@ -319,7 +319,7 @@ function listen() {
     log("result · 전사 " + words.length + "자 (내용 제외)");
     if (!words) { showListenError("empty-result"); return; }
     fields.note.value = [fields.note.value.trim(), words].filter(Boolean).join(" ");
-    voiceStatus.textContent = "전사한 문장을 확인·수정한 뒤 분류를 반영해 주세요.";
+    applyNote();
   };
   recognition.onerror = event => {
     log("오류 시점 브라우저 온라인 표시 " + navigator.onLine);
@@ -345,13 +345,17 @@ function listen() {
   }
 }
 
-/** 기술 검증에서 명확한 분류 단어 한 개만 사용자가 확인해 적용하도록 한다. */
+/** 명확한 요청은 분류 선택과 동기화하고, 겹치거나 부정된 분류는 직접 확인받는다. */
 function applyNote() {
   const note = fields.note.value.trim();
-  const matches = [...fields.category.options].filter(o => note.includes(o.value));
-  if (matches.length !== 1 || /말고|제외|싫|아니|않|빼/.test(note)) {
+  const matches = [...fields.category.options].filter(o => o.value && note.includes(o.value));
+  if (!matches.length) {
+    voiceStatus.textContent = note ? "활동 분류를 목록에서 확인해 주세요." : "";
+    return;
+  }
+  if (matches.length !== 1 || /말고|제외|싫|아니|않|빼|아닌|말아|안\s*(?:듣|보|가|원)/.test(note)) {
+    fields.category.value = "";
     voiceStatus.textContent = "원하는 분류를 목록에서 직접 선택해 주세요.";
-    fields.category.focus();
     return;
   }
   fields.category.value = matches[0].value;
@@ -383,6 +387,8 @@ function readSelection() {
 
 listenButton.onclick = listen;
 document.querySelector("#apply-note").onclick = applyNote;
+fields.note.oninput = applyNote;
+fields.category.onchange = () => { voiceStatus.textContent = fields.category.value + " 분류를 선택했습니다."; };
 readButton.onclick = readSelection;
 
 /** 선택 시점의 문장으로 WAV를 받아 재생하고 선택 변경 뒤 도착한 응답은 버린다. */
@@ -408,8 +414,11 @@ fileRead.onclick = async () => {
 /** 입력을 유지하면서 재조회하고 시도별 결과·실패를 구분한다. */
 async function search(event) {
   event.preventDefault();
+  if (session) {
+    voiceStatus.textContent = "음성 입력을 마치는 중입니다. 입력된 조건을 확인한 뒤 추천받기를 눌러 주세요.";
+    session.stop(); return;
+  }
   const data = Object.fromEntries(new FormData(form));
-  if (session) { const current = session; session = null; current.abort(); listenButton.textContent = "한 번 말하기"; }
   stopReading();
   fields.fields.disabled = true;
   statusText.textContent = "문화정보 조회 중…";
@@ -424,6 +433,7 @@ async function search(event) {
     if (!response.ok) throw new Error(body.message);
     form.hidden = true;
     results.hidden = false;
+    document.querySelector("#result-title").textContent = data.category + " 행사 추천";
     const checked = new Date(body.source_checked_at).toLocaleString("ko-KR", {
       timeZone:"Asia/Seoul", month:"long", day:"numeric", hour:"2-digit", minute:"2-digit"
     });

@@ -71,7 +71,7 @@ async function main() {
             if (window.speechError !== "network") this.onaudiostart();
             this.onerror({error:window.speechError, message:"test engine detail"});
           }
-          else this.onresult({results:[[{transcript:window.emptyResult ? "" : "전시를 보고 싶어요"}]]});
+          else this.onresult({results:[[{transcript:window.emptyResult ? "" : "국악을 듣고 싶어"}]]});
           this.onend();
         }
       };
@@ -87,7 +87,17 @@ async function main() {
     await page.getByText("현재 위치를 반영했어요.").waitFor();
     assert.equal(await page.locator('[name="lng"]').inputValue(),"127.02");
     await page.getByRole("button",{name:"한 번 말하기"}).click();
-    assert.equal(await page.locator('[name="note"]').inputValue(), "전시를 보고 싶어요");
+    assert.equal(await page.locator('[name="note"]').inputValue(), "국악을 듣고 싶어");
+    assert.equal(await page.locator('[name="category"]').inputValue(), "국악");
+    const sent = page.waitForRequest(r => r.url().endsWith("/preview/recommend") && r.method() === "POST");
+    await submit.click();
+    assert.equal((await sent).postDataJSON().category, "국악");
+    await page.getByRole("heading",{name:"국악 행사 추천"}).waitFor();
+    await page.locator("#list li").first().waitFor();
+    console.log("live 국악:", await page.locator("#list li strong").allTextContents());
+    await page.getByRole("button",{name:"조건 바꾸기"}).click();
+    await page.locator('[name="note"]').fill("국악 말고 전시");
+    assert.equal(await page.locator('[name="category"]').evaluate(el => el.validity.valueMissing), true);
     await page.locator('[name="note"]').fill("국악을 듣고 싶어요");
     await page.getByRole("button",{name:"분류 반영"}).click();
     assert.equal(await page.locator('[name="category"]').inputValue(), "국악");

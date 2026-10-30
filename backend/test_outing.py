@@ -45,6 +45,17 @@ class OutingTests(unittest.TestCase):
         with patch("outing.seoul_page", side_effect=OSError("offline")), self.assertRaises(OSError):
             recommend(self.request)
 
+    def test_genre_mismatch(self):
+        """국악 조회에 전시가 섞이거나 전시만 반환돼도 국악 외 행사는 제외한다."""
+        captures = json.loads((EXAMPLES / "seoul-events.capture.json").read_bytes())["captures"]
+        exhibit = captures[0]["rows"][0]
+        music = next(row for row in captures[1]["rows"] if row["CODENAME"] == "국악")
+        query = dict(self.request, category="국악")
+        with patch("outing.seoul_page", return_value=([exhibit, music], "test", 2)):
+            self.assertEqual([item["title"] for item in recommend(query)["candidates"]], [music["TITLE"]])
+        with patch("outing.seoul_page", return_value=([exhibit], "test", 1)):
+            self.assertEqual(recommend(query)["status"], "no_results")
+
     def test_recording_scope(self):
         """저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다."""
         with self.assertRaises(ValueError):

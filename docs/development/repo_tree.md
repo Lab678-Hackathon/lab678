@@ -66,6 +66,7 @@ lab678/
         2026-10-31-speech-input-errors.md
         2026-10-31-speech-offline.md
         2026-10-31-speech-trace.md
+        2026-10-31-spoken-category.md
         2026-10-31-tooling-setup.md
       state.json
       tasks.md

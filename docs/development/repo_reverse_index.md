@@ -51,7 +51,8 @@
 | `OutingTests.test_bad_input` | [backend/test_outing.py:34](../../backend/test_outing.py#L34) | 잘못된 출발 좌표나 종료 시각으로 외부 API를 호출하지 않는다. |
 | `OutingTests.test_empty_and_error` | [backend/test_outing.py:41](../../backend/test_outing.py#L41) | 실제 후보 0건을 공급자 장애와 구분한다. |
 | `OutingTests.test_end_boundary` | [backend/test_outing.py:27](../../backend/test_outing.py#L27) | 전시 종료 시각에 도착하는 입력은 단순 운영구간에서 제외한다. |
-| `OutingTests.test_recording_scope` | [backend/test_outing.py:48](../../backend/test_outing.py#L48) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
+| `OutingTests.test_genre_mismatch` | [backend/test_outing.py:48](../../backend/test_outing.py#L48) | 국악 조회에 전시가 섞이거나 전시만 반환돼도 국악 외 행사는 제외한다. |
+| `OutingTests.test_recording_scope` | [backend/test_outing.py:59](../../backend/test_outing.py#L59) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
 | `Preview` | [backend/preview.py:11](../../backend/preview.py#L11) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
 | `Preview.do_GET` | [backend/preview.py:25](../../backend/preview.py#L25) | 점검 폼과 저장소의 대표 요청만 제공한다. |
