@@ -67,7 +67,7 @@ async function main() {
     await page.addInitScript(() => {
       window.SpeechRecognition = class {
         start() {
-          if (window.simulateDenial) this.onerror({error:"not-allowed"});
+          if (window.speechError) this.onerror({error:window.speechError});
           else this.onresult({results:[[{transcript:"전시를 보고 싶어요"}]]});
           this.onend();
         }
@@ -88,10 +88,13 @@ async function main() {
     await page.locator('[name="note"]').fill("국악을 듣고 싶어요");
     await page.getByRole("button",{name:"분류 반영"}).click();
     assert.equal(await page.locator('[name="category"]').inputValue(), "국악");
-    await page.evaluate(() => { window.simulateDenial = true; });
-    await page.getByRole("button",{name:"한 번 말하기"}).click();
-    await page.getByText(/마이크 권한 거부/).waitFor();
-    assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
+    for (const code of ["network","not-allowed","audio-capture","service-not-allowed","no-speech"]) {
+      await page.evaluate(value => { window.speechError = value; }, code);
+      await page.getByRole("button",{name:"한 번 말하기"}).click();
+      assert.ok((await page.locator("#voice-status").textContent()).includes("(" + code + ")"));
+      assert.equal(await page.locator('[name="note"]').evaluate(el => el === document.activeElement),true);
+      assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
+    }
     await page.locator('[name="category"]').selectOption("전체");
     await page.locator('[name="mode"]').selectOption("recorded");
     await submit.click();

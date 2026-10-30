@@ -62,6 +62,7 @@ lab678/
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
+        2026-10-31-speech-input-errors.md
         2026-10-31-tooling-setup.md
       state.json
       tasks.md

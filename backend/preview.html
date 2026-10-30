@@ -220,20 +220,41 @@ function stopReading() {
   readButton.disabled = true;
 }
 
+/** 브라우저가 보고한 오류와 입력을 이어갈 방법을 보여준다. */
+function showListenError(code) {
+  const hints = {
+    "unsupported": "이 브라우저에서 음성 인식을 지원하지 않아요.",
+    "not-allowed": "마이크 권한 거부 · 브라우저와 Windows 설정에서 마이크 접근을 확인해 주세요.",
+    "service-not-allowed": "이 브라우저에서 음성 인식 서비스를 사용할 수 없어요.",
+    "audio-capture": "마이크 입력을 열 수 없어요. 연결된 입력 장치를 확인해 주세요.",
+    "network": "음성 인식 서비스와 통신하지 못했어요.",
+    "no-speech": "목소리가 감지되지 않았어요. 듣기를 시작한 뒤 다시 말해 주세요.",
+    "language-not-supported": "이 환경의 음성 인식 서비스가 한국어를 지원하지 않아요.",
+    "aborted": "브라우저가 듣기를 중단했어요."
+  };
+  const alternate = /Windows/i.test(navigator.userAgent)
+    ? "이 입력칸에서 Windows 키 + H로 받아쓰거나 직접 입력할 수 있어요."
+    : "이 입력칸에 직접 입력할 수 있어요.";
+  voiceStatus.textContent = (hints[code] || "음성 인식을 시작하지 못했어요.") + " (" + code + ") " + alternate;
+  fields.note.focus();
+}
+
 /** 사용자 클릭에서만 한국어 한 번 듣기를 시작하고 실패 시 메모를 보존한다. */
 function listen() {
   if (!Recognition) {
-    voiceStatus.textContent = "음성 인식 미지원 · 추가 요청을 글로 입력해 주세요.";
-    fields.note.focus();
+    showListenError("unsupported");
     return;
   }
   if (session) { session.stop(); return; }
-  const recognition = new Recognition();
+  let recognition;
+  try { recognition = new Recognition(); }
+  catch (error) { showListenError(error.name || "start-failed"); return; }
   session = recognition;
   recognition.lang = "ko-KR";
   recognition.interimResults = false;
   listenButton.textContent = "듣기 종료";
-  voiceStatus.textContent = "말씀해 주세요.";
+  voiceStatus.textContent = "듣기를 시작하고 있어요.";
+  recognition.onstart = () => { if (session === recognition) voiceStatus.textContent = "말씀해 주세요."; };
   recognition.onresult = event => {
     if (session !== recognition) return;
     const words = event.results[0][0].transcript;
@@ -242,16 +263,19 @@ function listen() {
   };
   recognition.onerror = event => {
     if (session !== recognition) return;
-    voiceStatus.textContent = (event.error === "not-allowed" ? "마이크 권한 거부" : "음성 인식 실패") +
-      " · 입력한 내용을 유지했습니다. 글로 계속해 주세요.";
+    session = null;
+    listenButton.textContent = "한 번 말하기";
+    showListenError(event.error || "unknown");
   };
   recognition.onend = () => {
     if (session !== recognition) return;
     session = null; listenButton.textContent = "한 번 말하기";
-    if (voiceStatus.textContent === "말씀해 주세요.") voiceStatus.textContent = "듣기 종료 · 글로 계속할 수 있습니다.";
+    if (["말씀해 주세요.", "듣기를 시작하고 있어요."].includes(voiceStatus.textContent)) {
+      showListenError("no-result");
+    }
   };
   try { recognition.start(); }
-  catch { recognition.onend(); voiceStatus.textContent = "듣기를 시작하지 못했습니다. 글로 계속해 주세요."; }
+  catch (error) { session = null; listenButton.textContent = "한 번 말하기"; showListenError(error.name || "start-failed"); }
 }
 
 /** 기술 검증에서 명확한 분류 단어 한 개만 사용자가 확인해 적용하도록 한다. */
