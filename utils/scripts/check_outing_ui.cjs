@@ -50,7 +50,45 @@ async function main() {
     await page.getByText("지도를 불러올 수 없으면 아래 행사 목록을 이용해 주세요.").waitFor();
     await page.getByRole("button",{name:"이 행사 선택"}).first().click();
     assert.ok(await page.locator("#selection").getAttribute("data-id"));
-    console.log("PASS recorded/live, selection, revised input, tile load, pin-card sync, map unavailable, simulated provider failure");
+    const capabilities = await page.evaluate(() => ({
+      recognition: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+      tts: !!window.speechSynthesis,
+      koreanVoices: window.speechSynthesis?.getVoices().filter(v => v.lang.startsWith("ko")).length
+    }));
+    console.log("Edge speech capabilities", capabilities);
+    await page.addInitScript(() => {
+      window.SpeechRecognition = class {
+        start() {
+          if (window.simulateDenial) this.onerror({error:"not-allowed"});
+          else this.onresult({results:[[{transcript:"전시를 보고 싶어요"}]]});
+          this.onend();
+        }
+      };
+      Object.defineProperty(window,"speechSynthesis",{configurable:true,value:{
+        cancel() {}, speak(utterance) { window.lastSpokenText = utterance.text; utterance.onend(); }
+      }});
+    });
+    await page.reload();
+    await page.getByRole("button",{name:"한 번 말하기"}).click();
+    assert.equal(await page.locator('[name="note"]').inputValue(), "전시를 보고 싶어요");
+    await page.locator('[name="note"]').fill("국악을 듣고 싶어요");
+    await page.getByRole("button",{name:"분류 반영"}).click();
+    assert.equal(await page.locator('[name="category"]').inputValue(), "국악");
+    await page.evaluate(() => { window.simulateDenial = true; });
+    await page.getByRole("button",{name:"한 번 말하기"}).click();
+    await page.getByText(/마이크 권한 거부/).waitFor();
+    assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
+    await page.locator('[name="category"]').selectOption("전체");
+    await page.locator('[name="mode"]').selectOption("recorded");
+    await submit.click();
+    const first = page.locator("#list li").first();
+    await first.getByRole("button",{name:"이 행사 선택"}).click();
+    await page.getByRole("button",{name:"선택한 행사 읽기"}).click();
+    const expected = await first.locator("strong").textContent() + ". " + await first.locator("p").textContent();
+    assert.equal(await page.evaluate(() => window.lastSpokenText), expected);
+    await page.getByRole("button",{name:"조건 바꾸기"}).click();
+    assert.equal(await page.locator('[name="note"]').inputValue(),"국악을 듣고 싶어요");
+    console.log("PASS recorded/live, map sync/fallback, provider failure, simulated transcript/edit/permission/TTS, retained note");
   } finally {
     await browser.close();
   }

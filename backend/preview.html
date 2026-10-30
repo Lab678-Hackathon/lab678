@@ -23,11 +23,18 @@
 <label>종료 <input name="end" type="datetime-local" required></label></p>
 <label>분류 <select name="category"><option>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label>
 <label>조회 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label>
+<p><label>추가 요청 메모 <input name="note" aria-describedby="voice-help"></label>
+<button type="button" id="listen">한 번 말하기</button>
+<button type="button" id="apply-note">분류 반영</button></p>
+<p id="voice-help">한국어 음성 또는 글로 입력하세요. 브라우저 음성 인식 서비스를 사용합니다.
+메모에서 분류 하나만 반영할 수 있습니다. 위치와 시간은 위 입력란에서 확인해 주세요.</p>
+<p id="voice-status" role="status"></p>
 <button>추천받기</button></fieldset></form>
 <p id="status" role="status"></p>
 <section id="results" hidden><button id="back">조건 바꾸기</button>
 <p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
-<p id="selection" role="status"></p><ol id="list"></ol></section>
+<p id="selection" role="status"></p><button type="button" id="read" disabled>선택한 행사 읽기</button>
+<p id="read-status" role="status"></p><ol id="list"></ol></section>
 <script>
 const form = document.querySelector("#form");
 const fields = form.elements;
@@ -57,6 +64,10 @@ const mapNote = document.querySelector("#map-note");
 function selectEvent(item) {
   selection.textContent = "선택한 행사 · " + item.title;
   selection.dataset.id = item.id;
+  stopReading();
+  const card = [...list.children].find(entry => entry.dataset.id === item.id);
+  readButton.dataset.text = card.querySelector("strong").textContent + ". " + card.querySelector("p").textContent;
+  readButton.disabled = !window.speechSynthesis;
   for (const card of list.children) card.setAttribute("aria-current", String(card.dataset.id === item.id));
   for (const [id, marker] of markers) marker.getElement()?.classList.toggle("active", id === item.id);
   const marker = markers.get(item.id);
@@ -114,10 +125,93 @@ function showCard(item) {
   list.append(li);
 }
 
+const voiceStatus = document.querySelector("#voice-status");
+const readButton = document.querySelector("#read");
+const readStatus = document.querySelector("#read-status");
+const listenButton = document.querySelector("#listen");
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let session;
+let speaking;
+
+/** 현재 음성 재생을 중지하고 이전 카드의 읽기 상태를 지운다. */
+function stopReading() {
+  speaking = null;
+  window.speechSynthesis?.cancel();
+  readStatus.textContent = window.speechSynthesis ? "" : "읽기 미지원 · 화면의 글을 확인해 주세요.";
+  readButton.disabled = true;
+}
+
+/** 사용자 클릭에서만 한국어 한 번 듣기를 시작하고 실패 시 메모를 보존한다. */
+function listen() {
+  if (!Recognition) {
+    voiceStatus.textContent = "음성 인식 미지원 · 추가 요청을 글로 입력해 주세요.";
+    fields.note.focus();
+    return;
+  }
+  if (session) { session.stop(); return; }
+  const recognition = new Recognition();
+  session = recognition;
+  recognition.lang = "ko-KR";
+  recognition.interimResults = false;
+  listenButton.textContent = "듣기 종료";
+  voiceStatus.textContent = "말씀해 주세요.";
+  recognition.onresult = event => {
+    if (session !== recognition) return;
+    const words = event.results[0][0].transcript;
+    fields.note.value = [fields.note.value.trim(), words].filter(Boolean).join(" ");
+    voiceStatus.textContent = "전사한 문장을 확인·수정한 뒤 분류를 반영해 주세요.";
+  };
+  recognition.onerror = event => {
+    if (session !== recognition) return;
+    voiceStatus.textContent = (event.error === "not-allowed" ? "마이크 권한 거부" : "음성 인식 실패") +
+      " · 입력한 내용을 유지했습니다. 글로 계속해 주세요.";
+  };
+  recognition.onend = () => {
+    if (session !== recognition) return;
+    session = null; listenButton.textContent = "한 번 말하기";
+    if (voiceStatus.textContent === "말씀해 주세요.") voiceStatus.textContent = "듣기 종료 · 글로 계속할 수 있습니다.";
+  };
+  try { recognition.start(); }
+  catch { recognition.onend(); voiceStatus.textContent = "듣기를 시작하지 못했습니다. 글로 계속해 주세요."; }
+}
+
+/** 기술 검증에서 명확한 분류 단어 한 개만 사용자가 확인해 적용하도록 한다. */
+function applyNote() {
+  const note = fields.note.value.trim();
+  const matches = [...fields.category.options].filter(o => note.includes(o.value));
+  if (matches.length !== 1 || /말고|제외|싫|아니|않|빼/.test(note)) {
+    voiceStatus.textContent = "원하는 분류를 목록에서 직접 선택해 주세요.";
+    fields.category.focus();
+    return;
+  }
+  fields.category.value = matches[0].value;
+  voiceStatus.textContent = matches[0].value + " 분류를 반영했습니다. 추천 전 조건을 확인해 주세요.";
+}
+
+/** 선택한 카드의 화면 문장만 한국어로 읽는다. */
+function readSelection() {
+  const synth = window.speechSynthesis;
+  if (!synth || !readButton.dataset.text) return;
+  synth.cancel();
+  const utterance = new SpeechSynthesisUtterance(readButton.dataset.text);
+  speaking = utterance;
+  utterance.lang = "ko-KR";
+  utterance.onend = () => { if (speaking === utterance) readStatus.textContent = "읽기 종료"; };
+  utterance.onerror = () => { if (speaking === utterance) readStatus.textContent = "읽기 실패 · 화면의 글을 확인해 주세요."; };
+  readStatus.textContent = "한국어 읽기 요청";
+  synth.speak(utterance);
+}
+
+listenButton.onclick = listen;
+document.querySelector("#apply-note").onclick = applyNote;
+readButton.onclick = readSelection;
+
 /** 입력을 유지하면서 재조회하고 시도별 결과·실패를 구분한다. */
 async function search(event) {
   event.preventDefault();
   const data = Object.fromEntries(new FormData(form));
+  if (session) { const current = session; session = null; current.abort(); listenButton.textContent = "한 번 말하기"; }
+  stopReading();
   fields.fields.disabled = true;
   statusText.textContent = "문화정보 조회 중…";
   list.replaceChildren();
@@ -144,7 +238,7 @@ async function search(event) {
 form.onsubmit = search;
 fields.label.oninput = () => { fields.lat.value = ""; fields.lng.value = ""; };
 document.querySelector("#back").onclick = () => {
-  results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
+  stopReading(); results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
 };
 init().catch(() => { statusText.textContent = "대표 요청을 읽지 못했습니다. 새로고침해 주세요."; });
 </script>
