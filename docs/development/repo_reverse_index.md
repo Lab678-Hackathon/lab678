@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **문화외출 MVP 실행계획·시연 검증**: [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md), [docs/development/tasks.md](../../docs/development/tasks.md)
 - **작업 재개·대화 압축**: [docs/development/current-state.md](../../docs/development/current-state.md), [utils/scripts/context.py](../../utils/scripts/context.py)
 - **자동 색인·코드 재사용**: [utils/scripts/catalog.py](../../utils/scripts/catalog.py), [utils/scripts/watch.py](../../utils/scripts/watch.py), [utils/index.md](../../utils/index.md)
 - **검증·수정 루프**: [utils/scripts/harness.py](../../utils/scripts/harness.py), [utils/scripts/loop.py](../../utils/scripts/loop.py), [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md)

@@ -11,7 +11,7 @@
 
 ## 현재 목표
 
-- 간소화안·두 브랜치 분석 우선 재사용·GPU 서버 활용 검토와 샘플을 준비했다. 다음은 실제 첫 구현 범위와 프로필 필요 여부를 논의하는 단계.
+- 실제 조건 → 문화활동 추천 → 지도·카드 → 선택/조건 변경을 최소 구현으로 검증하고 오늘 제작할 UI에 연결한다. 동조 개인 MVP 실행계획과 단계별 통과 기준 작성 완료.
 
 ## 승인된 범위·운영
 
@@ -21,6 +21,7 @@
 
 ## 완료·검증
 
+- 디스코드 v0.5 기준 공지와 착수 패키지 대조. 대표 3시간 요청, UI 인계, 음성·코스·저장 병렬 검증, 마감 전 리허설을 mvp-plan.md에 정리.
 - develop 기준 dj/develop 생성, 첨부 기획 6개 복사, TEAM_WORKFLOW 구버전 15개 참고 보관.
 - docs/align-team-workflow는 이미 develop에 병합됨. 현재 루트 협업 문서 적용.
 - 이동 안내 공식 문서 비교·할 일 MOB-01~10 작성, 커밋 551d168. 실제 API/모바일은 미검증.
@@ -38,7 +39,7 @@
 
 ## 다음 할 일 — 순서대로
 
-- [다음 대화] 무인증+브라우저 저장 기본안과 test 프로필 필요 여부, 실제 구현 착수 범위를 정리. Google/Supabase 도입을 강제하지 않음.
+- [첫 실행] mvp-plan.md 1단계. 실제 문화정보 성공·결측 사례와 출처·조회시각 확보 → 계약 예시 인계 → 텍스트 추천 왕복 → 지도·카드 연결. 서비스 구현은 미착수.
 - [착수 제안] framework_doc/konnect study → 필요한 공통 골격·실제 기능·테스트·의존성 목록 → 첫 실제 추천 흐름. LLM은 필요한 조건 대화부터 최소화.
 - [서버 확인] 배정·VPN·네트워크·사용 권한 확인 후 요청 시 STT 평가. 사설 GPU를 공개 API로 바로 쓸 수 있다고 가정하지 않음.
 - [모든 후속 작업] 세부 체크표 → 실행 전후 보고 → 실제 검증 → state·색인 갱신 → 전체 보고문 커밋 → 매 커밋 보고.
@@ -52,7 +53,7 @@
 
 ## 필요할 때 읽을 자료
 
-- [현재 진행표](demo-login-server-progress.md), [간소화 설계](demo-profile-design.md), [개발 할 일](tasks.md).
+- [MVP 실행 체크표](mvp-plan.md), [개발 할 일](tasks.md), [간소화 설계](demo-profile-design.md).
 - [양쪽 참조 순서](konnect-reuse-reading-guide.md), [서버 활용안](hackathon-server-usage-review.md), [도구 사용법](../../utils/README.md).
 - [파일 색인](repo_index.md)·[기능/함수 역색인](repo_reverse_index.md)·[구조](repo_tree.md).
 - 결정 이유가 필요할 때만 [대화 기록](discussion-log.md)·[이동 검토](mobility-routing-review.md)·[개발 맥락](README.md)의 해당 부분 읽기.

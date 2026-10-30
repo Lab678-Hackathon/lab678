@@ -39,12 +39,14 @@ lab678/
       loops/
         tooling-index.json
       mobility-routing-review.md
+      mvp-plan.md
       repo_index.md
       repo_reverse_index.md
       repo_tree.md
       reports/
         2026-10-31-demo-server-reuse.md
         2026-10-31-mobility-review.md
+        2026-10-31-mvp-plan.md
         2026-10-31-tooling-setup.md
       state.json
       tasks.md
