@@ -6,6 +6,7 @@ from urllib.error import URLError
 
 from outing import EXAMPLES, recommend
 from local_voice import render_wave
+from walking import walk_between
 
 
 class Preview(BaseHTTPRequestHandler):
@@ -33,7 +34,7 @@ class Preview(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다."""
-        if self.path not in {"/preview/recommend", "/preview/voice"}:
+        if self.path not in {"/preview/recommend", "/preview/voice", "/preview/walk"}:
             self.send_error(404)
             return
         if self.headers.get_content_type() != "application/json":
@@ -46,6 +47,13 @@ class Preview(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("요청 형식을 확인해 주세요.")
+            if self.path == "/preview/walk":
+                try:
+                    status, body = walk_between(data.get("points"))
+                except ValueError as exc:
+                    status, body = 400, dict(message=str(exc))
+                self.reply(status, body)
+                return
             if self.path == "/preview/voice":
                 try:
                     audio = render_wave(data.get("text"))

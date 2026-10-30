@@ -79,7 +79,13 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <button type="button" id="read" disabled>선택한 행사 읽기</button>
 <button type="button" id="file-read" disabled>음성 파일로 듣기</button>
 <audio id="player" controls hidden aria-label="선택한 행사의 한국어 음성" style="width:100%;margin-top:10px"></audio>
-<p id="read-status" role="status"></p></section>
+<p id="read-status" role="status"></p>
+<section id="walk-panel" class="panel" hidden><h3>두 행사 사이 도보 확인</h3>
+<div class="grid"><label>먼저 갈 행사 <select id="walk-from"></select></label>
+<label>다음 행사 <select id="walk-to"></select></label></div>
+<p>선택한 두 행사장의 공개 좌표로 보행 경로를 조회해요.</p>
+<button id="walk-check">도보 시간 확인</button><p id="walk-note" role="status"></p>
+<small>도보 경로 제공 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a></small></section></section>
 <footer><small>문화정보 제공 · 서울특별시 서울문화포털</small></footer></main>
 <script>
 const form = document.querySelector("#form");
@@ -118,6 +124,58 @@ async function init() {
 let map;
 let markerGroup;
 let latestCandidates = [];
+const walkFrom = document.querySelector("#walk-from");
+const walkTo = document.querySelector("#walk-to");
+const walkButton = document.querySelector("#walk-check");
+const walkNote = document.querySelector("#walk-note");
+let walkVersion = 0;
+
+/** 날짜와 추천 결과가 바뀌면 행사 좌표가 있는 후보로 선택기를 새로 채운다. */
+function resetWalk() {
+  const places = latestCandidates.filter(item => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+  document.querySelector("#walk-panel").hidden = places.length < 2;
+  for (const select of [walkFrom, walkTo]) {
+    select.replaceChildren(...places.map(item => new Option(item.title, item.id)));
+  }
+  walkTo.selectedIndex = places.length >= 2 ? 1 : -1;
+  changeWalk();
+}
+
+/** 선택 변경 전 요청이 나중에 도착해도 이전 결과를 표시하지 않는다. */
+function changeWalk() {
+  walkVersion++;
+  walkButton.disabled = walkFrom.value === walkTo.value;
+  walkNote.textContent = walkButton.disabled ? "서로 다른 두 행사를 선택해 주세요." : "";
+}
+walkFrom.onchange = walkTo.onchange = changeWalk;
+
+/** 행사장 사이 예상 보행시간을 출발 가능 시각과 다음 행사 마감까지의 초 단위 여유와 비교한다. */
+walkButton.onclick = async () => {
+  const version = ++walkVersion;
+  const [first, second] = [walkFrom, walkTo].map(s => latestCandidates.find(item => item.id === s.value));
+  walkButton.disabled = true;
+  walkNote.textContent = "도보 경로를 확인하고 있어요.";
+  try {
+    const response = await fetch("/preview/walk", {method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({points:[first, second].map(({lat,lng}) => ({lat,lng}))})});
+    const route = await response.json();
+    if (!response.ok) throw new Error(route.message);
+    const start = Date.parse(fields.start.value + ":00+09:00");
+    const end = Date.parse(fields.end.value + ":00+09:00");
+    const earliest = Math.max(start, first.fixed_start_at ? Date.parse(first.fixed_start_at) : start);
+    const deadline = second.fixed_start_at ? Date.parse(second.fixed_start_at) : end;
+    const conflict = route.duration_s >= (deadline - earliest) / 1000;
+    if (version === walkVersion) walkNote.textContent = first.venue.trim() + " → " + second.venue.trim() +
+      " · 도보 약 " + Math.ceil(route.duration_s / 60) + "분 (" + (route.distance_m / 1000).toFixed(2) + " km). " +
+      (second.fixed_start_at ? "다음 공연은 " + second.fixed_start_at.slice(11,16) + " 시작이에요. " : "") +
+      (conflict ? "이 순서로 두 행사를 관람할 시간이 부족해요." :
+        "두 행사를 모두 볼 수 있는지는 첫 행사 종료·체류시간과 다음 행사 운영시간을 확인해 주세요.");
+  } catch (error) {
+    if (version === walkVersion) walkNote.textContent = error.message || "도보 조회에 실패했어요.";
+  } finally {
+    if (version === walkVersion) walkButton.disabled = false;
+  }
+};
 const markers = new Map();
 const mapBox = document.querySelector("#map");
 const mapNote = document.querySelector("#map-note");
@@ -442,6 +500,7 @@ async function search(event) {
     statusText.textContent = scope + (body.status === "no_results" ? " · 조회 범위에서 맞는 행사가 없습니다." : " · 후보 " + body.candidates.length + "건");
     body.candidates.forEach(showCard);
     latestCandidates = body.candidates;
+    resetWalk();
     prev.disabled = true;
     next.disabled = latestCandidates.length < 2;
     drawMap();

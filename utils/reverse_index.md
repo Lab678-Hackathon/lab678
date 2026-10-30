@@ -40,10 +40,10 @@
 | `OutingTests.test_genre_mismatch` | [backend/test_outing.py:48](../backend/test_outing.py#L48) | 국악 조회에 전시가 섞이거나 전시만 반환돼도 국악 외 행사는 제외한다. |
 | `OutingTests.test_recording_scope` | [backend/test_outing.py:59](../backend/test_outing.py#L59) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
-| `Preview` | [backend/preview.py:11](../backend/preview.py#L11) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
-| `Preview.do_GET` | [backend/preview.py:25](../backend/preview.py#L25) | 점검 폼과 저장소의 대표 요청만 제공한다. |
-| `Preview.do_POST` | [backend/preview.py:34](../backend/preview.py#L34) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
-| `Preview.reply` | [backend/preview.py:14](../backend/preview.py#L14) | UTF-8 본문을 길이와 함께 응답한다. |
+| `Preview` | [backend/preview.py:12](../backend/preview.py#L12) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
+| `Preview.do_GET` | [backend/preview.py:26](../backend/preview.py#L26) | 점검 폼과 저장소의 대표 요청만 제공한다. |
+| `Preview.do_POST` | [backend/preview.py:35](../backend/preview.py#L35) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.reply` | [backend/preview.py:15](../backend/preview.py#L15) | UTF-8 본문을 길이와 함께 응답한다. |
 | `recommend` | [backend/outing.py:95](../backend/outing.py#L95) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
 | `record` | [utils/scripts/loop.py:21](../utils/scripts/loop.py#L21) | Append one evidenced attempt, rejecting terminal states and blind repeats. |
 | `refresh` | [utils/scripts/watch.py:30](../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
@@ -96,4 +96,5 @@
 | `validate` | [backend/outing.py:25](../backend/outing.py#L25) | 개인 장소 요청을 검증하고 한국 시각의 당일 구간과 출발점을 반환한다. |
 | `verify_message` | [utils/scripts/commit_report.py:17](../utils/scripts/commit_report.py#L17) | Compare raw latest-commit message bytes to the complete report file. |
 | `wait_for` | [utils/scripts/verify_watch.py:14](../utils/scripts/verify_watch.py#L14) | Wait a bounded period for generated evidence or report the failed phase. |
+| `walk_between` | [backend/walking.py:15](../backend/walking.py#L15) | 두 행사 좌표로 도보 예상 초·m를 얻는다. 잘못된 입력과 조회 실패를 구분한다. |
 | `write_indexes` | [utils/scripts/catalog.py:211](../utils/scripts/catalog.py#L211) | Write changed outputs only, allowing repeated watcher runs to be quiet. |

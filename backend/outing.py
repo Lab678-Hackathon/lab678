@@ -130,6 +130,9 @@ def recommend(data, mode="live"):
             checks.append("지도 좌표 확인")
         candidates.append(dict(id="seoul:" + ids[0], title=row["TITLE"], venue=row["PLACE"], lat=event_lat,
                                lng=event_lng, distance_km=distance, official_url=url.geturl(),
+                               fixed_start_at=(start.date().isoformat() + "T" + row["PRO_TIME"].strip().zfill(5) + ":00+09:00"
+                                               if match is True and genres <= {"국악", "콘서트", "클래식", "연극"}
+                                               else None),
                                opening_info=row.get("PRO_TIME") or None, price_info=row.get("USE_FEE") or None,
                                fee_type=row.get("IS_FREE") or None, audience=row.get("USE_TRGT") or None,
                                status="check", checks_required=checks, source_checked_at=checked))
