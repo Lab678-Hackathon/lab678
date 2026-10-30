@@ -2,6 +2,14 @@
 <html lang="ko">
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>LAB678 나들이 찾기 · 개발 점검</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+<style>
+#map {height: 260px}
+#list li {padding: .6rem}
+#list li[aria-current="true"] {outline: 3px solid #174d8c}
+.event-pin {background: white; border: 2px solid #174d8c; border-radius: 50%; text-align:center; color: #173854; font: bold 16px/26px sans-serif}
+.event-pin.active {background: #174d8c; color: white}
+</style>
 <h1>나들이 찾기</h1>
 <p>개발 점검 화면 · 출처 서울특별시 서울문화포털</p>
 <form id="form">
@@ -17,7 +25,9 @@
 <label>조회 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label>
 <button>추천받기</button></fieldset></form>
 <p id="status" role="status"></p>
-<section id="results" hidden><button id="back">조건 바꾸기</button><p id="selection"></p><ol id="list"></ol></section>
+<section id="results" hidden><button id="back">조건 바꾸기</button>
+<p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
+<p id="selection" role="status"></p><ol id="list"></ol></section>
 <script>
 const form = document.querySelector("#form");
 const fields = form.elements;
@@ -34,6 +44,52 @@ async function init() {
   fields.end.value = request.end_at.slice(0,16);
   fields.category.value = request.category;
   fields.fields.disabled = false;
+}
+
+let map;
+let markerGroup;
+let latestCandidates = [];
+const markers = new Map();
+const mapBox = document.querySelector("#map");
+const mapNote = document.querySelector("#map-note");
+
+/** 선택한 카드와 핀을 동일 ID로 강조한다. */
+function selectEvent(item) {
+  selection.textContent = "선택한 행사 · " + item.title;
+  selection.dataset.id = item.id;
+  for (const card of list.children) card.setAttribute("aria-current", String(card.dataset.id === item.id));
+  for (const [id, marker] of markers) marker.getElement()?.classList.toggle("active", id === item.id);
+  const marker = markers.get(item.id);
+  if (marker) map.panTo(marker.getLatLng(), {animate:false});
+}
+
+/** 현재 응답의 유효 좌표만 표시한다. 지도 장애에도 카드와 선택 상태를 보존한다. */
+function drawMap() {
+  markers.clear();
+  markerGroup?.clearLayers();
+  const points = latestCandidates.filter(item => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+  mapBox.hidden = !window.L || !points.length;
+  mapNote.textContent = !points.length ? "표시할 좌표가 없습니다." :
+    !window.L ? "지도를 불러올 수 없으면 아래 행사 목록을 이용해 주세요." : "";
+  if (mapBox.hidden) return;
+  if (!map) {
+    map = L.map(mapBox);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+      maxZoom:19
+    }).on("tileerror", () => { mapNote.textContent = "일부 지도 배경을 불러오지 못했습니다. 아래 목록에서 선택할 수 있습니다."; }).addTo(map);
+    markerGroup = L.layerGroup().addTo(map);
+  }
+  map.invalidateSize();
+  map.fitBounds(points.map(item => [item.lat,item.lng]), {padding:[28,28],maxZoom:15,animate:false});
+  for (const item of points) {
+    const number = latestCandidates.indexOf(item) + 1;
+    const icon = L.divIcon({className:"event-pin",html:String(number),iconSize:[26,26]});
+    const marker = L.marker([item.lat,item.lng],{icon,title:item.title,alt:item.title}).addTo(markerGroup);
+    marker.on("click", () => { selectEvent(item); list.querySelector('[aria-current="true"]').scrollIntoView({block:"nearest"}); });
+    marker.getElement().classList.toggle("active", selection.dataset.id === item.id);
+    markers.set(item.id, marker);
+  }
 }
 
 /** 공급자 문자열은 텍스트로 출력하고 같은 행사 ID로 선택 상태를 표시한다. */
@@ -53,7 +109,7 @@ function showCard(item) {
   source.rel = "noopener";
   const select = document.createElement("button");
   select.textContent = "이 행사 선택";
-  select.onclick = () => { selection.textContent = "선택한 행사 · " + item.title; selection.dataset.id = item.id; };
+  select.onclick = () => selectEvent(item);
   li.append(title, detail, select, " ", source);
   list.append(li);
 }
@@ -79,6 +135,8 @@ async function search(event) {
       "건 중 조회 " + body.searched_count + "건 · 확인 " + body.source_checked_at;
     statusText.textContent = scope + (body.status === "no_results" ? " · 조회 범위에서 맞는 행사가 없습니다." : " · 후보 " + body.candidates.length + "건");
     body.candidates.forEach(showCard);
+    latestCandidates = body.candidates;
+    drawMap();
   } catch (error) { statusText.textContent = error.message || "조회 실패"; }
   finally { fields.fields.disabled = false; }
 }
@@ -89,4 +147,5 @@ document.querySelector("#back").onclick = () => {
   results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
 };
 init().catch(() => { statusText.textContent = "대표 요청을 읽지 못했습니다. 새로고침해 주세요."; });
-</script></html>
+</script>
+<script async src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" onload="if (!results.hidden) drawMap()"></script></html>

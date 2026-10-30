@@ -34,7 +34,7 @@
 
 ## 진행 중
 
-- 실제 서울시 조회와 개인 점검 화면 구현·Edge 왕복 통과. 공통 계약·팀 UI 연결 대기.
+- 동조 개인 화면 실시간 위치·시간 추천과 실제 지도·카드 양방향 선택 완료. 팀 최종 화면·계약 연결 대기.
 - 색인 감시기는 이 PC에서 2초 간격 동작, 자동 커밋 없음. 재개 시 .local/index-watch.json과 실제 프로세스 확인.
 
 ## 다음 할 일 — 순서대로
@@ -53,7 +53,7 @@
 
 ## 필요할 때 읽을 자료
 
-- [MVP 실행 체크표](mvp-plan.md), [개발 할 일](tasks.md), [간소화 설계](demo-profile-design.md).
+- [개인 시연·UI 인계](outing-handoff.md), [MVP 실행 체크표](mvp-plan.md), [개발 할 일](tasks.md).
 - [양쪽 참조 순서](konnect-reuse-reading-guide.md), [서버 활용안](hackathon-server-usage-review.md), [도구 사용법](../../utils/README.md).
 - [파일 색인](repo_index.md)·[기능/함수 역색인](repo_reverse_index.md)·[구조](repo_tree.md).
 - 결정 이유가 필요할 때만 [대화 기록](discussion-log.md)·[이동 검토](mobility-routing-review.md)·[개발 맥락](README.md)의 해당 부분 읽기.

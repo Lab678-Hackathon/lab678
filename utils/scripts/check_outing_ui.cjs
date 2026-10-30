@@ -17,7 +17,14 @@ async function main() {
     await page.locator("#list li").first().waitFor();
     assert.equal(await page.locator("#list li").count(), 5);
     await page.getByRole("button",{name:"이 행사 선택"}).first().click();
-    assert.ok(await page.locator("#selection").getAttribute("data-id"));
+    const pins = page.locator("#map .event-pin");
+    await pins.first().waitFor();
+    assert.equal(await pins.count(), 5);
+    assert.equal(await pins.first().evaluate(el => el.classList.contains("active")), true);
+    await pins.nth(1).click();
+    assert.equal(await page.locator("#selection").getAttribute("data-id"), await page.locator("#list li").nth(1).getAttribute("data-id"));
+    assert.equal(await page.locator("#list li").nth(1).getAttribute("aria-current"), "true");
+    await page.waitForFunction(() => [...document.querySelectorAll(".leaflet-tile-loaded")].some(tile => tile.naturalWidth > 0));
     await page.getByRole("button",{name:"조건 바꾸기"}).click();
     assert.equal(await page.locator('[name="label"]').inputValue(), "청량리역");
     await page.locator('[name="category"]').selectOption("전체");
@@ -35,7 +42,15 @@ async function main() {
     await submit.click();
     await page.getByText("조회 실패 검증",{exact:true}).waitFor();
     assert.equal(await submit.isVisible(), true);
-    console.log("PASS recorded, selection, retained input, category change, live, simulated failure");
+    await page.unroute("**/preview/recommend");
+    await page.route("**/leaflet.js", route => route.abort());
+    await page.reload();
+    await page.locator('[name="mode"]').selectOption("recorded");
+    await submit.click();
+    await page.getByText("지도를 불러올 수 없으면 아래 행사 목록을 이용해 주세요.").waitFor();
+    await page.getByRole("button",{name:"이 행사 선택"}).first().click();
+    assert.ok(await page.locator("#selection").getAttribute("data-id"));
+    console.log("PASS recorded/live, selection, revised input, tile load, pin-card sync, map unavailable, simulated provider failure");
   } finally {
     await browser.close();
   }
