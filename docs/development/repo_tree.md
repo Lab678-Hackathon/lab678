@@ -71,6 +71,7 @@ lab678/
         2026-10-31-speech-trace.md
         2026-10-31-spoken-category.md
         2026-10-31-tooling-setup.md
+        2026-10-31-walk-demo.md
         2026-10-31-walk.md
       state.json
       tasks.md
