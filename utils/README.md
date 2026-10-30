@@ -1,6 +1,6 @@
 # 재사용 개발 도구
 
-이 폴더는 김동조의 `dj/develop` 작업을 위한 개발 도구다. 공통 운영은 [TEAM_WORKFLOW.md](../TEAM_WORKFLOW.md)를 따르며 서비스 구현·기술 스택 채택을 뜻하지 않는다. Python 표준 라이브러리만 사용한다. Python 3.10 이상 문법을 사용하고 이번 실행 환경에서 별도로 검증한다.
+이 폴더는 김동조의 `dj/develop` 작업을 위한 개발 도구다. 공통 운영은 [TEAM_WORKFLOW.md](../TEAM_WORKFLOW.md)를 따르며 서비스 구현·기술 스택 채택을 뜻하지 않는다. 핵심 도구는 Python 표준 라이브러리만 사용한다. PDF 읽기 도구는 선택적으로 번들 pypdf를 사용한다. Python 3.10 이상 문법을 사용하고 이번 실행 환경에서 별도로 검증한다.
 
 ## 적게 읽고 정확히 작업하기
 
@@ -28,8 +28,11 @@ python utils/scripts/harness.py --tests
 | `scripts/loop.py` | 가설→작은 변경→실제 증거→판단 기록 | 명시한 JSON 파일, 기본 최대 3회 |
 | `scripts/reuse.py` | 두 파일 해시 비교, 브랜치 파일 원본 복사 | snapshot의 명시한 저장소 내부 대상. checkout/merge 없음 |
 | `scripts/commit_report.py` | 전체 보고문 커밋 사전검사·실행·메시지 일치 확인 | 기본 읽기 전용. `--commit`일 때 명시 경로 stage/commit |
+| `scripts/read_pdf.py` | 번들 pypdf로 페이지 추출·접속정보 관련 줄을 보수적으로 가림 | 원문 추출은 `.local/`에만 저장, PDF의 명령 실행 없음 |
 
 각 코드의 함수·클래스 개요는 docstring과 자동 색인에 있다. 보고·태스크·코드 템플릿은 [templates/README.md](templates/README.md)를 참고한다.
+
+PDF는 번들 Python에서 `-X utf8 utils/scripts/read_pdf.py 입력.pdf --output .local/pdf-review`로 읽는다. 기본 Python에는 pypdf가 없을 수 있다. 가림 출력은 비밀값 검출을 보장하는 보안 도구가 아니며 원문·이미지는 로컬에서 확인하고 공개 커밋 여부를 별도 판단한다.
 
 ## 자동 갱신
 

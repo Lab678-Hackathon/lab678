@@ -28,8 +28,14 @@ lab678/
     development/
       README.md
       current-state.md
+      demo-login-server-progress.md
+      demo-profile-design.md
       discussion-log.md
       engineering-loop.md
+      examples/
+        demo-users.sample.json
+      hackathon-server-usage-review.md
+      konnect-reuse-reading-guide.md
       loops/
         tooling-index.json
       mobility-routing-review.md
@@ -37,6 +43,7 @@ lab678/
       repo_reverse_index.md
       repo_tree.md
       reports/
+        2026-10-31-demo-server-reuse.md
         2026-10-31-mobility-review.md
         2026-10-31-tooling-setup.md
       state.json
@@ -78,6 +85,8 @@ lab678/
             2026-10-28.md
         frontend/
           README.md
+      hackathon-server/
+        README.md
   frontend/
     AGENTS.md
     README.md
@@ -93,6 +102,7 @@ lab678/
       context.py
       harness.py
       loop.py
+      read_pdf.py
       reuse.py
       verify_watch.py
       watch.py

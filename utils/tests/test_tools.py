@@ -19,6 +19,7 @@ import harness
 import loop
 import reuse
 import watch
+from read_pdf import review_text
 
 
 class ToolsTest(unittest.TestCase):
@@ -240,6 +241,18 @@ class ToolsTest(unittest.TestCase):
         self.assertTrue(commit_report.verify_message(self.root, report))
         report.write_text("Changed\n", encoding="utf-8")
         self.assertFalse(commit_report.verify_message(self.root, report))
+
+    def test_pdf_review_masks_credential_context(self) -> None:
+        """Credential lines and their immediate context stay out of review output."""
+        result = review_text("Heading\nPassword: fixture-secret\nnext-secret\nmore-context\nSafe ending")
+        self.assertNotIn("fixture-secret", result)
+        self.assertNotIn("next-secret", result)
+        self.assertIn("Safe ending", result)
+
+    def test_pdf_review_preserves_korean_guidance(self) -> None:
+        """Normal Korean workload and schedule notes remain available for review."""
+        text = "사설망 서버 안내\nGPU 출력은 예시\n11/1 13:00 삭제 예정"
+        self.assertEqual(review_text(text), text)
 
 
 if __name__ == "__main__":

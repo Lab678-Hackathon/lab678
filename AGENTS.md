@@ -23,3 +23,7 @@
 - 새 파일·기능·함수의 개요와 docstring/JSDoc, 기능→파일 분류를 작성하고 저장소 색인과 utils 색인을 갱신해요. 생성 규칙·명령·한계는 [utils/README.md](utils/README.md)를 따라요.
 - 대화 정정·방향 변경·작업 종료·인계 때 `docs/development/state.json`을 갱신해 현재 목표·승인 범위·완료·진행·다음 행동·미정을 압축해요. 상세 이력과 전체 완료 보고문은 보존해요.
 - [검증 루프](docs/development/engineering-loop.md)에 따라 근거가 있는 최소 수정만 반복하고 한도·실패·미실시를 기록해요. 커밋할 때마다 변경 내용과 검증 결과를 보고해요. 감시기는 생성 문서만 갱신하고 자동 커밋·push는 하지 않아요.
+
+## 이전 코드 참조
+
+재사용 전 [두 브랜치 읽기·경량화 가이드](docs/development/konnect-reuse-reading-guide.md)를 확인해요. `framework`는 경량 범용 기반으로 `framework_doc/` 분석·색인을 먼저, `konnect`는 이전 완성 기능으로 `study/` 분석·색인을 먼저 읽고 필요한 소스·테스트만 대조해요. Google 로그인·Supabase·다중 LLM 호출은 이번 서비스의 필수 전제로 삼지 않아요. 최신 사용자 지시·확정 요구에 맞춰 선택하고 아직 서비스 이식은 시작하지 않았어요.

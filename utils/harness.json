@@ -12,6 +12,9 @@
     "검증·수정 루프": ["utils/scripts/harness.py", "utils/scripts/loop.py", "docs/development/engineering-loop.md"],
     "원본 복사·검증": ["utils/scripts/reuse.py", "docs/reference/README.md"],
     "작업별 전체 보고문 커밋": ["utils/scripts/commit_report.py", "docs/development/reports"],
-    "문화외출·이동 안내 검토": ["docs/development/tasks.md", "docs/development/mobility-routing-review.md"]
+    "문화외출·이동 안내 검토": ["docs/development/tasks.md", "docs/development/mobility-routing-review.md"],
+    "무인증·체험 프로필·브라우저 저장": ["docs/development/demo-profile-design.md", "docs/development/examples/demo-users.sample.json"],
+    "해커톤 GPU 서버·매뉴얼": ["docs/development/hackathon-server-usage-review.md", "docs/reference/hackathon-server/README.md", "utils/scripts/read_pdf.py"],
+    "framework·KONNECT 분석 우선 재사용": ["docs/development/konnect-reuse-reading-guide.md"]
   }
 }
