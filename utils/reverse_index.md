@@ -12,8 +12,10 @@
 | `compact` | [utils/scripts/catalog.py:63](../utils/scripts/catalog.py#L63) | Return one short Markdown-safe line from a docstring. |
 | `config` | [utils/scripts/catalog.py:21](../utils/scripts/catalog.py#L21) | Read only the public harness configuration, never environment values. |
 | `contents` | [utils/scripts/verify_watch.py:24](../utils/scripts/verify_watch.py#L24) | Read generated text, tolerating a brief replacement window. |
+| `coordinate` | [backend/outing.py:15](../backend/outing.py#L15) | 유한한 위경도 숫자를 검증하고 잘못된 입력은 ValueError로 알린다. |
 | `describe` | [utils/scripts/catalog.py:69](../utils/scripts/catalog.py#L69) | Extract file overview, fingerprint, imports and symbol locations statically. |
 | `describe.visit` | [utils/scripts/catalog.py:79](../utils/scripts/catalog.py#L79) | Walk definitions and keep qualified names for nested functions. |
+| `distance_km` | [backend/outing.py:72](../backend/outing.py#L72) | 두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다. |
 | `entries` | [utils/scripts/catalog.py:113](../utils/scripts/catalog.py#L113) | Describe every active code file once; do not scan historical snapshots. |
 | `expected` | [utils/scripts/context.py:42](../utils/scripts/context.py#L42) | Read the configured public state file and generate the brief. |
 | `file_hash` | [utils/scripts/reuse.py:33](../utils/scripts/reuse.py#L33) | Hash file contents in chunks without logging their values. |
@@ -29,7 +31,19 @@
 | `main` | [utils/scripts/verify_watch.py:32](../utils/scripts/verify_watch.py#L32) | Verify creation, symbol/overview changes and deletion; clean our probe. |
 | `main` | [utils/scripts/watch.py:39](../utils/scripts/watch.py#L39) | Watch in a cooperative single-process loop; retain errors in local status. |
 | `markdown_files` | [utils/scripts/harness.py:39](../utils/scripts/harness.py#L39) | Select active documentation, excluding copied PRDs and historical snapshots. |
+| `OutingTests` | [backend/test_outing.py:9](../backend/test_outing.py#L9) | 개인 추천의 의미가 바뀌는 경계 사례를 재현한다. |
+| `OutingTests.setUp` | [backend/test_outing.py:12](../backend/test_outing.py#L12) | 각 사례에 독립적인 청량리역 요청을 준비한다. |
+| `OutingTests.test_actual_fields` | [backend/test_outing.py:16](../backend/test_outing.py#L16) | 빈 요금, 무료 분류, 명시한 0원, 거리 오름차순을 보존한다. |
+| `OutingTests.test_bad_input` | [backend/test_outing.py:34](../backend/test_outing.py#L34) | 잘못된 출발 좌표나 종료 시각으로 외부 API를 호출하지 않는다. |
+| `OutingTests.test_empty_and_error` | [backend/test_outing.py:41](../backend/test_outing.py#L41) | 실제 후보 0건을 공급자 장애와 구분한다. |
+| `OutingTests.test_end_boundary` | [backend/test_outing.py:27](../backend/test_outing.py#L27) | 전시 종료 시각에 도착하는 입력은 단순 운영구간에서 제외한다. |
+| `OutingTests.test_recording_scope` | [backend/test_outing.py:48](../backend/test_outing.py#L48) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
+| `Preview` | [backend/preview.py:10](../backend/preview.py#L10) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
+| `Preview.do_GET` | [backend/preview.py:24](../backend/preview.py#L24) | 점검 폼과 저장소의 대표 요청만 제공한다. |
+| `Preview.do_POST` | [backend/preview.py:33](../backend/preview.py#L33) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.reply` | [backend/preview.py:13](../backend/preview.py#L13) | UTF-8 본문을 길이와 함께 응답한다. |
+| `recommend` | [backend/outing.py:95](../backend/outing.py#L95) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
 | `record` | [utils/scripts/loop.py:21](../utils/scripts/loop.py#L21) | Append one evidenced attempt, rejecting terminal states and blind repeats. |
 | `refresh` | [utils/scripts/watch.py:30](../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
 | `render` | [utils/scripts/catalog.py:204](../utils/scripts/catalog.py#L204) | Produce all utility and repository indexes without volatile timestamps. |
@@ -40,10 +54,12 @@
 | `review_text` | [utils/scripts/read_pdf.py:18](../utils/scripts/read_pdf.py#L18) | Mask credential-related lines and two following lines before console output. |
 | `run` | [utils/scripts/harness.py:63](../utils/scripts/harness.py#L63) | Execute finite static checks and optional isolated utility tests. |
 | `safe_target` | [utils/scripts/reuse.py:18](../utils/scripts/reuse.py#L18) | Resolve a relative destination without traversal, links or Git internals. |
+| `seoul_page` | [backend/outing.py:41](../backend/outing.py#L41) | 지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다. |
 | `signature` | [utils/scripts/watch.py:18](../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |
 | `source_files` | [utils/scripts/catalog.py:26](../utils/scripts/catalog.py#L26) | List supported source files in configured roots, excluding symlinks. |
 | `start` | [utils/scripts/loop.py:14](../utils/scripts/loop.py#L14) | Create an explicit task state with at most ten verification attempts. |
+| `time_match` | [backend/outing.py:79](../backend/outing.py#L79) | 단순 전시 개방구간/공연 시작을 검사한다. 복합 운영규칙은 미확인(None)이다. |
 | `ToolsTest` | [utils/tests/test_tools.py:25](../utils/tests/test_tools.py#L25) | Check behavior with independent fixtures rather than mirrored implementation. |
 | `ToolsTest.git_repo` | [utils/tests/test_tools.py:46](../utils/tests/test_tools.py#L46) | Initialize only the disposable Git fixture; set fixture-local identity. |
 | `ToolsTest.setUp` | [utils/tests/test_tools.py:28](../utils/tests/test_tools.py#L28) | Create a minimal isolated repository fixture and public harness config. |
@@ -75,6 +91,7 @@
 | `ToolsTest.test_watcher_detects_add_modify_delete` | [utils/tests/test_tools.py:215](../utils/tests/test_tools.py#L215) | Source additions, content changes and deletion alter the watcher signature. |
 | `ToolsTest.test_watcher_excludes_its_outputs` | [utils/tests/test_tools.py:207](../utils/tests/test_tools.py#L207) | Generated outputs do not trigger another watcher cycle even without config hints. |
 | `ToolsTest.write` | [utils/tests/test_tools.py:39](../utils/tests/test_tools.py#L39) | Write a temporary UTF-8 test file and return its location. |
+| `validate` | [backend/outing.py:25](../backend/outing.py#L25) | 개인 장소 요청을 검증하고 한국 시각의 당일 구간과 출발점을 반환한다. |
 | `verify_message` | [utils/scripts/commit_report.py:17](../utils/scripts/commit_report.py#L17) | Compare raw latest-commit message bytes to the complete report file. |
 | `wait_for` | [utils/scripts/verify_watch.py:14](../utils/scripts/verify_watch.py#L14) | Wait a bounded period for generated evidence or report the failed phase. |
 | `write_indexes` | [utils/scripts/catalog.py:211](../utils/scripts/catalog.py#L211) | Write changed outputs only, allowing repeated watcher runs to be quiet. |

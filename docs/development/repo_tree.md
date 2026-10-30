@@ -19,6 +19,10 @@ lab678/
   backend/
     AGENTS.md
     README.md
+    outing.py
+    preview.html
+    preview.py
+    test_outing.py
   design/
     AGENTS.md
     README.md
@@ -35,6 +39,7 @@ lab678/
       examples/
         demo-users.sample.json
         outing-request.json
+        outing-response.json
         seoul-events.capture.json
       hackathon-server-usage-review.md
       konnect-reuse-reading-guide.md
@@ -51,6 +56,7 @@ lab678/
         2026-10-31-events.md
         2026-10-31-mobility-review.md
         2026-10-31-mvp-plan.md
+        2026-10-31-preview.md
         2026-10-31-tooling-setup.md
       state.json
       tasks.md
@@ -104,6 +110,7 @@ lab678/
     reverse_index.md
     scripts/
       catalog.py
+      check_outing_ui.cjs
       commit_report.py
       context.py
       harness.py

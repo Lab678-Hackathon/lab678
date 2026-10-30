@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAB678 나들이 찾기 · 개발 점검</title>
+<h1>나들이 찾기</h1>
+<p>개발 점검 화면 · 출처 서울특별시 서울문화포털</p>
+<form id="form">
+<fieldset id="fields" disabled><legend>출발 조건</legend>
+<p><label>출발지 이름 <input name="label" required></label>
+<label>위도 <input name="lat" type="number" step="any" min="-90" max="90" required></label>
+<label>경도 <input name="lng" type="number" step="any" min="-180" max="180" required></label></p>
+<p>입력 좌표에서 가까운 순으로 검색합니다. 출발지를 바꾸면 좌표도 확인해 주세요.
+기본 위치 <a href="https://www.openstreetmap.org/node/3436803670">© OpenStreetMap contributors</a></p>
+<p><label>시작(한국 시각) <input name="start" type="datetime-local" required></label>
+<label>종료 <input name="end" type="datetime-local" required></label></p>
+<label>분류 <select name="category"><option>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label>
+<label>조회 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label>
+<button>추천받기</button></fieldset></form>
+<p id="status" role="status"></p>
+<section id="results" hidden><button id="back">조건 바꾸기</button><p id="selection"></p><ol id="list"></ol></section>
+<script>
+const form = document.querySelector("#form");
+const fields = form.elements;
+const statusText = document.querySelector("#status");
+const results = document.querySelector("#results");
+const list = document.querySelector("#list");
+const selection = document.querySelector("#selection");
+
+/** 저장된 대표 입력으로 폼을 초기화한다. */
+async function init() {
+  const request = await (await fetch("/example")).json();
+  for (const name of ["label","lat","lng"]) fields.namedItem(name).value = request.start_location[name];
+  fields.start.value = request.start_at.slice(0,16);
+  fields.end.value = request.end_at.slice(0,16);
+  fields.category.value = request.category;
+  fields.fields.disabled = false;
+}
+
+/** 공급자 문자열은 텍스트로 출력하고 같은 행사 ID로 선택 상태를 표시한다. */
+function showCard(item) {
+  const li = document.createElement("li");
+  li.dataset.id = item.id;
+  const title = document.createElement("strong");
+  title.textContent = item.title;
+  const detail = document.createElement("p");
+  const distance = item.distance_km === null ? "위치 확인 필요" : "직선 " + item.distance_km + " km";
+  detail.textContent = [item.venue, distance, item.opening_info || "시간 미확인", item.fee_type || "요금 분류 미확인",
+    item.price_info || "상세 요금 미확인", item.audience || "이용 대상 확인 필요", ...item.checks_required].join(" · ");
+  const source = document.createElement("a");
+  source.href = item.official_url;
+  source.textContent = "서울문화포털 상세";
+  source.target = "_blank";
+  source.rel = "noopener";
+  const select = document.createElement("button");
+  select.textContent = "이 행사 선택";
+  select.onclick = () => { selection.textContent = "선택한 행사 · " + item.title; selection.dataset.id = item.id; };
+  li.append(title, detail, select, " ", source);
+  list.append(li);
+}
+
+/** 입력을 유지하면서 재조회하고 시도별 결과·실패를 구분한다. */
+async function search(event) {
+  event.preventDefault();
+  const data = Object.fromEntries(new FormData(form));
+  fields.fields.disabled = true;
+  statusText.textContent = "문화정보 조회 중…";
+  list.replaceChildren();
+  selection.textContent = "";
+  delete selection.dataset.id;
+  try {
+    const response = await fetch("/preview/recommend", {method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({request_kind:"place",start_location:{label:data.label,lat:data.lat,lng:data.lng},
+        start_at:data.start + ":00+09:00",end_at:data.end + ":00+09:00",category:data.category,mode:data.mode})});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.message);
+    form.hidden = true;
+    results.hidden = false;
+    const scope = (body.mode === "live" ? "실시간" : "기록 재생") + " · 서울시 검색 " + body.source_total +
+      "건 중 조회 " + body.searched_count + "건 · 확인 " + body.source_checked_at;
+    statusText.textContent = scope + (body.status === "no_results" ? " · 조회 범위에서 맞는 행사가 없습니다." : " · 후보 " + body.candidates.length + "건");
+    body.candidates.forEach(showCard);
+  } catch (error) { statusText.textContent = error.message || "조회 실패"; }
+  finally { fields.fields.disabled = false; }
+}
+
+form.onsubmit = search;
+fields.label.oninput = () => { fields.lat.value = ""; fields.lng.value = ""; };
+document.querySelector("#back").onclick = () => {
+  results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
+};
+init().catch(() => { statusText.textContent = "대표 요청을 읽지 못했습니다. 새로고침해 주세요."; });
+</script></html>

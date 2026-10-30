@@ -11,6 +11,13 @@
 
 청량리역 대표 좌표는 37.5805961, 127.0482573이다. 역 출입구나 실제 사용자의 GPS 위치는 별도로 확인한다. [© OpenStreetMap contributors, 청량리역](https://www.openstreetmap.org/node/3436803670) · [ODbL](https://www.openstreetmap.org/copyright) · [대표 요청](examples/outing-request.json)
 
+## 재현과 인계
+
+1. 저장소 루트에서 `python backend/preview.py`로 시작하고 [점검 화면](http://127.0.0.1:8765/)을 연다. 대표 입력을 제출하거나 출발 좌표·시간·분류를 바꾼다.
+2. 개인 검증용 `POST /preview/recommend`는 JSON [대표 요청](examples/outing-request.json)을 받는다. `mode`는 기본 live이며 recorded를 지정하면 보관한 응답을 사용한다. [기록 재생 결과](examples/outing-response.json)의 candidates에서 id로 선택을 유지한다.
+3. HTTP 200의 ready 또는 no_results, 잘못된 입력 HTTP 400의 need_input, 공급자 오류 HTTP 502의 error를 구분한다. 예시는 `{"status":"no_results","candidates":[]}` (200, 필드 발췌), `{"status":"error","message":"문화정보 조회에 실패했습니다. 같은 조건으로 다시 시도해 주세요."}` (502)다.
+4. Edge 모바일 화면 크기에서 실시간 조회·기록 재생·선택·입력 보존·분류 변경·모의 통신 장애 표시를 확인했다. [백엔드 테스트](../../backend/test_outing.py)와 [화면 점검 도구](../../utils/scripts/check_outing_ui.cjs)로 반복할 수 있다. 실제 모바일 기기와 팀 최종 UI는 별도 검증한다.
+
 ## UI 담당자 검토 항목
 
 개인 검증용 요청은 출발지 이름·확인한 좌표, 날짜를 포함한 시작·종료 시각, 분류를 받는다. 장소 ID·이름·위경도·행사시간 원문·요금 분류·요금 상세·공식 URL·조회시각을 카드와 지도에서 함께 사용한다. 결측은 null로 표시한다. 형식과 상태는 첫 UI 연결 전에 민규·희영과 확인한다.
