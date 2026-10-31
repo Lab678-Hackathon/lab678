@@ -121,3 +121,27 @@ export async function walkRoute(from, to) {
   if (status === 200 && typeof data?.duration_s === 'number') return { kind: 'ready', ...data };
   return { kind: 'error', message: data?.message || '도보 경로를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.' };
 }
+
+/** 지도 설정: 카카오 JavaScript 키(브라우저용, 도메인 제한 키)만 받아요. 실패하면 null */
+let mapConfigCache;
+export async function mapConfig() {
+  if (mapConfigCache !== undefined) return mapConfigCache;
+  try {
+    const r = await fetch(`${API_BASE}/map-config`);
+    mapConfigCache = r.ok ? await r.json() : null;
+  } catch { mapConfigCache = null; }
+  return mapConfigCache;
+}
+
+/**
+ * 대중교통 경로 (카카오 대중교통, 조회 시점 기준). 경로를 못 찾으면 시간을 만들지 않아요.
+ * @returns {Promise<{kind:'ready', routes:object[], time_basis?:string}|{kind:'no_results'|'error', message:string}>}
+ */
+export async function transitRoute(from, to) {
+  const r = await post('/preview/transit', { points: [from, to] });
+  if (!r) return { kind: 'error', message: '인터넷 연결을 확인하고 다시 시도해 주세요.' };
+  const { status, data } = r;
+  if (status === 200 && data?.status === 'ready' && data.routes?.length) return { kind: 'ready', ...data };
+  if (status === 200 && data?.status === 'no_results') return { kind: 'no_results', message: data.message || '이 구간의 대중교통 경로를 찾지 못했어요.' };
+  return { kind: 'error', message: data?.message || '대중교통 경로를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.' };
+}
