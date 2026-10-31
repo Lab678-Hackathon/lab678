@@ -1,4 +1,5 @@
-import { pickSeason, setSeasonArt, startLeaves } from './landing.js';
+import { pickSeason, startLeaves } from './landing.js';
+import { wakeServer } from './api.js';
 import { initSearch, renderSearch } from './search.js';
 import { initResults, renderResults, renderPlace } from './results.js';
 
@@ -10,8 +11,8 @@ const KEYS = {
   textLarge: 'text_large',
 };
 
-/** 시작 화면을 최소한 이만큼은 보여줘요 (너무 빨리 넘어가면 깜빡이는 느낌) */
-const MIN_LANDING_MS = 1200;
+/** 까치가 일어나는 모습을 최소한 이만큼은 보여줘요 (너무 빨리 넘어가면 깜빡이는 느낌) */
+const MIN_WAKE_MS = 1600;
 
 /**
  * localStorage 를 안전하게 읽어요. 막혀 있거나 값이 깨졌으면 null.
@@ -64,23 +65,76 @@ function route() {
   window.scrollTo(0, 0);
 }
 
-/** S00: 계절 그림과 잎을 켜고, 준비가 끝나면 '준비하고 있어요'를 시작하기 버튼으로 바꿔요. */
+/**
+ * S00 까치 깨우기. 열자마자 서버를 미리 깨우기 시작하고(조용히),
+ * 사용자가 까치나 버튼을 누르면 일어나는 모습 → 서버가 답하면 인사로 바꿔요.
+ * 서버가 끝내 답하지 않으면 다시 깨우기를 보여줘요 (Mock 으로 넘어가지 않음).
+ */
 function initLanding() {
   const season = pickSeason();
-  setSeasonArt(document.querySelector('#s00 .landing__art img'), season);
-  startLeaves(document.querySelector('#s00 .leaves'), season);
+  startLeaves(document.querySelector('#s00 .leaves'), season === 'none' ? 'autumn' : season, 8);
 
-  const started = performance.now();
-  const ready = () => {
-    const wait = Math.max(0, MIN_LANDING_MS - (performance.now() - started));
-    setTimeout(() => {
-      document.querySelector('#s00 .loading').hidden = true;
-      document.querySelector('#s00 [data-start]').hidden = false;
-    }, wait);
+  const box = document.querySelector('#s00 .wake');
+  const img = document.querySelector('#wake-img');
+  const title = document.querySelector('#wake-title');
+  const sub = document.querySelector('#wake-sub');
+  const dots = document.querySelector('#wake-dots');
+  const btn = document.querySelector('#wake-btn');
+  const bubble = document.querySelector('#wake-bubble');
+  const talk = document.querySelectorAll('#s00 [data-talk]');
+  let pending = wakeServer();
+
+  const show = (state) => {
+    box.dataset.state = state;
+    dots.hidden = state !== 'waking';
+    bubble.hidden = state !== 'ready';
+    talk.forEach((b) => { b.hidden = state !== 'ready'; });
+    btn.hidden = state === 'ready';
+    btn.disabled = state === 'waking';
+    if (state === 'sleep' || state === 'tired') {
+      img.src = 'assets/kkachi-sleep.jpg';
+      img.alt = '빨간 목도리를 두른 까치가 단풍 가지에서 자고 있어요';
+    }
+    if (state === 'sleep') {
+      title.textContent = '까치가 아직 자고 있어요';
+      sub.innerHTML = '톡 눌러서 깨워 주세요.<br>깨우면 오늘 나들이를 같이 찾아요.';
+      btn.textContent = '까치 깨우기';
+      btn.className = 'btn btn--primary';
+    }
+    if (state === 'waking') {
+      img.src = 'assets/kkachi-wake.jpg';
+      img.alt = '까치가 날개를 펴고 기지개를 켜고 있어요';
+      title.textContent = '까치가 기지개를 켜고 있어요';
+      sub.innerHTML = '잠깐만 기다려 주세요.<br>처음엔 30초~1분쯤 걸릴 수 있어요.';
+      btn.textContent = '일어나는 중…';
+      btn.className = 'btn btn--secondary';
+    }
+    if (state === 'tired') {
+      title.textContent = '까치가 아직 못 일어났어요';
+      sub.innerHTML = '연결이 늦어지고 있어요.<br>다시 깨워 보거나, 조금 뒤에 다시 와 주세요.';
+      btn.textContent = '다시 깨우기';
+      btn.className = 'btn btn--primary';
+    }
+    if (state === 'ready') {
+      img.src = 'assets/kkachi-hello.jpg';
+      img.alt = '까치가 날개를 흔들며 인사해요';
+      title.textContent = '';
+      sub.textContent = '';
+    }
+    title.hidden = state === 'ready';
+    sub.hidden = state === 'ready';
   };
-  // 나중에 백엔드 상태 확인(/health 등)이 생기면 여기서 기다려요.
-  if (document.readyState === 'complete') ready();
-  else window.addEventListener('load', ready, { once: true });
+
+  const wake = async () => {
+    if (box.dataset.state === 'waking' || box.dataset.state === 'ready') return;
+    if (box.dataset.state === 'tired') pending = wakeServer();
+    show('waking');
+    const [ok] = await Promise.all([pending, new Promise((r) => setTimeout(r, MIN_WAKE_MS))]);
+    show(ok ? 'ready' : 'tired');
+  };
+
+  document.querySelectorAll('#s00 [data-wake]').forEach((el) => el.addEventListener('click', wake));
+  show('sleep');
 }
 
 /**

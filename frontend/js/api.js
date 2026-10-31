@@ -11,6 +11,26 @@ const LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
 const API_BASE = LOCAL ? '' : (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
 
 /**
+ * 서버 깨우기. 무료 Render 는 쉬면 잠들어서 첫 응답이 30초~1분 걸려요.
+ * 내 PC 에서는 개발 서버 프록시라 바로 준비됨으로 봐요.
+ * @param {number} timeoutMs
+ * @returns {Promise<boolean>} 준비되면 true, 시간이 지나도 응답이 없으면 false
+ */
+export async function wakeServer(timeoutMs = 75000) {
+  if (LOCAL) return true;
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    const r = await fetch(`${API_BASE}/healthz`, { signal: ctrl.signal, cache: 'no-store' });
+    return r.ok;
+  } catch {
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * 시험 모드: 주소에 ?mode=recorded 를 붙이면 기록 데이터, 없으면 실시간(live).
  * @returns {'recorded'|'live'}
  */

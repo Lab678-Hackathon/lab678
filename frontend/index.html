@@ -21,22 +21,21 @@
 
   <!-- S00 시작 화면 -->
   <section class="screen" id="s00" aria-label="시작 화면">
-    <div class="landing">
-      <div class="landing__art">
-        <img src="assets/landing-autumn.jpg" alt="궁궐과 남산, 한강이 보이는 서울 풍경 그림">
-        <div class="leaves" aria-hidden="true"></div>
-        <div class="landing__title">
-          <span class="landing__small">오늘</span>
-          <span class="landing__big">나들이</span>
-          <p>가까운 문화 나들이, 말로 찾아요</p>
-        </div>
-      </div>
-      <div class="landing__panel">
-        <h2>오늘 다녀올 만한 곳,<br>함께 찾아볼까요?</h2>
-        <p class="muted">시간과 거리에 맞춰 골라드려요</p>
-        <div class="landing__slot">
-          <span class="loading" role="status"><span class="loading__dots" aria-hidden="true"><i></i><i></i><i></i></span>준비하고 있어요</span>
-          <button class="btn btn--primary" type="button" data-start data-go="/home" hidden>시작하기</button>
+    <div class="wake" data-state="sleep">
+      <div class="leaves" aria-hidden="true"></div>
+      <p class="wake__logo">오늘 나들이</p>
+      <p class="wake__bubble" id="wake-bubble" hidden>안녕하세요! 나들이 친구 까치예요.<br>오늘 어디로 나들이 가 볼까요?</p>
+      <button class="wake__bird" type="button" data-wake aria-label="까치 깨우기">
+        <img id="wake-img" src="assets/kkachi-sleep.jpg" alt="빨간 목도리를 두른 까치가 단풍 가지에서 자고 있어요">
+      </button>
+      <div class="wake__panel" role="status" aria-live="polite">
+        <h2 id="wake-title">까치가 아직 자고 있어요</h2>
+        <p class="muted" id="wake-sub">톡 눌러서 깨워 주세요.<br>깨우면 오늘 나들이를 같이 찾아요.</p>
+        <span class="loading__dots" id="wake-dots" aria-hidden="true" hidden><i></i><i></i><i></i></span>
+        <div class="wake__actions">
+          <button class="btn btn--primary" type="button" data-wake id="wake-btn">까치 깨우기</button>
+          <button class="btn btn--primary" type="button" data-go="/search" data-talk="voice" hidden>말로 대화 시작하기</button>
+          <button class="btn btn--outline" type="button" data-go="/search" data-talk="text" hidden>글자로 대화하기</button>
         </div>
       </div>
     </div>
