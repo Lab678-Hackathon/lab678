@@ -244,3 +244,16 @@ Chrome 음성 입력·국악 카드·스피커 청취 확인 뒤 다음 개발 �
 ## 10월 31일 11시 · 카카오 키 저장 확인과 실제 대중교통
 
 사용자가 저장했다고 알림. 로컬 키 값 비출력으로 존재 확인 후 공개 두 장소 경로 조회 성공. 실제 돈화문 경로에 접근/마지막 도보가 빠져 있는데 WALKING 합을 총 도보로 표시하는 문제를 발견했다. 총 도보는 null/확인 필요, 안내에 존재하는 도보 합만 별도 표시하도록 수정하고 백엔드19개 및 --live 브라우저 구간을 검증했다. 도암갤러리3경로도 실제 화면 선택·전환 성공. 문서의 기존 미연결 기록은 당시 이력이다. 계정 과금조건·시니어 접근성·미래 코스 시간은 확인했다고 주장하지 않는다. 사용자에게 작은 기능별 추가 수동 점검은 요청하지 않았다.
+
+## 10월 31일 11:08 · 문화정보 소스 확인 및 Discord 진행표 초안
+
+사용자가 팀원의 TourAPI/서울문화포털 우선 검토 의견을 전달한 뒤 전체 개발 진행 체크리스트를 요청했다. 먼저 konnect study 색인과 로컬 소스, 제공된 techietaek/codyssey-konnect main의 tourapi.py/seoulculture.py를 GitHub 연결 도구로 확인했다. TourAPI는 EngService2·locationBasedList2/detailIntro2/detailCommon2 등의 구조, httpx/tenacity/settings/ExternalSourceError 의존. 국문 전환 시 URL뿐 아니라 콘텐츠 유형/상세 필드/권한도 대조해야 한다. 실제 서비스 이식은 아직 하지 않았다.
+
+현행 backend/outing.py는 서울시 sample 1/5를 사용. 2026-10-31 11:08:57 KST 실조회: 전시8건 중5건, 국악2건 중2건. TITLE/PLACE/LAT/LOT/STRTDATE/END_DATE/HMPG_ADDR 확인. 이번 실응답은 LAT=위도,LOT=경도여서 과거 소스 docstring의 반대 설명을 그대로 믿지 않는다. 주소 전용 필드는 이번 row에서 확인되지 않았고 HMPG_ADDR는 URL이다. Tour/Seoul 관련 키는 점검한 현재 환경·일반 .env 파일에서 발견되지 않음.
+
+문화정보 2종 연결은 팀원의 제안으로 기록하고 다음 우선순위로 권고했다. 최신 PRD 전문/UI/API 공통계약 확정이나 별도 키 활용 승인을 추정하지 않는다. Discord 초안에 완료·제한·후속·팀 요청과 최근 로컬 미push 상태를 구분했다. 실제 Discord 전송은 하지 않았다. 기록과 보고문 커밋만 수행.
+
+- [x] 코드·study·연결 소스 대조
+- [x] 서울시 실조회 및 조회 범위/필드 확인
+- [x] 완료/미완료 체크리스트 초안 작성·현재 상태/색인 갱신
+- [ ] TourAPI 국문 권한/키 확인 및 실조회

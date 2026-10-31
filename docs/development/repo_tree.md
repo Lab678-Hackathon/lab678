@@ -69,6 +69,7 @@ lab678/
         2026-10-31-demo-server-reuse.md
         2026-10-31-develop-sync.md
         2026-10-31-directions.md
+        2026-10-31-discord-status-checklist.md
         2026-10-31-events.md
         2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md
