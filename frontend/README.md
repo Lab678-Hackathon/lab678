@@ -23,18 +23,27 @@ python3 frontend/dev_server.py    # 프론트 (5173), /preview/ 요청은 백엔
 - `?mode=recorded`: 기록 데이터로 추천 (없으면 실시간 live). 이때 "QA 고정: 청량리역" 출발지 버튼이 보여요 (이슈 #16 좌표)
 - `?debug=1`: S03 카드·S04 상세에 후보 ID 표시
 - `?season=spring` / `?season=autumn` / `?season=none`: 시작 화면 계절 효과 강제
-- `#/home` 홈, `#/search` 나들이 찾기, `#/results` 추천 결과
-- 예: http://127.0.0.1:5173/?mode=recorded&debug=1#/search
+- `#/home` 홈, `#/chat` 대화, `#/me` 내 나들이
+- 예: http://127.0.0.1:5173/?mode=recorded&debug=1#/chat
+
+## 화면 (PRD v0.7 · Figma 06 · Demo Final 기준)
+- `#/` S00 까치 깨우기 → `#/home` S01 홈 → `#/chat` S02 대화 (빠진 조건만 질문, 확인 단계 없이 바로 추천, 대화 안 카드 최대 3개)
+- `#/place/<id>` S04 상세 (지도 보기 · 내 나들이에 저장) → `#/map/<id>` S08 도보 경로 (`/preview/walk`, 성공했을 때만 시간 표시)
+- 저장은 S06 시트(체험 시작 → 1회 자동 저장) → `#/me` S07 내 나들이 (체험 종료 시 모두 삭제)
+- 대화 해석은 `/preview/chat`(AI)을 먼저 쓰고, 서버에 AI 설정이 없으면 `js/parse.js` 규칙 해석으로 이어가요.
 
 ## 구조
-- `index.html`: 화면(S00 시작, S01 홈, S02 찾기, S07 내 정보)을 한 페이지에 두고 `#/주소`로 바꿔 보여줘요
+- `index.html`: 모든 화면을 한 페이지에 두고 `#/주소`로 바꿔 보여줘요
 - `css/tokens.css`: 색·글자 값. Figma 03 · UI Kit 과 같게 유지해요
 - `css/app.css`: 화면·부품 스타일
-- `js/app.js`: 화면 이동, 홈 저장 미리보기, 글자 크게
-- `js/search.js`: S02 입력·검증(최소 60분) + S02a 확인 → 추천 요청
-- `js/results.js`: S03 지도·카드, 다른 곳 찾기, S04 상세 (같은 후보 ID 사용)
-- `js/api.js`: `/preview/recommend` 호출. 실패해도 Mock 으로 바꾸지 않아요
-- `js/state.js`: 입력·결과 보존 (sessionStorage)
+- `js/app.js`: 화면 이동, S00 까치 깨우기, S01 홈, S07 내 나들이
+- `js/chat.js`: S02 대화 · S02a 확인 · S03 대화 안 카드
+- `js/parse.js`: AI 없을 때 문장에서 관심사·날짜·시각·출발지 이름 뽑기
+- `js/place.js`: S04 상세 · S08 지도·도보 경로 · S06 저장 시트
+- `js/saved.js`: 체험 모드와 저장 (이 브라우저 localStorage)
+- `js/api.js`: 백엔드 호출. 실패해도 Mock 으로 바꾸지 않아요
+- `js/state.js`: 대화·결과 보존 (sessionStorage)
+- `js/util.js`: 공통 도구
+- `js/landing.js`: 떨어지는 잎
 - `dev_server.py`: 개발용 정적 서버 + 백엔드 프록시
-- `js/landing.js`: 시작 화면 계절 그림과 떨어지는 잎
-- `assets/`: 그림·사진 (지금은 Figma AI로 만든 임시 이미지)
+- `assets/`: 까치(투명 PNG)·분위기 사진

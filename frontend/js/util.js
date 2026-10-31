@@ -1,0 +1,98 @@
+/**
+ * 여러 화면이 같이 쓰는 작은 도구: 요소 만들기, 날짜·시각 표시, 저장소 읽기/쓰기.
+ */
+
+export const $ = (sel, root = document) => root.querySelector(sel);
+export const $$ = (sel, root = document) => root.querySelectorAll(sel);
+
+/**
+ * 텍스트만 안전하게 넣는 요소 생성기
+ * @param {string} tag
+ * @param {string} [className]
+ * @param {string} [text]
+ */
+export function el(tag, className, text) {
+  const n = document.createElement(tag);
+  if (className) n.className = className;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+/** 버튼 하나 만들기 */
+export function button(label, className = 'btn btn--outline', onClick) {
+  const b = el('button', className, label);
+  b.type = 'button';
+  if (onClick) b.addEventListener('click', onClick);
+  return b;
+}
+
+/** "HH:MM" → 분 */
+export const minutes = (t) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+
+/** 분 → "HH:MM" */
+export const hhmm = (min) => `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
+
+/** 오늘 날짜 "YYYY-MM-DD" (한국 시간) */
+export function todayIso(offsetDays = 0) {
+  const d = new Date(Date.now() + 9 * 3600e3 + offsetDays * 864e5);
+  return d.toISOString().slice(0, 10);
+}
+
+/** "2026-10-31" → "10월 31일 (토)" */
+export function formatDate(iso) {
+  const d = new Date(`${iso}T00:00:00+09:00`);
+  const w = '일월화수목금토'[d.getDay()];
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${w})`;
+}
+
+/** "14:00" → "오후 2시" / "14:30" → "오후 2시 30분" */
+export function formatTime(t) {
+  const [h, m] = t.split(':').map(Number);
+  const ap = h < 12 ? '오전' : '오후';
+  const hh = ((h + 11) % 12) + 1;
+  return m ? `${ap} ${hh}시 ${m}분` : `${ap} ${hh}시`;
+}
+
+/** "2026-10-31T06:27:57+09:00" → "10월 31일 06:27 기준" */
+export function checkedAt(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 ${p(d.getHours())}:${p(d.getMinutes())} 기준`;
+}
+
+/** localStorage 읽기. 막혀 있거나 깨졌으면 fallback */
+export function readStore(key, fallback = null) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+/** localStorage 쓰기. 실패하면 false (성공처럼 보이지 않게) */
+export function writeStore(key, value) {
+  try {
+    if (value == null) localStorage.removeItem(key);
+    else localStorage.setItem(key, JSON.stringify(value));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** 시험 모드: ?mode=recorded 또는 ?debug */
+export const isTest = () => {
+  const q = new URLSearchParams(location.search);
+  return q.get('mode') === 'recorded' || q.has('debug');
+};
+export const isDebug = () => new URLSearchParams(location.search).has('debug');
+
+/** 까치가 말하는 동안 움직이게 (말풍선이 나올 때) */
+export function talkFor(node, ms) {
+  if (!node) return;
+  node.classList.add('is-talking');
+  clearTimeout(node._talkTimer);
+  node._talkTimer = setTimeout(() => node.classList.remove('is-talking'), ms);
+}

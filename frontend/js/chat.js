@@ -1,0 +1,513 @@
+/**
+ * S02 까치와 대화 · S02a 부족·충돌 확인 · S03 대화 안 추천 카드 (PRD v0.7 H02~H10).
+ *
+ * 흐름: 사용자 말/글 → 조건 해석(/preview/chat, 없으면 규칙 해석) → 빠진 것만 하나씩 질문
+ *       → 다 모이면 확인 단계 없이 바로 추천 → 대화 안에 카드 최대 3개 → 상세 보기.
+ * 이미 정한 값과 다른 말이 오면 변경 전후를 물어봐요. 좌표는 장소 검색·현재 위치로만 정해요.
+ */
+import { state, save, resetChat } from './state.js';
+import { requestRecommend, requestChat, searchPlaces } from './api.js';
+import { parseUtterance, longEnough } from './parse.js';
+import { $, el, button, formatDate, formatTime, todayIso, minutes, hhmm, isTest, isDebug, talkFor } from './util.js';
+
+const QA_START = { label: '청량리역', lat: 37.5805961, lng: 127.0482573 };
+const CATEGORIES = ['전시', '국악', '클래식', '콘서트', '연극', '전체'];
+const FIELD_NAME = { startLocation: '출발지', date: '날짜', time: '시간', category: '보고 싶은 것' };
+const MAX_CARDS = 3;
+let ticket = 0;
+let busy = false;
+let placeOptions = [];
+let recognizer = null;
+
+/* ---------------- 조건 ---------------- */
+
+const d = () => state.draft;
+
+/** 받침에 맞는 조사: josa('날짜', '을', '를') → '날짜를' */
+function josa(word, withBatchim, without) {
+  const ch = [...String(word)].reverse().find((c) => c >= '가' && c <= '힣');
+  if (!ch) return word + without;
+  const jong = (ch.charCodeAt(0) - 0xac00) % 28;
+  if (withBatchim === '으로') return word + (jong && jong !== 8 ? '으로' : '로');
+  return word + (jong ? withBatchim : without);
+}
+
+/** 아직 안 정해진 조건 중 먼저 물어볼 것 */
+function missing() {
+  if (!d().category) return 'category';
+  if (!d().date) return 'date';
+  if (!d().startTime || !d().endTime) return 'time';
+  if (!d().startLocation) return 'startLocation';
+  return null;
+}
+
+/** 조건 요약 한 줄: "청량리역 · 11월 1일 (일) · 오후 2시–오후 5시 · 전시" */
+function summary() {
+  const parts = [];
+  if (d().startLocation) parts.push(d().startLocation.label);
+  if (d().date) parts.push(formatDate(d().date));
+  if (d().startTime && d().endTime) parts.push(`${formatTime(d().startTime)}–${formatTime(d().endTime)}`);
+  if (d().category) parts.push(d().category);
+  return parts.join(' · ');
+}
+
+/** 값 하나 바꾸기. 추천을 한 번 받은 뒤 이미 있던 값이 바뀌면 바로 덮지 않고 확인해요 (S02a 충돌). */
+function patch(changes) {
+  const searched = !!state.lastRequest;
+  const conflicts = [];
+  for (const [k, v] of Object.entries(changes)) {
+    if (v == null || v === '') continue;
+    const before = d()[k];
+    const same = JSON.stringify(before) === JSON.stringify(v);
+    if (same) continue;
+    if (searched && before != null && k !== 'startQuery') conflicts.push({ field: k, before, after: v });
+    else d()[k] = v;
+  }
+  if (conflicts.length) state.pending = conflicts[0];
+  save();
+}
+
+const show = (field, v) => {
+  if (v == null) return '';
+  if (field === 'startLocation') return v.label;
+  if (field === 'date') return formatDate(v);
+  if (field === 'startTime' || field === 'endTime') return formatTime(v);
+  return String(v);
+};
+
+/* ---------------- 대화 그리기 ---------------- */
+
+/** 까치 말 추가 (소리 켜짐이면 읽어 줘요) */
+function say(text, extra = {}) {
+  state.messages.push({ role: 'ai', text, ...extra });
+  save();
+  render();
+  speak(text);
+}
+
+function userSays(text) {
+  state.messages.push({ role: 'user', text });
+  save();
+  render();
+}
+
+/** 대화 안 추천 카드 */
+function card(c, index) {
+  const art = el('article', 'chat-card');
+  art.dataset.id = c.id;
+  const top = el('div', 'chat-card__img');
+  top.style.backgroundImage = `url(assets/${c.genre?.includes('전시') ? 'place-museum' : 'place-palace'}.jpg)`;
+  top.append(el('span', 'chat-card__imgnote', '분위기 사진 · 실제 장소 아님'));
+  const meta = [c.genre?.split('/')[0], c.district, c.fee_type].filter(Boolean).join(' · ');
+  const body = el('div', 'chat-card__body');
+  body.append(el('p', 'chat-card__meta', `${index + 1} · ${meta || '문화행사'}`), el('h3', null, c.title), el('p', 'muted', c.venue || '장소 이름 확인 필요'));
+  body.append(el('p', 'chat-card__dist', c.distance_km != null ? `출발지에서 직선 약 ${c.distance_km}km` : '거리 확인 필요'));
+  const warns = [];
+  if (!c.opening_info) warns.push('운영시간 확인 필요');
+  if (!c.price_info && c.fee_type !== '무료') warns.push('가격 확인 필요');
+  (c.checks_required || []).slice(0, 1).forEach((t) => warns.push(t));
+  if (warns.length) body.append(el('p', 'chat-card__warn', `! ${warns.join(' · ')}`));
+  if (isDebug()) body.append(el('code', 'debug-id', `후보 ID: ${c.id}`));
+  const more = button('상세 보기', 'btn btn--outline btn--small');
+  more.dataset.go = `/place/${encodeURIComponent(c.id)}`;
+  body.append(more);
+  art.append(top, body);
+  return art;
+}
+
+function bubble(m) {
+  const row = el('div', `msg msg--${m.role}`);
+  if (m.role === 'ai') {
+    const av = el('div', 'msg__avatar');
+    const img = el('img');
+    img.src = 'assets/kkachi-face.png';
+    img.alt = '';
+    av.append(img);
+    row.append(av);
+  }
+  const col = el('div', 'msg__col');
+  col.append(el('span', 'msg__who', m.role === 'ai' ? '나들이 친구 까치' : '내가 한 말'));
+  if (m.text) col.append(el('p', 'msg__bubble', m.text));
+  if (m.summary) col.append(el('p', 'msg__summary', m.summary));
+  if (m.cards?.length) {
+    const list = el('div', 'chat-cards');
+    m.cards.forEach((id, i) => { const c = state.candidates[id]; if (c) list.append(card(c, i)); });
+    col.append(list);
+  }
+  if (m.loading) {
+    const dots = el('span', 'loading__dots msg__dots');
+    dots.append(el('i'), el('i'), el('i'));
+    col.append(dots);
+  }
+  row.append(col);
+  return row;
+}
+
+/** 아래 빠른 답 버튼: 지금 물어보는 것에 맞춰 바뀌어요 */
+function actions() {
+  const box = $('#chat-actions');
+  box.replaceChildren();
+  const chip = (label, fn, cls = 'chip') => box.append(button(label, cls, fn));
+  if (busy) return;
+  const last = state.messages[state.messages.length - 1];
+  if (last?.retry) { chip('같은 조건으로 다시 찾기', () => search()); return; }
+  if (state.pending) {
+    const p = state.pending;
+    chip(`${josa(show(p.field, p.after), '으로')} 바꾸기`, () => resolvePending(true), 'chip chip--primary');
+    chip(`${show(p.field, p.before)} 유지`, () => resolvePending(false));
+    return;
+  }
+  const need = missing();
+  if (need === 'category') CATEGORIES.forEach((c) => chip(c === '전체' ? '아무거나 좋아요' : c, () => answer(c, { category: c })));
+  else if (need === 'date') {
+    chip('오늘', () => answer('오늘이요', { date: todayIso(0) }));
+    chip('내일', () => answer('내일이요', { date: todayIso(1) }));
+    chip('모레', () => answer('모레요', { date: todayIso(2) }));
+  } else if (need === 'time') {
+    const now = new Date(Date.now() + 9 * 3600e3);
+    const n = Math.min(now.getUTCHours() * 60 + Math.ceil(now.getUTCMinutes() / 30) * 30, 20 * 60);
+    if (d().date === todayIso()) chip('지금부터 3시간', () => answer('지금부터 3시간이요', { startTime: hhmm(n), endTime: hhmm(Math.min(n + 180, 23 * 60)) }));
+    chip('오후 2시–5시', () => answer('오후 2시부터 5시까지요', { startTime: '14:00', endTime: '17:00' }));
+    chip('오전 10시–12시', () => answer('오전 10시부터 12시까지요', { startTime: '10:00', endTime: '12:00' }));
+  } else if (need === 'startLocation') {
+    placeOptions.forEach((p) => chip(p.label, () => answer(`${p.label}에서 출발해요`, { startLocation: { label: p.label, lat: p.lat, lng: p.lng } })));
+    chip('현재 위치 사용', useHere, 'chip chip--primary');
+    if (isTest()) chip('QA 고정: 청량리역', () => answer('청량리역에서 출발해요', { startLocation: QA_START }));
+  } else if (state.shown.length) {
+    chip('다른 곳 보여줘', () => { userSays('다른 곳도 보여줘'); other(); });
+    chip('더 가까운 곳', () => { userSays('더 가까운 곳으로 알려줘'); closer(); });
+    chip('새로 이야기하기', () => { resetChat(); start(); }, 'chip chip--ghost');
+  }
+}
+
+function render() {
+  const log = $('#chat-log');
+  log.replaceChildren(...state.messages.map(bubble));
+  $('#chat-cond').textContent = summary() ? `지금 조건 · ${summary()}` : '';
+  $('#chat-cond').hidden = !summary();
+  actions();
+  requestAnimationFrame(() => { log.lastElementChild?.scrollIntoView({ block: 'end', behavior: 'smooth' }); });
+}
+
+/* ---------------- 소리 (까치가 읽어 줘요) ---------------- */
+
+function speak(text) {
+  const avatar = $('#chat-log .msg--ai:last-of-type .msg__avatar');
+  talkFor(avatar, Math.min(600 + text.length * 70, 5000));
+  if (!state.sound || !('speechSynthesis' in window)) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR';
+    u.rate = 0.95;
+    speechSynthesis.speak(u);
+  } catch { /* 소리 실패해도 글자는 남아요 */ }
+}
+
+function setSound(on) {
+  state.sound = on;
+  save();
+  const b = $('#chat-sound');
+  b.setAttribute('aria-pressed', String(on));
+  b.textContent = on ? '소리 켬' : '소리 끔';
+  if (!on && 'speechSynthesis' in window) speechSynthesis.cancel();
+}
+
+/* ---------------- 말하기 (한 번 듣기) ---------------- */
+
+function listen() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const mic = $('#chat-mic');
+  if (!SR) { say('이 브라우저에서는 말하기를 쓸 수 없어요. 아래 칸에 글자로 적어 주세요.'); return; }
+  if (recognizer) { recognizer.stop(); return; }
+  if ('speechSynthesis' in window) speechSynthesis.cancel();
+  recognizer = new SR();
+  recognizer.lang = 'ko-KR';
+  recognizer.interimResults = true;
+  recognizer.continuous = false;
+  let finalText = '';
+  mic.classList.add('is-listening');
+  mic.setAttribute('aria-label', '듣는 중 · 누르면 멈춰요');
+  $('#chat-listen').hidden = false;
+  recognizer.onresult = (e) => {
+    let interim = '';
+    for (const r of e.results) { if (r.isFinal) finalText += r[0].transcript; else interim += r[0].transcript; }
+    $('#chat-input').value = finalText || interim;
+  };
+  recognizer.onerror = (e) => {
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') say('마이크를 쓸 수 없어요. 아래 칸에 글자로 적어 주셔도 돼요.');
+    else if (e.error === 'no-speech') say('잘 듣지 못했어요. 마이크를 다시 누르고 말씀해 주세요.');
+  };
+  recognizer.onend = () => {
+    recognizer = null;
+    mic.classList.remove('is-listening');
+    mic.setAttribute('aria-label', '말하기');
+    $('#chat-listen').hidden = true;
+    const text = finalText.trim();
+    if (text) { $('#chat-input').value = ''; handle(text); }
+  };
+  try { recognizer.start(); } catch { recognizer = null; }
+}
+
+/* ---------------- 해석 ---------------- */
+
+/** 서버 대화 API 형식 ↔ 화면 조건 */
+function toServerDraft() {
+  const out = { request_kind: 'place' };
+  if (d().startLocation) out.start_location = d().startLocation;
+  if (d().category) out.category = d().category;
+  if (d().date && d().startTime) out.start_at = `${d().date}T${d().startTime}:00+09:00`;
+  if (d().date && d().endTime) out.end_at = `${d().date}T${d().endTime}:00+09:00`;
+  return out;
+}
+
+function fromServerDraft(sd) {
+  const out = {};
+  if (sd.category) out.category = sd.category;
+  if (sd.start_at) { out.date = sd.start_at.slice(0, 10); out.startTime = sd.start_at.slice(11, 16); }
+  if (sd.end_at) out.endTime = sd.end_at.slice(11, 16);
+  if (sd.start_location?.lat != null) out.startLocation = sd.start_location;
+  if (sd.start_query && !sd.start_location) out.startQuery = sd.start_query;
+  return out;
+}
+
+/** 문장 해석: AI 대화 API 가 있으면 쓰고, 없으면 규칙 해석 */
+async function interpret(text) {
+  const history = state.messages.slice(-7, -1).filter((m) => m.text)
+    .map((m) => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.text.slice(0, 1000) }));
+  try {
+    const r = await requestChat({ message: text, condition_draft: toServerDraft(), confirmed_fields: [], revision: state.revision, conversation_context: history });
+    if (r.kind === 'ok') {
+      state.revision += 1;
+      const p = fromServerDraft(r.data.updated_condition_draft);
+      if (r.data.music_followup || r.data.updated_condition_draft?.music_followup) p.ask = r.data.assistant_text;
+      return p;
+    }
+  } catch { /* 규칙 해석으로 */ }
+  const p = parseUtterance(text);
+  if (p.useHere) p.useHere = true;
+  return p;
+}
+
+/** 사용자 한마디 처리 */
+async function handle(text) {
+  if (busy) return;
+  userSays(text);
+  // 결과 뒤 짧은 요청
+  if (state.shown.length && /다른\s*(곳|데)|딴\s*데/.test(text) && !/에서 출발/.test(text)) { other(); return; }
+  if (state.shown.length && /가까운/.test(text)) { closer(); return; }
+  busy = true;
+  render();
+  const p = await interpret(text);
+  busy = false;
+  const { useHere: here, startQuery, ask, ...changes } = p;
+  patch(changes);
+  if (ask) { say(ask); return; }
+  if (here) { await useHere(); return; }
+  if (startQuery && !d().startLocation) { await findStart(startQuery); return; }
+  if (startQuery && state.lastRequest) { await findStart(startQuery, true); return; }
+  if (!Object.keys(changes).length && !startQuery) {
+    if (/^(네|응|좋아|그래)/.test(text) && !missing()) { next(); return; }
+    say(nothingUnderstood());
+    return;
+  }
+  next();
+}
+
+function nothingUnderstood() {
+  if (!state.messages.some((m) => m.role === 'user' && m !== state.messages[state.messages.length - 1])) {
+    return '어떤 나들이를 하고 싶으세요? 예를 들어 "내일 오후 2시부터 5시까지 전시 보고 싶어요"처럼 말씀해 주세요.';
+  }
+  return '저는 문화 나들이를 찾아 드리는 까치예요. 보고 싶은 것이나 시간, 출발할 곳을 알려 주시면 찾아볼게요.';
+}
+
+/** 빠른 답 버튼 */
+function answer(text, changes) {
+  userSays(text);
+  patch(changes);
+  next();
+}
+
+/** 출발지 이름 → 장소 검색 → 사용자가 고르면 확정 */
+async function findStart(query, changing = false) {
+  busy = true;
+  say(`${josa(`"${query}"`, '을', '를')} 찾아볼게요.`);
+  const r = await searchPlaces(query).catch(() => ({ kind: 'error' }));
+  busy = false;
+  if (r.kind === 'ready' && r.places.length) {
+    placeOptions = r.places.slice(0, 3);
+    if (changing) state.pending = null;
+    if (changing) d().startLocation = null;
+    save();
+    say('어디에서 출발하실지 아래에서 골라 주세요.');
+    return;
+  }
+  placeOptions = [];
+  say(r.kind === 'no_results' ? '그 이름으로는 찾지 못했어요. 다른 이름으로 말씀하시거나, 현재 위치를 써 주세요.'
+    : '지금은 장소 이름으로 출발지를 찾을 수 없어요. 아래 "현재 위치 사용"을 눌러 주세요.');
+}
+
+/** 현재 위치 (사용자가 직접 골랐을 때만 권한 요청) */
+async function useHere() {
+  if (!navigator.geolocation) { say('이 기기에서는 현재 위치를 쓸 수 없어요. 출발할 곳 이름을 말씀해 주세요.'); return; }
+  busy = true;
+  render();
+  navigator.geolocation.getCurrentPosition((pos) => {
+    busy = false;
+    patch({ startLocation: { label: '현재 위치', lat: pos.coords.latitude, lng: pos.coords.longitude } });
+    userSays('현재 위치에서 출발할게요');
+    next();
+  }, () => {
+    busy = false;
+    say('위치를 확인하지 못했어요. 출발할 곳 이름(예: 청량리역)을 말씀해 주세요.');
+  }, { timeout: 10000, maximumAge: 60000 });
+}
+
+/** 바꿀지 확인 응답 */
+function resolvePending(accept) {
+  const p = state.pending;
+  state.pending = null;
+  if (accept) d()[p.field] = p.after;
+  save();
+  userSays(accept ? `${josa(show(p.field, p.after), '으로')} 바꿔 주세요` : `${show(p.field, p.before)} 그대로 둘게요`);
+  if (accept) search();
+  else say('알겠어요. 원래 조건은 그대로 두었어요.');
+}
+
+/** 다음에 할 말: 확인 → 빠진 것 질문 → 60분 확인 → 추천 */
+function next() {
+  if (state.pending) {
+    const p = state.pending;
+    const name = FIELD_NAME[p.field] || (p.field.includes('Time') ? '시간' : p.field);
+    say(`${josa(name, '을', '를')} ${show(p.field, p.before)}에서 ${josa(show(p.field, p.after), '으로')} 바꿀까요? 다른 조건은 그대로 둘게요.`);
+    return;
+  }
+  const need = missing();
+  if (need === 'category') { say('어떤 걸 보고 싶으세요? 전시, 국악, 클래식, 콘서트, 연극 중에서 골라 주셔도 돼요.'); return; }
+  if (need === 'date') { say('언제 가실 건가요?'); return; }
+  if (need === 'time') { say('몇 시부터 몇 시까지 시간이 되세요?'); return; }
+  if (!longEnough(d().startTime, d().endTime) || minutes(d().endTime) <= minutes(d().startTime)) {
+    d().endTime = null;
+    save();
+    say('나들이 시간은 최소 1시간 이상으로 설정해 주세요. 몇 시까지 시간이 되세요?');
+    return;
+  }
+  if (need === 'startLocation') { say('어디에서 출발하세요? 출발할 곳 이름을 말씀하시거나 현재 위치를 써 주세요.'); return; }
+  search();
+}
+
+/* ---------------- 추천 ---------------- */
+
+function requestBody() {
+  return {
+    request_kind: 'place',
+    start_location: d().startLocation,
+    start_at: `${d().date}T${d().startTime}:00+09:00`,
+    end_at: `${d().date}T${d().endTime}:00+09:00`,
+    category: d().category,
+  };
+}
+
+/** 조건이 다 모이면 확인 단계 없이 바로 찾아요 */
+async function search() {
+  const mine = ++ticket;
+  busy = true;
+  const body = requestBody();
+  state.messages.push({ role: 'ai', text: `${summary()} 조건으로 찾아볼게요.`, loading: true });
+  save();
+  render();
+  const res = await requestRecommend(body);
+  if (mine !== ticket) return; // 늦게 온 이전 응답은 버려요
+  busy = false;
+  const last = state.messages[state.messages.length - 1];
+  if (last?.loading) delete last.loading;
+  if (res.kind === 'need_input') {
+    if (res.field === 'end_at' || res.code === 'minimum_duration') d().endTime = null;
+    save();
+    say(res.message);
+    return;
+  }
+  if (res.kind === 'error') { say(`${res.message}`, { retry: true }); return; }
+  state.lastRequest = body;
+  state.sourceCheckedAt = res.data.source_checked_at || null;
+  const list = res.data.candidates || [];
+  if (!list.length) {
+    state.pool = [];
+    say('조건에 맞는 곳을 찾지 못했어요. 날짜나 시간, 보고 싶은 것을 바꿔 말씀해 주시면 다시 찾아볼게요.');
+    return;
+  }
+  list.forEach((c) => { state.candidates[c.id] = c; });
+  state.pool = list.map((c) => c.id);
+  showCards(state.pool.slice(0, MAX_CARDS), `${list.length > MAX_CARDS ? `${list.length}곳 중 ` : ''}가까운 순서로 ${Math.min(list.length, MAX_CARDS)}곳을 골랐어요. 운영시간과 예약은 꼭 다시 확인해 주세요.`);
+}
+
+function showCards(ids, text) {
+  state.shown.push(...ids.filter((id) => !state.shown.includes(id)));
+  state.messages.push({ role: 'ai', text, cards: ids, summary: summary() });
+  save();
+  render();
+  speak(text);
+}
+
+/** 다른 곳: 같은 조건으로 아직 안 본 곳. 없으면 다시 찾아보고, 그래도 없으면 지금 카드 유지 (D07·D08) */
+async function other() {
+  const fresh = state.pool.filter((id) => !state.shown.includes(id));
+  if (fresh.length) { showCards(fresh.slice(0, MAX_CARDS), '같은 조건으로 다른 곳을 골랐어요.'); return; }
+  if (!state.lastRequest) { next(); return; }
+  busy = true;
+  render();
+  const res = await requestRecommend(state.lastRequest);
+  busy = false;
+  if (res.kind === 'ready') {
+    res.data.candidates.forEach((c) => { state.candidates[c.id] = c; });
+    const more = res.data.candidates.map((c) => c.id).filter((id) => !state.shown.includes(id));
+    state.pool.push(...more.filter((id) => !state.pool.includes(id)));
+    if (more.length) { showCards(more.slice(0, MAX_CARDS), '같은 조건으로 새로 찾은 곳이에요.'); return; }
+  }
+  say(res.kind === 'error' ? '새로 찾지 못했어요. 위에 보여 드린 곳은 그대로 둘게요.' : '같은 조건으로 더 찾은 곳이 없어요. 위에 보여 드린 곳은 그대로 둘게요.', res.kind === 'error' ? { retry: false } : {});
+}
+
+/** 더 가까운 곳: 받은 후보 중 출발지에서 가까운 순 */
+function closer() {
+  const lastCards = [...state.messages].reverse().find((m) => m.cards)?.cards || [];
+  const byDist = state.pool.map((id) => state.candidates[id]).filter((c) => c?.distance_km != null)
+    .sort((a, b) => a.distance_km - b.distance_km).map((c) => c.id);
+  const top = byDist.slice(0, MAX_CARDS);
+  if (!top.length || top.every((id) => lastCards.includes(id))) {
+    say('지금 보여 드린 곳이 이 조건에서 가장 가까운 곳이에요. 출발지를 바꾸시면 다시 찾아볼게요.');
+    return;
+  }
+  showCards(top, '출발지에서 가까운 순서로 다시 골랐어요.');
+}
+
+/* ---------------- 시작 ---------------- */
+
+/** 새 대화 첫 인사 */
+function start() {
+  if (!state.messages.length) {
+    say('안녕하세요! 오늘은 어떤 나들이를 하고 싶으세요? "내일 오후 2시부터 5시까지 전시 보고 싶어요"처럼 편하게 말씀해 주세요.');
+  } else render();
+}
+
+/** #/chat 들어올 때 */
+export function renderChat(opts = {}) {
+  if (opts.voice != null) setSound(opts.voice);
+  else setSound(state.sound);
+  start();
+  if (opts.voice) setTimeout(listen, 400);
+  else if (opts.voice === false) $('#chat-input').focus();
+}
+
+/** 이벤트 연결 (한 번) */
+export function initChat() {
+  $('#chat-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const v = $('#chat-input').value.trim();
+    if (!v) return;
+    $('#chat-input').value = '';
+    handle(v);
+  });
+  $('#chat-mic').addEventListener('click', listen);
+  $('#chat-sound').addEventListener('click', () => setSound(!state.sound));
+  $('#chat-new').addEventListener('click', () => { resetChat(); placeOptions = []; start(); });
+}

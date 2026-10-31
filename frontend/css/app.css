@@ -257,3 +257,98 @@ img { display: block; max-width: 100%; }
 
 /* ---------- 준비 중 화면 ---------- */
 .stub { padding: 80px var(--gutter); display: flex; flex-direction: column; gap: 16px; }
+
+/* =========================================================
+   v0.7 대화형 흐름 (06 · Demo Final 기준)
+   ========================================================= */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.chip--primary { background: var(--brand-primary); border-color: var(--brand-primary); color: #fff; }
+.chip--ghost { background: none; }
+.chip--small { min-height: 40px; padding: 0 12px; font-size: var(--fs-caption); }
+.btn--icon { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+.btn--icon svg { width: 22px; height: 22px; }
+.btn--danger { background: var(--status-danger); color: #fff; }
+.btn--danger-outline { background: none; color: var(--status-danger); border: 1.5px solid var(--status-danger); }
+a.btn { display: flex; align-items: center; justify-content: center; text-decoration: none; }
+.page--with-bar { padding-bottom: 200px; }
+.page--with-tabs { padding-bottom: 120px; }
+.note { font-size: var(--fs-label); color: var(--brand-primary); background: var(--status-ok-bg); padding: 10px 14px; border-radius: 12px; }
+.note.is-warn { color: var(--status-warn-text); background: var(--status-warn-bg); }
+
+/* S01 홈 */
+.home__kicker { color: var(--brand-primary); font-size: var(--fs-label); font-weight: 700; margin-bottom: -10px; }
+.home__title { font-size: var(--fs-display); line-height: 1.3; }
+.home__greet { display: flex; align-items: center; gap: 12px; padding: 4px 0; }
+.home__bird { width: 132px; flex: none; display: grid; place-items: center; }
+.home__bird img { width: 100%; height: auto; transform-origin: 50% 90%; animation: breathe 3.2s ease-in-out infinite; }
+.home__bird.is-talking img, .msg__avatar.is-talking img { animation: talk .42s ease-in-out infinite alternate; }
+.home__say { display: flex; flex-direction: column; gap: 4px; }
+.home__say strong { font-size: var(--fs-title-m); }
+.home__say span { font-size: var(--fs-body-m); line-height: 1.5; }
+.home__example { text-align: center; font-size: var(--fs-label); }
+.home__textsize { align-self: center; }
+
+/* S02 대화 */
+#s02.is-active { display: flex; flex-direction: column; min-height: 100dvh; }
+.chat__cond { margin: 0 var(--gutter); padding: 8px 12px; border-radius: 10px; background: var(--bg-soft); color: var(--brand-primary); font-size: var(--fs-caption); font-weight: 700; }
+.chat__log { flex: 1; padding: 12px var(--gutter) 260px; display: flex; flex-direction: column; gap: 16px; }
+.msg { display: flex; gap: 8px; align-items: flex-start; }
+.msg--user { justify-content: flex-end; }
+.msg__avatar { width: 44px; height: 44px; flex: none; }
+.msg__avatar img { width: 100%; height: 100%; object-fit: contain; transform-origin: 50% 80%; animation: breathe 3.2s ease-in-out infinite; }
+.msg__col { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 84%; }
+.msg--ai .msg__col { flex: 1; max-width: none; }
+.msg__who { font-size: 13px; font-weight: 700; color: var(--brand-primary); }
+.msg--user .msg__who { align-self: flex-end; }
+.msg__bubble { margin: 0; padding: 12px 16px; font-size: var(--fs-body-l); line-height: 1.5; border-radius: 6px 18px 18px 18px; background: var(--bg-surface); border: 1px solid var(--border-default); white-space: pre-line; }
+.msg--user .msg__bubble { border-radius: 18px 18px 6px 18px; background: var(--bg-soft); border-color: transparent; }
+.msg__summary { margin: 0; font-size: var(--fs-caption); color: var(--status-warn-text); font-weight: 700; }
+.msg__dots { padding: 4px 0 0 4px; }
+.chat-cards { display: flex; flex-direction: column; gap: 12px; }
+.chat-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); overflow: hidden; }
+.chat-card__img, .place-hero, .saved-card__img { position: relative; height: 120px; background: #ddd center / cover no-repeat; }
+.chat-card__imgnote { position: absolute; right: 8px; bottom: 8px; padding: 2px 8px; border-radius: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 12px; }
+.chat-card__body, .saved-card__body { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 6px; }
+.chat-card__body h3, .saved-card__body h3 { font-size: var(--fs-body-l); line-height: 1.4; }
+.chat-card__meta { font-size: var(--fs-caption); color: var(--brand-primary); font-weight: 700; }
+.chat-card__dist { font-size: var(--fs-caption); color: var(--text-secondary); }
+.chat-card__warn { font-size: var(--fs-caption); color: var(--status-warn-text); font-weight: 700; }
+.chat-card .btn, .saved-card .btn { margin-top: 6px; }
+.chat__bottom { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; padding: 10px var(--gutter) max(14px, env(safe-area-inset-bottom)); background: var(--bg-canvas); border-top: 1px solid var(--border-default); display: flex; flex-direction: column; gap: 10px; z-index: 20; }
+.chat__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.chat__actions:empty { display: none; }
+.chat__listen { margin: 0; color: var(--brand-primary); font-weight: 700; font-size: var(--fs-label); }
+.chat__form { display: flex; gap: 8px; align-items: center; }
+.chat__mic { width: 56px; height: 56px; flex: none; border-radius: 50%; border: 0; background: var(--brand-primary); color: #fff; display: grid; place-items: center; }
+.chat__mic svg { width: 26px; height: 26px; }
+.chat__mic.is-listening { background: var(--status-danger); animation: pulse 1.2s ease-in-out infinite; }
+.chat__input { flex: 1; min-width: 0; min-height: 56px; }
+.chat__send { width: auto; padding: 0 16px; min-height: 56px; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(179,38,30,.4); } 50% { box-shadow: 0 0 0 10px rgba(179,38,30,0); } }
+
+/* S04 상세 */
+.place-hero { height: 180px; border-radius: var(--radius-card); }
+.place-visit { padding: 10px 14px; border-radius: 12px; background: var(--bg-soft); color: var(--brand-primary); font-weight: 700; font-size: var(--fs-label); }
+
+/* S08 지도 */
+.route__time { font-size: var(--fs-title-l); }
+.map--route { position: relative; height: 300px; border-radius: var(--radius-card); overflow: hidden; background: #ECE9DF; }
+.pin--from span, .pin--to span { display: inline-block; padding: 4px 10px; border-radius: 12px; background: #fff; border: 2px solid var(--brand-primary); color: var(--brand-primary); font-weight: 700; font-size: 14px; white-space: nowrap; }
+.pin--to span { background: var(--brand-primary); color: #fff; }
+#s08 .map-error { position: static; }
+
+/* S07 내 나들이 */
+.me__title { font-size: var(--fs-title-l); line-height: 1.35; }
+.me__list { display: flex; flex-direction: column; gap: 12px; }
+.saved-card { background: var(--bg-surface); border: 1px solid var(--border-default); border-radius: var(--radius-card); overflow: hidden; }
+#home-saved-list { margin-top: 10px; }
+#me-count { align-self: flex-start; }
+
+/* 아래에서 올라오는 시트 (S06) */
+.sheet { position: fixed; inset: 0; z-index: 50; background: rgba(27, 29, 26, .45); display: flex; align-items: flex-end; justify-content: center; }
+.sheet[hidden] { display: none !important; }
+.sheet__panel { width: 100%; max-width: 430px; padding: 28px var(--gutter) max(24px, env(safe-area-inset-bottom)); background: var(--bg-canvas); border-radius: 24px 24px 0 0; display: flex; flex-direction: column; gap: 12px; outline: none; animation: sheet-up .25s ease-out; }
+.sheet__panel h2 { font-size: var(--fs-title-m); }
+.sheet__panel .badge { align-self: flex-start; }
+@keyframes sheet-up { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .home__bird img, .msg__avatar img, .chat__mic.is-listening, .sheet__panel { animation: none !important; } }

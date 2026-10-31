@@ -92,3 +92,32 @@ export async function searchPlaces(query, signal) {
   if (status === 429) return { kind: 'error', message: '검색이 잠시 몰렸어요. 조금 뒤에 다시 찾아 주세요.' };
   return { kind: 'error', message: '출발지 검색을 지금 쓸 수 없어요. 현재 위치를 쓰거나 잠시 뒤 다시 찾아 주세요.' };
 }
+
+/**
+ * 대화 해석 (/preview/chat). 서버에 AI 설정이 없거나 오래된 서버면 kind:'unavailable' 로 돌려줘요.
+ * 그때는 화면에서 규칙 기반 해석으로 이어가요.
+ * @param {object} body message, condition_draft, confirmed_fields, revision, conversation_context
+ * @returns {Promise<{kind:'ok'|'unavailable'|'error', data?:object, message?:string}>}
+ */
+export async function requestChat(body) {
+  const r = await post('/preview/chat', body);
+  if (!r) return { kind: 'unavailable' };
+  const { status, data } = r;
+  if (status === 200 && data?.updated_condition_draft) return { kind: 'ok', data };
+  if (status === 404 || status === 503 || status === 405) return { kind: 'unavailable' };
+  return { kind: 'error', message: data?.message || 'AI 응답을 받지 못했어요.' };
+}
+
+/**
+ * 도보 경로. 경로 계산이 성공했을 때만 시간·거리를 돌려줘요 (추정값을 만들지 않아요).
+ * @param {{lat:number,lng:number}} from
+ * @param {{lat:number,lng:number}} to
+ * @returns {Promise<{kind:'ready', duration_s:number, distance_m:number, path?:number[][], provider?:string}|{kind:'error', message:string}>}
+ */
+export async function walkRoute(from, to) {
+  const r = await post('/preview/walk', { points: [from, to], details: true });
+  if (!r) return { kind: 'error', message: '인터넷 연결을 확인하고 다시 시도해 주세요.' };
+  const { status, data } = r;
+  if (status === 200 && typeof data?.duration_s === 'number') return { kind: 'ready', ...data };
+  return { kind: 'error', message: data?.message || '도보 경로를 확인하지 못했어요. 잠시 후 다시 시도해 주세요.' };
+}

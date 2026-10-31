@@ -1,80 +1,38 @@
+/**
+ * 화면 이동과 S00 시작 · S01 홈 · S07 내 나들이.
+ * #/ = S00, #/home = S01, #/chat = S02(대화 안 S02a·S03), #/place/<id> = S04, #/map/<id> = S08, #/me = S07
+ */
 import { pickSeason, startLeaves } from './landing.js';
 import { wakeServer } from './api.js';
-import { initSearch, renderSearch } from './search.js';
-import { initResults, renderResults, renderPlace } from './results.js';
-
-/** 브라우저 저장 키 (화면명세서 S06 개념 이름 기준, 최종 키는 개발 협의) */
-const KEYS = {
-  signedIn: 'demoSignedIn',
-  savedPick: 'demo_saved_pick',
-  savedRoute: 'demo_saved_route',
-  textLarge: 'text_large',
-};
+import { initChat, renderChat } from './chat.js';
+import { initPlace, renderPlace, renderMap } from './place.js';
+import { isSignedIn, savedPlaces, endDemo, startDemo } from './saved.js';
+import { $, el, button, readStore, writeStore, talkFor } from './util.js';
 
 /** 까치가 일어나는 모습을 최소한 이만큼은 보여줘요 (너무 빨리 넘어가면 깜빡이는 느낌) */
 const MIN_WAKE_MS = 1600;
 
-/**
- * localStorage 를 안전하게 읽어요. 막혀 있거나 값이 깨졌으면 null.
- * @param {string} key
- * @returns {any}
- */
-function readStore(key) {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
-
-/**
- * localStorage 에 안전하게 써요. 실패하면 false.
- * @param {string} key
- * @param {any} value
- * @returns {boolean}
- */
-function writeStore(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * 주소의 # 뒤를 보고 화면 하나만 보여줘요.
- * #/ 또는 없음 = S00 시작 화면, #/home = S01, #/search = S02(+S02a), #/results = S03,
- * #/place/<후보 id> = S04, #/me = S07
- */
 function route() {
-  const path = location.hash.replace(/^#/, '') || '/';
-  const id = path.startsWith('/place/') ? 's04'
-    : { '/': 's00', '/home': 's01', '/search': 's02', '/results': 's03', '/me': 's07' }[path] || 's01';
-  document.querySelectorAll('.screen').forEach((el) => el.classList.toggle('is-active', el.id === id));
+  const full = location.hash.replace(/^#/, '') || '/';
+  const [path, query = ''] = full.split('?');
+  const [, base = '', rawId] = path.split('/');
+  const id = decodeURIComponent(rawId || '');
+  const screen = { '': 's00', home: 's01', chat: 's02', search: 's02', place: 's04', map: 's08', me: 's07' }[base] || 's01';
+  document.querySelectorAll('.screen').forEach((n) => n.classList.toggle('is-active', n.id === screen));
   document.querySelectorAll('.tab').forEach((tab) => {
-    if (tab.dataset.go === path) tab.setAttribute('aria-current', 'page');
+    if (tab.dataset.go === `/${base}`) tab.setAttribute('aria-current', 'page');
     else tab.removeAttribute('aria-current');
   });
-  document.querySelector('.tabbar').hidden = !['s01', 's07'].includes(id);
-  if (id === 's01') renderHome();
-  if (id === 's02') renderSearch();
-  if (id === 's03') renderResults();
-  if (id === 's04') renderPlace(decodeURIComponent(path.slice('/place/'.length)));
-  window.scrollTo(0, 0);
-}
-
-/**
- * 까치가 말하는 동안 움직이게 해요 (말풍선이 나올 때). 시간이 지나면 다시 숨쉬기로 돌아가요.
- * @param {HTMLElement} el 까치 이미지를 감싼 요소
- * @param {number} ms
- */
-export function talkFor(el, ms) {
-  if (!el) return;
-  el.classList.add('is-talking');
-  clearTimeout(el._talkTimer);
-  el._talkTimer = setTimeout(() => el.classList.remove('is-talking'), ms);
+  $('.tabbar').hidden = !['s01', 's07'].includes(screen);
+  if (screen === 's01') renderHome();
+  if (screen === 's02') {
+    const q = new URLSearchParams(query);
+    renderChat({ voice: q.has('voice') ? true : q.has('text') ? false : undefined });
+  }
+  if (screen === 's04') renderPlace(id);
+  if (screen === 's08') renderMap(id);
+  if (screen === 's07') renderMe();
+  if (screen !== 's02') window.scrollTo(0, 0);
 }
 
 /**
@@ -150,35 +108,63 @@ function initLanding() {
   show('sleep');
 }
 
-/**
- * S01: 체험 중 표시와 저장 미리보기를 브라우저 저장 내용대로 그려요.
- * 저장이 없으면 미리보기를 숨기고 말하기 예시를 보여줘요 (D06).
- */
-function renderHome() {
-  const signedIn = readStore(KEYS.signedIn) === true;
-  const pick = readStore(KEYS.savedPick);
-  const course = readStore(KEYS.savedRoute);
-  const items = [];
-  if (Array.isArray(pick) && pick[0]) items.push({ img: pick[0].image || 'assets/place-museum.jpg', title: pick[0].name, meta: '내가 고른 장소' });
-  if (Array.isArray(course) && course[0]) items.push({ img: course[0].image || 'assets/place-craft.jpg', title: course[0].name, meta: `내 나들이 코스 · ${course[0].stops?.length || 0}곳` });
 
-  document.querySelector('#s01 [data-signed-in]').hidden = !signedIn;
-  const saved = document.querySelector('#s01 [data-saved]');
-  const tip = document.querySelector('#s01 [data-tip]');
-  saved.hidden = items.length === 0;
-  tip.hidden = items.length > 0;
-  saved.querySelector('[data-list]').replaceChildren(...items.map((it) => {
-    const row = document.createElement('button');
-    row.className = 'saved-row';
-    row.type = 'button';
-    row.dataset.go = '/me';
-    row.innerHTML = `<img src="${it.img}" alt=""><span class="saved-row__text"><strong></strong><span></span></span>
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>`;
-    row.querySelector('strong').textContent = it.title;
-    row.querySelector('.saved-row__text > span').textContent = it.meta;
-    return row;
-  }));
+/** 저장한 장소 카드 (홈 미리보기·내 나들이) */
+function savedCard(p) {
+  const art = el('article', 'saved-card');
+  const img = el('div', 'saved-card__img');
+  img.style.backgroundImage = `url(assets/${p.genre?.includes('전시') ? 'place-museum' : 'place-palace'}.jpg)`;
+  art.append(img);
+  const body = el('div', 'saved-card__body');
+  body.append(el('h3', null, p.title), el('p', 'muted', p.venue || ''));
+  if ((p.checks_required || []).length) body.append(el('p', 'chat-card__warn', `! ${p.checks_required[0]}`));
+  const b = button('장소 정보 보기', 'btn btn--outline btn--small');
+  b.dataset.go = `/place/${encodeURIComponent(p.id)}`;
+  body.append(b);
+  art.append(body);
+  return art;
 }
+
+/** S01: 저장이 있을 때만 미리보기 (D06) */
+function renderHome() {
+  const list = savedPlaces();
+  $('#s01 [data-signed-in]').hidden = !isSignedIn();
+  $('#home-saved').hidden = !list.length;
+  $('#home-saved-list').replaceChildren(...list.slice(0, 1).map(savedCard));
+  talkFor($('#home-bird'), 2200);
+}
+
+/** S07 내 나들이 */
+function renderMe() {
+  const list = savedPlaces();
+  const signed = isSignedIn();
+  $('#me-count').textContent = signed ? `이 브라우저에 저장한 장소 ${list.length}곳` : '아직 체험을 시작하지 않았어요';
+  $('#me-empty').hidden = list.length > 0;
+  $('#me-empty-text').textContent = signed ? '아직 저장한 장소가 없어요. 까치와 이야기하고 마음에 드는 곳을 저장해 보세요.'
+    : '로그인 없이 쓸 수 있어요. 장소를 저장하고 싶을 때 체험을 시작하면 돼요.';
+  $('#me-start').hidden = signed;
+  $('#me-list').replaceChildren(...list.map(savedCard));
+  $('#me-end').hidden = !signed;
+  $('#me-note').hidden = true;
+}
+
+function initMe() {
+  $('#me-start').addEventListener('click', () => {
+    if (!startDemo()) { meNote('체험을 시작하지 못했어요. 브라우저 저장이 막혀 있는지 확인해 주세요.'); return; }
+    renderMe();
+  });
+  $('#me-end').addEventListener('click', () => { $('#sheet-end').hidden = false; });
+  $('#end-cancel').addEventListener('click', () => { $('#sheet-end').hidden = true; });
+  $('#end-confirm').addEventListener('click', () => {
+    $('#sheet-end').hidden = true;
+    const ok = endDemo();
+    renderMe();
+    meNote(ok ? '체험을 끝내고 저장한 장소를 모두 지웠어요.' : '지우지 못했어요. 저장한 장소는 그대로 있어요. 다시 시도해 주세요.');
+  });
+  document.addEventListener('demo-changed', () => { if ($('#s07').classList.contains('is-active')) renderMe(); });
+}
+
+function meNote(t) { const n = $('#me-note'); n.textContent = t; n.hidden = false; }
 
 /** 글자 크게: 앱 전체 글자를 15% 키우고, 다음에 열어도 기억해요. */
 function initTextSize() {
@@ -187,12 +173,12 @@ function initTextSize() {
     root.classList.toggle('text-large', on);
     document.querySelectorAll('[data-text-size]').forEach((b) => b.setAttribute('aria-pressed', String(on)));
   };
-  apply(readStore(KEYS.textLarge) === true);
+  apply(readStore('text_large') === true);
   document.addEventListener('click', (e) => {
     if (!e.target.closest('[data-text-size]')) return;
     const on = !root.classList.contains('text-large');
     apply(on);
-    writeStore(KEYS.textLarge, on);
+    writeStore('text_large', on);
   });
 }
 
@@ -200,14 +186,15 @@ function initTextSize() {
 function initNavigation() {
   document.addEventListener('click', (e) => {
     const target = e.target.closest('[data-go]');
-    if (target) location.hash = target.dataset.go;
+    if (target && !target.disabled) location.hash = target.dataset.go;
   });
   window.addEventListener('hashchange', route);
 }
 
 initTextSize();
 initNavigation();
-initSearch();
-initResults();
+initChat();
+initPlace();
+initMe();
 initLanding();
 route();

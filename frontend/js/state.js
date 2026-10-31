@@ -1,19 +1,29 @@
 /**
- * 화면 사이에서 공유하는 상태. 새로고침해도 입력·결과가 남도록 sessionStorage 에 보관해요.
- * form: S02 입력값 / confirmed: S02a 에서 확인한 요청 / result: 추천 응답 / selectedId: S04 에서 고른 장소
+ * 대화·추천 상태. 새로고침해도 대화와 결과가 남도록 sessionStorage 에 보관해요.
+ * (전체 대화 기록을 영구 저장하지 않아요. 탭을 닫으면 사라져요 — PRD H14)
+ *
+ * draft: 지금까지 정해진 조건 {startLocation, startQuery, date, startTime, endTime, category}
+ * confirmed: 사용자가 확인한 조건 이름들 (바꾸려면 변경 전후 확인)
+ * messages: 대화 [{role:'user'|'ai', text, cards?: string[], note?}]
+ * candidates: 지금까지 받은 후보 (id → 후보). 카드·상세·지도·저장이 같은 객체를 써요.
+ * shown: 대화에 보여준 후보 id 순서 / pending: 확인 기다리는 변경 {field, before, after}
  */
-const KEY = 'lab678_flow';
+const KEY = 'lab678_chat';
 
 const empty = () => ({
-  form: { startKey: '', date: '', startTime: '', endTime: '', category: '', kind: 'place' },
-  confirmed: null,
-  result: null,
-  shownIds: [],
-  activeId: null,
-  selectedId: null,
+  draft: {},
+  confirmed: [],
+  revision: 0,
+  messages: [],
+  candidates: {},
+  pool: [],
+  shown: [],
+  pending: null,
+  lastRequest: null,
+  sourceCheckedAt: null,
+  sound: false,
 });
 
-/** @returns {ReturnType<typeof empty>} */
 function load() {
   try {
     return { ...empty(), ...JSON.parse(sessionStorage.getItem(KEY) || '{}') };
@@ -29,10 +39,17 @@ export function save() {
   try { sessionStorage.setItem(KEY, JSON.stringify(state)); } catch { /* 무시 */ }
 }
 
+/** 새 대화로 비우기 */
+export function resetChat() {
+  const sound = state.sound;
+  Object.assign(state, empty(), { sound });
+  save();
+}
+
 /**
- * 추천 결과에서 id 로 후보를 찾아요. S03 카드와 S04 상세가 같은 객체를 써요.
+ * id 로 후보를 찾아요. 대화 카드·S04·S08 이 같은 객체를 써요. 저장한 장소도 찾아봐요.
  * @param {string} id
  */
 export function candidateById(id) {
-  return state.result?.candidates?.find((c) => c.id === id) || null;
+  return state.candidates[id] || null;
 }
