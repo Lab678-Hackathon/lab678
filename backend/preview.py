@@ -15,8 +15,9 @@ from transit import transit_between
 from map_config import map_config
 from places import search_places
 from naito_chat import chat
+from tour_places import culture_places
 
-POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit", "/preview/places", "/preview/chat"}
+POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit", "/preview/places", "/preview/chat", "/preview/culture-places"}
 
 
 def allowed_origins():
@@ -118,6 +119,10 @@ class Preview(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("요청 형식을 확인해 주세요.")
+            if self.path == "/preview/culture-places":
+                status, body = culture_places(data)
+                self.reply(status, body)
+                return
             if self.path == "/preview/chat":
                 status, body = chat(data)
                 self.reply(status, body)

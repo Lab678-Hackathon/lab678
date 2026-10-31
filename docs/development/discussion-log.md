@@ -485,3 +485,11 @@ Naito 실제 연결을 확인했습니다.
 .local/chat-handoff-164cd40-ab4591e631/project/frontend에서 팀 원본 dev_server.py를5175로 실행. 응답가공 없이 실제파일로 대화→recorded추천/상세·실시간음악3분류2건·0건/해제동의/회복/모의502 PASS. 실제AI4회. 키/환경파일 ZIP미포함. 팀원본/공용plan/브랜치변경/Push/배포 없음. 프론트 담당에게 공유할 문구는 문서초안으로만 저장하고 전송하지 않았다.
 
 [적용 안내](frontend-chat-package.md), [전체 완료 보고](reports/frontend-chat-package.md). 개인 계획 plan_dj/frontend-handoff-progress.md. 다음은 담당 확인 및 공유 후 실제 팀 원본 통합이다.
+
+## 2026-10-31 · 남은 문화소스 작업 착수
+
+사용자 “아직 못한 부분 시작하자”에 따라 서울시 조회확대/국문문화시설 소스 구현. 기존 분석색인과 두 소스코드를 참고하고 공공데이터포털 공식 내장Swagger에서 KorService2 파라미터/상세필드를 확인했다. 환경/로컬에서 키값을 출력하지 않고 존재여부 검사, 두 키 없음. .local/culture.env 생성 후 비동기 키경로/저장 요청. 사용자가 “서울시공공데이터는 있다” 답변하여 키파일경로/저장 확인을 추가 요청했다.
+
+서울시 정식키100건/sample5건 설정·조회범위 표시 구현, 인증실패 무대체. /preview/culture-places는 상설문화시설의 국문목록/소개/공식홈페이지를 연결하되 행사날짜/공연으로 추측하지 않는다. 팀UI나 행사추천에 자동혼합하지 않았다. 백엔드79개 PASS(새9개 모의). 서버재시작7512/8765. 서울sample 실제HTTP200, Tour503미설정 동작PASS이나 Tour공급자실호출/서울정식100건 미실시. 키값·공급자원문오류는 출력/커밋 안 함.
+
+[설정/계약/공식자료](culture-sources.md), [초기 실조회 기록](qa-culture/initial-check.json), [전체 보고문](reports/culture-source-preparation.md). 키설정 확인 후 실조회가 다음. 개인체크표 plan_dj/culture-source-progress.md. 공용plan/팀원본/Push/배포 변경 없음.

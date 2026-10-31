@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
 from concurrent.futures import ThreadPoolExecutor
 import preferences
+from culture_config import culture_key
 
 KST = timezone(timedelta(hours=9))
 EXAMPLES = Path(__file__).resolve().parents[1] / "docs/development/examples"
@@ -77,7 +78,7 @@ def validate(data):
 
 
 def seoul_page(day, category, mode):
-    """지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다."""
+    """지정일 키 없으면5건, 정식 키면100건을 조회한다. 인증 실패를 sample로 대체하지 않는다."""
     if mode == "recorded":
         captures = json.loads((EXAMPLES / "seoul-events.capture.json").read_bytes())["captures"]
         for capture in captures:
@@ -87,7 +88,9 @@ def seoul_page(day, category, mode):
     if mode != "live":
         raise ValueError("조회 방식을 선택해 주세요.")
     segment = quote(" " if category == "전체" else category)
-    url = f"http://openapi.seoul.go.kr:8088/sample/json/culturalEventInfo/1/5/{segment}/%20/{day}/"
+    key = culture_key("seoul")
+    limit = 100 if key else 5
+    url = f"http://openapi.seoul.go.kr:8088/{quote(key or 'sample', safe='')}/json/culturalEventInfo/1/{limit}/{segment}/%20/{day}/"
     with urlopen(url, timeout=8) as response:
         payload = json.load(response)
     if not isinstance(payload, dict):
@@ -186,7 +189,11 @@ def recommend(data, mode="live"):
                                status="check", checks_required=checks, source_checked_at=checked))
     candidates = list({candidate["id"]: candidate for candidate in candidates}.values())
     candidates, assessment = preferences.apply(candidates, options)
-    coverage = "선택한 분류마다 공개 샘플 최대 5건을 조회했습니다. 전체 행사 검색 결과가 아니며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다."
+    access = "recorded" if mode == "recorded" else "authenticated" if culture_key("seoul") else "sample"
+    limit = 100 if access == "authenticated" else 5
+    scope = "저장된 기록" if access == "recorded" else "정식 키" if access == "authenticated" else "공개 샘플"
+    coverage = f"선택한 분류마다 {scope} 최대 {limit}건을 조회했습니다. 조회 범위 밖의 행사는 포함하지 않으며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다."
     return dict(status="ready" if candidates else "no_results", mode=mode, source_checked_at=checked,
                 searched_count=len(rows), source_total=total, candidates=candidates,
-                applied_preferences=options, queried_categories=categories, coverage_note=coverage, **assessment)
+                applied_preferences=options, queried_categories=categories, coverage_note=coverage,
+                source_access=access, fetch_limit_per_category=limit, **assessment)

@@ -7,6 +7,7 @@
   "state_file": "docs/development/state.json",
   "repo_indexes": ["docs/development/repo_index.md", "docs/development/repo_reverse_index.md", "docs/development/repo_tree.md"],
   "features": {
+    "정식 문화정보 조회 확대·국문 문화시설": ["backend/culture_config.py", "backend/culture.env.example", "backend/tour_places.py", "backend/test_culture_sources.py", "utils/scripts/check_culture_sources.py", "docs/development/culture-sources.md"],
     "팀 프론트 실파일 적용 패키지·통합 검사": ["utils/scripts/prepare_chat_handoff.py", "docs/development/frontend-chat-package.md", "docs/development/qa-handoff/manifest.json"],
     "자연어 수정·조건 해제·추천 회복 검증": ["utils/scripts/check_conversation_edges.py", "utils/scripts/check_preference_recovery.cjs", "docs/development/conversation-validation.md", "docs/development/qa-conversation/edges.json", "docs/development/qa-conversation/recovery.json"],
     "자연어 선호 탐색·자동 설정·실제 후보 선별": ["backend/preferences.py", "backend/test_preferences.py", "backend/team_preferences.js", "utils/scripts/check_natural_flow.cjs", "docs/development/natural-language-handoff.md", "docs/development/qa-natural/result.json"],

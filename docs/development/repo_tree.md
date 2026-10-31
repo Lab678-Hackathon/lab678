@@ -21,6 +21,8 @@ lab678/
     README.md
     chat_conditions.py
     course.py
+    culture.env.example
+    culture_config.py
     local_voice.py
     location_view.js
     map_config.py
@@ -35,6 +37,7 @@ lab678/
     team_preferences.js
     test_chat_conditions.py
     test_course.py
+    test_culture_sources.py
     test_map_config.py
     test_naito_chat.py
     test_outing.py
@@ -43,6 +46,7 @@ lab678/
     test_preview.py
     test_transit.py
     test_walking.py
+    tour_places.py
     transit.py
     walking.py
   design/
@@ -57,6 +61,7 @@ lab678/
       chat-ui-handoff.md
       conversation-validation.md
       course-alternatives-progress.md
+      culture-sources.md
       current-state.md
       demo-login-server-progress.md
       demo-profile-design.md
@@ -95,6 +100,8 @@ lab678/
       qa-conversation/
         edges.json
         recovery.json
+      qa-culture/
+        initial-check.json
       qa-handoff/
         manifest.json
         natural-flow.json
@@ -177,6 +184,7 @@ lab678/
         20261031-team-flow-connected.md
         20261031-user-preferences-kakao-review.md
         conversation-validation.md
+        culture-source-preparation.md
         frontend-chat-package.md
         natural-language-recommendation.md
       screen-spec-review.md
@@ -246,6 +254,7 @@ lab678/
       check_conversation_edges.py
       check_course_alternatives.cjs
       check_course_edit.cjs
+      check_culture_sources.py
       check_deployment.cjs
       check_frontend_connection.cjs
       check_input_contract.cjs
