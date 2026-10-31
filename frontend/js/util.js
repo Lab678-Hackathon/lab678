@@ -126,3 +126,31 @@ export function speakKo(text) {
     speechSynthesis.speak(u);
   } catch { /* 무시 */ }
 }
+
+/**
+ * 행사 사진. 서울시 문화포털 공식 이미지가 있으면 그걸, 없거나 안 열리면 분위기 그림(실제 장소 아님)을 보여줘요.
+ * @param {object} c 후보
+ * @param {string} className 감싸는 요소 클래스
+ */
+export function photo(c, className) {
+  const box = el('div', `${className} photo`);
+  const img = el('img');
+  img.loading = 'lazy';
+  img.alt = c.title ? `${c.title} 공식 이미지` : '';
+  const note = el('span', 'photo__note');
+  const fallback = () => {
+    img.onerror = null;
+    img.src = `assets/${c.genre?.includes('전시') ? 'place-museum' : 'place-palace'}.jpg`;
+    img.alt = '';
+    box.classList.add('is-mood');
+    note.textContent = '분위기 사진 · 실제 장소 아님';
+  };
+  if (c.image_url) {
+    img.src = c.image_url;
+    img.referrerPolicy = 'no-referrer';
+    img.onerror = fallback;
+    note.textContent = '사진 · 서울시 문화포털';
+  } else fallback();
+  box.append(img, note);
+  return box;
+}

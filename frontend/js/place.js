@@ -6,7 +6,7 @@
 import { state, candidateById } from './state.js';
 import { walkRoute, transitRoute, mapConfig } from './api.js';
 import { isSignedIn, isSaved, savePlace, startDemo, savedPlaces } from './saved.js';
-import { $, el, formatDate, formatTime, checkedAt, isDebug } from './util.js';
+import { $, el, photo, formatDate, formatTime, checkedAt, isDebug } from './util.js';
 
 let walkTicket = 0;
 let route = null; // 지금 S08 의 출발·도착·도보·대중교통 결과
@@ -36,10 +36,7 @@ export function renderPlace(id) {
     box.append(el('h2', null, '장소 정보를 찾을 수 없어요'), el('p', 'muted', '대화로 돌아가서 다시 골라 주세요.'));
     return;
   }
-  const hero = el('div', 'place-hero');
-  hero.style.backgroundImage = `url(assets/${c.genre?.includes('전시') ? 'place-museum' : 'place-palace'}.jpg)`;
-  hero.append(el('span', 'chat-card__imgnote', '분위기 사진 · 실제 장소 아님'));
-  box.append(hero);
+  box.append(photo(c, 'place-hero'));
   if (isSaved(c.id)) box.append(el('p', 'badge badge--ok', '내 나들이에 저장했어요'));
   box.append(el('h2', 'place-title', c.title), el('p', 'muted', c.venue || '장소 이름 확인 필요'));
   const vl = visitLine(c);
