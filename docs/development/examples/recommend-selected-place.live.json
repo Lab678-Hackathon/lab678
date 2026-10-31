@@ -1,0 +1,75 @@
+{
+  "note": "고정 공개 장소의 조회 시점 실제 응답. 최신 결과나 팀 UI 연결 성공을 보장하지 않는다.",
+  "request": {
+    "request_kind": "place",
+    "start_location": {
+      "label": "청량리역",
+      "lat": 37.57997010526071,
+      "lng": 127.04773632414528
+    },
+    "start_at": "2026-10-31T14:00:00+09:00",
+    "end_at": "2026-10-31T17:00:00+09:00",
+    "category": "국악",
+    "mode": "live"
+  },
+  "http_status": 200,
+  "body": {
+    "status": "ready",
+    "mode": "live",
+    "source_checked_at": "2026-10-31T14:22:31+09:00",
+    "searched_count": 2,
+    "source_total": 2,
+    "candidates": [
+      {
+        "id": "seoul:159906",
+        "title": "[서울돈화문국악당] '광대생각' 신작 창작연희극 [코공]",
+        "venue": "서울돈화문국악당",
+        "lat": 37.5772502822,
+        "event_start_date": "2026-10-30",
+        "event_end_date": "2026-10-31",
+        "district": "종로구",
+        "address": null,
+        "lng": 126.9907306641,
+        "distance_km": 5.03,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159906&menuNo=200008",
+        "fixed_start_at": null,
+        "genre": "국악",
+        "opening_info": "금 19:30 / 토 11:00, 14:00",
+        "price_info": "전석 20,000원",
+        "fee_type": "유료",
+        "audience": "전연령(11세 이상 권장)",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인",
+          "요일·휴관·회차별 시간 확인"
+        ],
+        "source_checked_at": "2026-10-31T14:22:31+09:00"
+      },
+      {
+        "id": "seoul:159689",
+        "title": "[국립박물관문화재단] 소리: 성덕대왕신종",
+        "venue": "국립중앙박물관 극장 용 ",
+        "lat": 37.5247022357875,
+        "event_start_date": "2026-10-31",
+        "event_end_date": "2026-11-01",
+        "district": "용산구",
+        "address": null,
+        "lng": 126.977740246542,
+        "distance_km": 8.71,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159689&menuNo=200008",
+        "fixed_start_at": "2026-10-31T15:00:00+09:00",
+        "genre": "국악",
+        "opening_info": "15:00",
+        "price_info": "VIP석 7만원 R석 6만원 S석 4만원 ",
+        "fee_type": "유료",
+        "audience": "초등학생 이상 ",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인",
+          "공연 종료시각 확인"
+        ],
+        "source_checked_at": "2026-10-31T14:22:31+09:00"
+      }
+    ]
+  }
+}
