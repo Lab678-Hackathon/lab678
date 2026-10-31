@@ -380,13 +380,22 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 
 .external { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; border-top: 1px dashed var(--border-default); }
 
-/* 말로 대화: 큰 까치는 처음 위에(스크롤하면 같이 올라가요), 대화 속 까치는 조금 크게 말풍선 옆에서 살짝 움직여요 */
+/* 말로 대화: 말풍선마다 까치를 붙이지 않고, 큰 까치 한 마리가 왼쪽 가운데에 떠 있어요. 말풍선만 위로 올라가요 */
 #s02[data-mode="voice"] .listen__title { text-align: center; }
-#s02[data-mode="voice"] .msg--ai { align-items: flex-end; }
-#s02[data-mode="voice"] .msg__avatar { width: 64px; height: 92px; margin-bottom: -4px; }
-#s02[data-mode="voice"] .msg__avatar img { object-position: bottom; animation: sway 3.6s ease-in-out infinite; transform-origin: 50% 95%; }
-#s02[data-mode="voice"] .msg__avatar.is-talking img { animation: talk .42s ease-in-out infinite alternate; }
-@keyframes sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg) translateY(-2px); } }
+#s02[data-mode="voice"] .msg__avatar { display: none; }
+#s02[data-mode="voice"] .msg--ai { padding-left: 104px; }
+.float-bird {
+  position: fixed; z-index: 6; top: 42%; left: max(8px, calc(50% - 215px + 8px));
+  width: 96px; pointer-events: none; opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s;
+}
+.float-bird.is-shown { opacity: 1; transform: none; }
+#s02[data-mode="text"] .float-bird { display: none; }
+.float-bird img { width: 100%; height: auto; transform-origin: 50% 90%; animation: float 3.2s ease-in-out infinite; }
+.float-bird.is-talking img { animation: talk .42s ease-in-out infinite alternate; }
+.float-bird.is-listening img { animation: listen-bob 1.6s ease-in-out infinite; }
+@keyframes float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+@media (prefers-reduced-motion: reduce) { .float-bird img { animation: none !important; } }
 .listen__bird.is-listening img { animation: listen-bob 1.6s ease-in-out infinite; }
 @keyframes listen-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-2deg); } }
 @media (prefers-reduced-motion: reduce) { .listen__bird.is-listening img { animation: none !important; } }
+#s02[data-mode="voice"] .msg--user .msg__col { max-width: calc(100% - 100px); } /* 떠 있는 까치와 겹치지 않게 */

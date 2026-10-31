@@ -123,7 +123,7 @@ function bubble(m) {
   if (m.role === 'ai') {
     const av = el('div', 'msg__avatar');
     const img = el('img');
-    img.src = voiceMode ? 'assets/kkachi-hello.png' : 'assets/kkachi-face.png'; // 말로 대화는 조금 큰 전신 까치
+    img.src = 'assets/kkachi-face.png';
     img.alt = '';
     av.append(img);
     row.append(av);
@@ -237,7 +237,9 @@ function speak(text, then) {
   const avatar = [...document.querySelectorAll('#chat-log .msg--ai .msg__avatar')].pop(); // 방금 말한 까치
   const ms = Math.min(600 + text.length * 70, 5000);
   talkFor(avatar, ms);
-  talkFor($('#listen-bird'), state.sound ? Math.max(ms, 1500 + text.length * 120) : ms);
+  const talkMs = state.sound ? Math.max(ms, 1500 + text.length * 120) : ms;
+  talkFor($('#listen-bird'), talkMs);
+  talkFor($('#float-bird'), talkMs);
   if (!state.sound || !('speechSynthesis' in window)) { if (then) setTimeout(then, 1200); return; }
   try {
     speechSynthesis.cancel();
@@ -300,6 +302,7 @@ function updateVoiceUi() {
   $('#voice-main-label').textContent = on ? '말하기 마치기' : '말하기';
   $('#voice-wave').hidden = !on;
   $('#listen-bird').classList.toggle('is-listening', on); // 듣는 중엔 귀 기울이듯 움직여요
+  $('#float-bird').classList.toggle('is-listening', on);
   $('#listen-status').textContent = on ? '음성을 듣고 있어요 · 말씀이 끝나고 잠시 조용하면 보내요' : (busy ? '까치가 찾고 있어요' : '아래 "말하기"를 누르고 말씀해 주세요');
   $('#listen-status').classList.toggle('is-idle', !on);
   $('#chat-input').placeholder = on && !voiceMode ? '듣고 있어요… 말씀이 끝나면 마이크를 다시 눌러 주세요' : '글자로 적어도 돼요';
@@ -756,6 +759,10 @@ export function renderChat(opts = {}) {
 /** 이벤트 연결 (한 번) */
 export function initChat() {
   watchBottom();
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => $('#float-bird').classList.toggle('is-shown', !e.isIntersecting), { threshold: 0.15 })
+      .observe($('#listen-bird'));
+  }
   $('#chat-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('#chat-input').value.trim();
