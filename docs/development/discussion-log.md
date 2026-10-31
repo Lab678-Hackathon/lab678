@@ -267,3 +267,10 @@ Chrome 음성 입력·국악 카드·스피커 청취 확인 뒤 다음 개발 �
 사용자가 기획 폴더는 기획 담당 관리, 개발은 develop pull 후 열람, 개인 폴더는 plan_dj로 이름 짓고 Git 제외 요청. 실제 시작 브랜치는 develop이고 plan이라는 폴더는 없었음. develop을 747d98c로 fast-forward한 결과 docs/planning에 PRD v0.6·화면명세 v0.2 및 archive/handoff가 있음을 확인. dj/develop 복귀(새 develop은 아직 병합 전). 공용/개인 자료가 docs/planning에 겹쳐 사용자에게 이동 범위를 질문. 답변 전 기존 파일은 이동/삭제하지 않음. root plan_dj/ 생성, .gitignore /plan_dj/ 및 harness skip_dirs에 추가하여 공유 색인으로도 내용이 새지 않도록 함.
 
 체크표: [x] 실제 브랜치·폴더·추적 확인 → [x] develop 최신화/개인 브랜치 복귀 → [x] 개인 폴더·제외 설정 → [x] ignore/추적 없음·색인·하네스 검증 → [ ] 기존 파일 이동 범위 답변 후 이동. 이번 완료 범위는 폴더/제외 설정이며 공용 문서는 보존, push 없음.
+
+## 2026-10-31 · 최신 기획 통합·개인 구버전 PRD 보관 종료
+
+사용자: 최신 PRD가 나왔으니 PRD는 지워도 됨. 확인 결과 개인 plan_dj에는 README만 있고 PRD 없음. 개인 브랜치 docs/planning의 구버전 PRD 3개는 이미 공용 develop에서 archive로 이동해 관리 중이었다. 공용 기획을 삭제하지 않고 develop 747d98c를 dj/develop에 통합해 옛 활성 경로를 없애고 최신 PRD.md와 화면명세 v0.2를 확보했다. 개인 PRD 사본은 생성하지 않는다. Downloads 원본은 작업 범위 밖이므로 유지.
+
+체크표: [x] 개인/공용 소유·경로 확인 → [x] develop 충돌 없는 통합 → [x] 옛 활성 PRD 3경로 없음·plan_dj PRD 없음 → [x] 최신 기준 안내·이동 링크 정리 → [x] 색인·정적 하네스 확인 후 전체 보고문으로 병합 커밋. 서비스 코드 변경·브라우저 재시험·push 없음. 기획팀 파일 내용은 develop과 동일하게 유지. 최신 기획 상세 검토는 이번 범위 아님.
+검증 메모: 전체 staged 공백 검사에서 develop 원문 PRD/README의 Markdown 줄바꿈용 후행 공백 6건이 검출됨. 기획 원문은 수정하지 않고 develop과 동일함을 확인했으며, 개인 변경분의 공백 검사와 정적 하네스를 별도로 통과시킨다.

@@ -4,6 +4,8 @@
 
 프로젝트 구조와 실행 방법은 [README.md](README.md), 환경변수 형식은 `.env.example`, 실제 작업 요구사항은 확정된 PRD·화면·API 명세를 확인해요.
 
+**제품 기획 작업 시작점:** [docs/planning/README.md](docs/planning/README.md)를 먼저 읽고, [최신 PRD v0.6](docs/planning/PRD.md)와 [MVP 화면명세서](docs/planning/Lab_678_MVP_화면명세서.md)를 함께 확인해요. `handoff/`는 착수 참고, `archive/`는 구버전 이력이고 현행 요구사항 기준이 아니에요. 팀 검토 대기와 실제 QA 완료를 구분해요.
+
 - 커밋·push는 사용자가 명시적으로 요청할 때만 해요.
 - 커밋 메시지에 Co-Authored-By 같은 AI 표시는 넣지 않고 사용자 명의로만 커밋해요. 커밋 메시지는 한국어로 짧게 써요.
 - 제출 마감은 11/1(일) 13:00이고, 마감 뒤에는 커밋하지 않아요.

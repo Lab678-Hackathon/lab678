@@ -66,6 +66,7 @@ lab678/
         2026-10-31-chrome-speech.md
         2026-10-31-course-alternatives.md
         2026-10-31-course-demo-check.md
+        2026-10-31-current-prd-sync.md
         2026-10-31-demo-server-reuse.md
         2026-10-31-develop-sync.md
         2026-10-31-directions.md
@@ -104,12 +105,17 @@ lab678/
     planning/
       AGENTS.md
       Lab_678_MVP_Screen_Spec_v0.1_20261030.md
-      Lab_678_UI_착수패키지_손희영_20261030.md
-      Lab_678_개발_착수패키지_김동조_20261030.md
-      Lab_678_공동설계_병렬착수_공통합의안_20261030.md
-      Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md
-      Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md
-      Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md
+      Lab_678_MVP_화면명세서.md
+      PRD.md
+      README.md
+      archive/
+        Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md
+        Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md
+        Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md
+      handoff/
+        Lab_678_UI_착수패키지_손희영_20261030.md
+        Lab_678_개발_착수패키지_김동조_20261030.md
+        Lab_678_공동설계_병렬착수_공통합의안_20261030.md
     reference/
       AGENTS.md
       README.md

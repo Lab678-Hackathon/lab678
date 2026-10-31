@@ -11,7 +11,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [.github/ISSUE_TEMPLATE/task.md](../../.github/ISSUE_TEMPLATE/task.md) | --- | `1ee33bbd2c25` |
 | [.github/pull_request_template.md](../../.github/pull_request_template.md) | ## 무엇을 했나요 | `ec68f1c48e6b` |
 | [.gitignore](../../.gitignore) | 설정·자료 파일; 필요할 때 원문 확인 | `77b6eb2fdbf9` |
-| [AGENTS.md](../../AGENTS.md) | Lab678 · AI 작업 안내 | `dcb1ddee9fbb` |
+| [AGENTS.md](../../AGENTS.md) | Lab678 · AI 작업 안내 | `b441a0d92694` |
 | [CLAUDE.md](../../CLAUDE.md) | @AGENTS.md | `a853633c4e5c` |
 | [GEMINI.md](../../GEMINI.md) | @AGENTS.md | `a853633c4e5c` |
 | [README.md](../../README.md) | Lab678 · Codyssey AI 해커톤 2026 | `eaff92d60d38` |
@@ -32,13 +32,13 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [design/AGENTS.md](../../design/AGENTS.md) | design 작업 | `57262504e6ff` |
 | [design/README.md](../../design/README.md) | design | `e8cd21971ef0` |
 | [docs/AGENTS.md](../../docs/AGENTS.md) | 문서 작업 | `6943f61f8205` |
-| [docs/README.md](../../docs/README.md) | docs | `57dbb44fc25e` |
-| [docs/development/README.md](../../docs/development/README.md) | LAB678 · 김동조 개발 작업 맥락 | `862d1eacbed0` |
+| [docs/README.md](../../docs/README.md) | docs | `6f5e3f0160f6` |
+| [docs/development/README.md](../../docs/development/README.md) | LAB678 · 김동조 개발 작업 맥락 | `f28fb4aaf119` |
 | [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md) | 시간 부족 → 동의 → 대안 선택 진행표 | `a662e7da1bee` |
-| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `52b4f6e0154c` |
+| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `7c45bf38de17` |
 | [docs/development/demo-login-server-progress.md](../../docs/development/demo-login-server-progress.md) | 데모 로그인·해커톤 서버 검토 진행표 | `ca878f31c5f8` |
 | [docs/development/demo-profile-design.md](../../docs/development/demo-profile-design.md) | 인증 없는 이용·체험 프로필·로컬 저장 설계안 | `87e1d5b21681` |
-| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `3966b944f81b` |
+| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `09ea55e2722f` |
 | [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md) | 개발 도구·반복 검증·컨텍스트 운영 | `ce0d9492072b` |
 | [docs/development/examples/demo-users.sample.json](../../docs/development/examples/demo-users.sample.json) | 구조화 설정·상태 데이터 | `f148990a7ff7` |
 | [docs/development/examples/outing-request.json](../../docs/development/examples/outing-request.json) | 구조화 설정·상태 데이터 | `3fc7504a23dd` |
@@ -49,7 +49,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/konnect-reuse-reading-guide.md](../../docs/development/konnect-reuse-reading-guide.md) | KONNECT 재사용 전 읽기·경량화 가이드 | `ec75964b0824` |
 | [docs/development/loops/tooling-index.json](../../docs/development/loops/tooling-index.json) | 구조화 설정·상태 데이터 | `21338df780cb` |
 | [docs/development/mobility-routing-review.md](../../docs/development/mobility-routing-review.md) | LAB678 · 도보·대중교통 이동 안내 기술검토 | `459a27237290` |
-| [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md) | 김동조의 문화외출 MVP 개발 계획 | `46f4694cfb10` |
+| [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md) | 김동조의 문화외출 MVP 개발 계획 | `94ef8e460f1e` |
 | [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `930e055ab440` |
 | [docs/development/repo_index.md](../../docs/development/repo_index.md) | 자동 생성 색인 | `generated` |
 | [docs/development/repo_reverse_index.md](../../docs/development/repo_reverse_index.md) | 자동 생성 색인 | `generated` |
@@ -59,6 +59,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/2026-10-31-chrome-speech.md](../../docs/development/reports/2026-10-31-chrome-speech.md) | **동조님 PC의 일반 Chrome에서 한국어 음성 입력을 확인했습니다.** 버튼을 누른 뒤 1.52초에 발화를 감지했고, 3.51초에 13자를 전사한 뒤 정상 종료했습니다. 시연은 일반 Chrome으로 진행하면 됩니다. | `7eae2e2fcfee` |
 | [docs/development/reports/2026-10-31-course-alternatives.md](../../docs/development/reports/2026-10-31-course-alternatives.md) | 시간 부족 안내 뒤에 **동의 → 대안 1·2 → 선택 적용**을 추가했습니다. | `e10c209fabf0` |
 | [docs/development/reports/2026-10-31-course-demo-check.md](../../docs/development/reports/2026-10-31-course-demo-check.md) | 보내주신 화면에서 **시간 부족 안내**는 확인됐습니다. 당시 적용된 출발·종료 시각은 화면에 없어 정확한 원인까지 확인하기 어려웠습니다. 이제 결과 상단에 적용한 조건을 표시합니다. | `c308afeadab9` |
+| [docs/development/reports/2026-10-31-current-prd-sync.md](../../docs/development/reports/2026-10-31-current-prd-sync.md) | 구버전 PRD를 개인용으로 따로 보관하지 않도록 정리했습니다. | `a94c27e90a49` |
 | [docs/development/reports/2026-10-31-demo-server-reuse.md](../../docs/development/reports/2026-10-31-demo-server-reuse.md) | 인증·DB 간소화안, 두 브랜치 재사용 순서, 해커톤 서버 활용안을 기록하고 커밋했습니다. | `64c2078b9f0a` |
 | [docs/development/reports/2026-10-31-develop-sync.md](../../docs/development/reports/2026-10-31-develop-sync.md) | 최신 develop을 받아 dj/develop에 동기화했습니다. | `bc7c723fe243` |
 | [docs/development/reports/2026-10-31-directions.md](../../docs/development/reports/2026-10-31-directions.md) | **추천 → 선택 → 경로안내** 구간을 연결했습니다. | `53bf5d622189` |
@@ -87,20 +88,23 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/2026-10-31-two-stop-course.md](../../docs/development/reports/2026-10-31-two-stop-course.md) | **두 곳 문화코스**를 구현했습니다. 출발지부터 첫 행사장까지의 도보, 두 행사 사이 이동, 관람시간을 합쳐 방문 순서와 예상 시각을 보여줍니다. | `27a95f3ce6f9` |
 | [docs/development/reports/2026-10-31-walk-demo.md](../../docs/development/reports/2026-10-31-walk-demo.md) | 동조님 시연 PC에서 **국악 추천 → 행사 선택 → 도보 시간 확인**까지 정상 동작한 것으로 기록했습니다. | `a933333d6e14` |
 | [docs/development/reports/2026-10-31-walk.md](../../docs/development/reports/2026-10-31-walk.md) | 두 행사 사이 도보 시간을 추천 화면에서 확인할 수 있습니다. | `ca0e5a18f78b` |
-| [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `7d6538931e7a` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `41ed7e7d9d59` |
+| [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `40fd58972739` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `de469e567ca9` |
 | [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `ecc6ea2576d6` |
 | [docs/development/tooling-progress.md](../../docs/development/tooling-progress.md) | 재사용 도구·자동 색인·컨텍스트 구축 진행 체크표 | `b72aa1e78379` |
 | [docs/development/transit-progress.md](../../docs/development/transit-progress.md) | 앱 내부 대중교통 안내 진행표 | `de4987d17983` |
 | [docs/meetings/2026-10-28.md](../../docs/meetings/2026-10-28.md) | 10/28 팀 회의 | `4423b5dec6ce` |
 | [docs/planning/AGENTS.md](../../docs/planning/AGENTS.md) | 첨부 기획 원본 | `참고 원본 / 966218f93a04` |
 | [docs/planning/Lab_678_MVP_Screen_Spec_v0.1_20261030.md](../../docs/planning/Lab_678_MVP_Screen_Spec_v0.1_20261030.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 MVP 화면명세서 v0.1 (검토 초안) | `참고 원본 / 45d941245fe7` |
-| [docs/planning/Lab_678_UI_착수패키지_손희영_20261030.md](../../docs/planning/Lab_678_UI_착수패키지_손희영_20261030.md) | Lab 678 \| 손희영 UX/UI 병렬 착수 패키지 v0.1 | `참고 원본 / d0837643bb03` |
-| [docs/planning/Lab_678_개발_착수패키지_김동조_20261030.md](../../docs/planning/Lab_678_개발_착수패키지_김동조_20261030.md) | Lab 678 \| 김동조 개발 병렬 착수 패키지 v0.1 | `참고 원본 / b466bfac11aa` |
-| [docs/planning/Lab_678_공동설계_병렬착수_공통합의안_20261030.md](../../docs/planning/Lab_678_공동설계_병렬착수_공통합의안_20261030.md) | Lab 678 \| 공동설계 및 병렬작업 착수 — 공통 합의안 v0.1 | `참고 원본 / 32b75bbdee73` |
-| [docs/planning/Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md](../../docs/planning/Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md) | Lab 678 \| PRD v0.1 | `참고 원본 / 12da2334b1ca` |
-| [docs/planning/Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md](../../docs/planning/Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 서비스 PRD v0.4 | `참고 원본 / d04427254a8f` |
-| [docs/planning/Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md](../../docs/planning/Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 서비스 — 통합 PRD v0.3 | `참고 원본 / d1b478326627` |
+| [docs/planning/Lab_678_MVP_화면명세서.md](../../docs/planning/Lab_678_MVP_화면명세서.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 서비스 — MVP 화면명세서 v0.2 | `참고 원본 / ca968fd6e842` |
+| [docs/planning/PRD.md](../../docs/planning/PRD.md) | Lab 678 \| 시니어 AI 문화나들이 추천 서비스 PRD v0.6 | `참고 원본 / c7e68885a653` |
+| [docs/planning/README.md](../../docs/planning/README.md) | Lab 678 \| 기획 문서 안내 및 AI 협업 읽기 기준 | `참고 원본 / 5cb9eff3936a` |
+| [docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md](../../docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md) | Lab 678 \| PRD v0.1 | `참고 원본 / 12da2334b1ca` |
+| [docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md](../../docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 서비스 PRD v0.4 | `참고 원본 / d04427254a8f` |
+| [docs/planning/archive/Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md](../../docs/planning/archive/Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 서비스 — 통합 PRD v0.3 | `참고 원본 / d1b478326627` |
+| [docs/planning/handoff/Lab_678_UI_착수패키지_손희영_20261030.md](../../docs/planning/handoff/Lab_678_UI_착수패키지_손희영_20261030.md) | Lab 678 \| 손희영 UX/UI 병렬 착수 패키지 v0.1 | `참고 원본 / d0837643bb03` |
+| [docs/planning/handoff/Lab_678_개발_착수패키지_김동조_20261030.md](../../docs/planning/handoff/Lab_678_개발_착수패키지_김동조_20261030.md) | Lab 678 \| 김동조 개발 병렬 착수 패키지 v0.1 | `참고 원본 / b466bfac11aa` |
+| [docs/planning/handoff/Lab_678_공동설계_병렬착수_공통합의안_20261030.md](../../docs/planning/handoff/Lab_678_공동설계_병렬착수_공통합의안_20261030.md) | Lab 678 \| 공동설계 및 병렬작업 착수 — 공통 합의안 v0.1 | `참고 원본 / 32b75bbdee73` |
 | [docs/reference/AGENTS.md](../../docs/reference/AGENTS.md) | 과거 자료 보관 | `참고 원본 / e174f58df81a` |
 | [docs/reference/README.md](../../docs/reference/README.md) | 외부 브랜치 원본 보관 | `참고 원본 / 02f3a96325d3` |
 | [docs/reference/TEAM_WORKFLOW/.env.example](../../docs/reference/TEAM_WORKFLOW/.env.example) | 설정·자료 파일; 필요할 때 원문 확인 | `참고 원본 / 34b5286295f8` |
