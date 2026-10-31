@@ -12,9 +12,10 @@ function devices(config) {
   window.SpeechRecognition = class {
     start() {
       t.starts++;
-      const handlers = { result: this.onresult, end: this.onend, error: this.onerror };
+      const handlers = { result: this.onresult, end: this.onend, error: this.onerror, audioStart: this.onaudiostart, audioEnd: this.onaudioend };
       t.sessions.push({ engine: this, handlers });
       if (config.error) { setTimeout(() => this.onerror?.({ error: config.error }), 20); return; }
+      if (!config.noAudio) setTimeout(() => this.onaudiostart?.(), 10);
       if (t.texts.length) {
         const text = t.texts.shift();
         setTimeout(() => {
@@ -26,6 +27,8 @@ function devices(config) {
     }
     abort() { t.aborts++; }
   };
+  if (config.prefixed) { window.webkitSpeechRecognition = window.SpeechRecognition; window.SpeechRecognition = undefined; }
+  if (config.unsupported) { window.SpeechRecognition = window.webkitSpeechRecognition = undefined; }
   window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
   Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
     cancel() { t.speech = null; },
@@ -84,6 +87,45 @@ async function main() {
     console.log(`${name}: ${report.cases.at(-1).passed ? 'PASS' : 'FAIL'}`);
   }
   try {
+    await check('prefixed_recognition_adapter_two_turns', async () => {
+      const { page, stats } = await ready(browser, { prefixed: true, texts: ['음악', '국악'] });
+      await page.locator('#chat-mic').click(); await stopped(page, /2회 대화를 마쳤/);
+      assert.equal(stats.calls, 2); assert.deepEqual(stats.errors, []); await page.close();
+    });
+    await check('unsupported_recognition_preserves_text_chat', async () => {
+      const { page, stats } = await ready(browser, { unsupported: true });
+      await page.locator('#chat-mic').click(); await stopped(page, /이 브라우저는 음성 인식을 지원하지/);
+      assert.equal(await page.locator('#chat-mic').getAttribute('data-phase'), 'idle');
+      assert.equal(await page.locator('.mic-visual').evaluate(el => getComputedStyle(el, '::before').animationName), 'none');
+      await page.locator('#chat-text').fill('전시를 보고 싶어요');
+      await page.locator('#chat-send').click();
+      await page.waitForFunction(() => !document.querySelector('#chat-send').disabled);
+      assert.equal(stats.calls, 1); assert.deepEqual(stats.errors, []); await page.close();
+    });
+    await check('audio_events_control_wave_and_reduced_motion', async () => {
+      const { page, stats } = await ready(browser, { noAudio: true });
+      await page.evaluate(() => { location.hash = '/home'; });
+      await page.locator('#s01 #chat-mic').waitFor();
+      await page.locator('#chat-mic').click();
+      await page.waitForFunction(() => voiceTest.starts === 1);
+      assert.equal(await page.locator('#chat-mic').getAttribute('data-phase'), 'starting');
+      assert.equal(await page.locator('.mic-visual').evaluate(el => getComputedStyle(el, '::before').animationName), 'none');
+      await page.evaluate(() => voiceTest.sessions[0].engine.onaudiostart());
+      assert.equal(await page.locator('#chat-mic').getAttribute('data-phase'), 'listening');
+      assert.equal(await page.locator('.mic-visual').evaluate(el => getComputedStyle(el, '::before').animationName), 'lab678-mic-ripple');
+      await page.setViewportSize({ width: 320, height: 844 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await page.locator('#dj-chat').screenshot({ path: '.local/voice-session/microphone-wave.png', animations: 'allow' });
+      await page.emulateMedia({ reducedMotion: 'reduce' });
+      assert.equal(await page.locator('.mic-visual').evaluate(el => getComputedStyle(el, '::before').animationName), 'none');
+      assert.match(await page.locator('#chat-mic-state').textContent(), /듣는 중/);
+      await page.evaluate(() => voiceTest.sessions[0].engine.onaudioend());
+      assert.equal(await page.locator('#chat-mic').getAttribute('data-phase'), 'starting');
+      await page.locator('#chat-mic').click();
+      await page.evaluate(() => voiceTest.sessions[0].handlers.audioStart());
+      assert.equal(await page.locator('#chat-mic').getAttribute('data-phase'), 'idle');
+      assert.equal(stats.calls, 0); assert.deepEqual(stats.errors, []); await page.close();
+    });
     await check('same_mic_button_toggle_off_and_restart', async () => {
       const { page, stats } = await ready(browser);
       assert.equal(await page.locator('#chat-mic').isEnabled(), true);
@@ -91,7 +133,7 @@ async function main() {
       assert.match(await page.locator('#chat-mic-state').textContent(), /꺼짐/);
       assert.equal(await page.locator('#chat-mic svg').count(), 1);
       await page.locator('#chat-mic').click();
-      await page.waitForFunction(() => voiceTest.starts === 1);
+      await page.waitForFunction(() => document.querySelector('#chat-mic').dataset.phase === 'listening');
       assert.equal(await page.locator('#chat-mic').getAttribute('aria-pressed'), 'true');
       assert.match(await page.locator('#chat-mic-state').textContent(), /켜짐.*듣는 중/);
       assert.equal(await page.locator('#chat-mic').isEnabled(), true);
@@ -136,6 +178,8 @@ async function main() {
       const { page, stats } = await ready(browser, { texts: ['음악'], autoRead: false });
       await page.locator('#chat-mic').click();
       await page.waitForFunction(() => voiceTest.speaks === 1);
+      assert.equal(await page.locator('#chat-mic').getAttribute('data-phase'), 'speaking');
+      assert.equal(await page.locator('.mic-visual').evaluate(el => getComputedStyle(el, '::before').animationName), 'none');
       await page.waitForTimeout(5200);
       assert.equal(await page.locator('#chat-voice-status').getAttribute('data-phase'), 'speaking');
       assert.equal(await page.evaluate(() => voiceTest.starts), 1);

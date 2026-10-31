@@ -273,6 +273,12 @@
       "utils/scripts/check_voice_session.cjs",
       "docs/development/automatic-voice.md"
     ],
+    "듣는 중 파동·브라우저 음성 호환": [
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_session.cjs",
+      "docs/development/voice-browser-compatibility.md"
+    ],
     "대중교통 노선·모바일 경로 카드": [
       "backend/transit.py",
       "backend/preview.html",

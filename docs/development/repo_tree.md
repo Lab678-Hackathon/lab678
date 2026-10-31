@@ -135,6 +135,8 @@ lab678/
         live-ai-check.json
         manifest.json
         mock-checks.json
+      qa-voice-wave/
+        mock-checks.json
       qa01-team-connection.md
       qa01/
         live-s03.png
@@ -221,6 +223,7 @@ lab678/
         tour-key-verification.md
         tour-live-verification.md
         transit-mobile-cards.md
+        voice-wave-and-compatibility.md
       screen-spec-review.md
       service-key-status.md
       state.json
@@ -230,6 +233,7 @@ lab678/
       tooling-progress.md
       transit-mobile.md
       transit-progress.md
+      voice-browser-compatibility.md
     meetings/
       2026-10-28.md
     planning/

@@ -1,19 +1,20 @@
 /** 횟수와 무응답 시간으로 제한된 브라우저 음성 대화. 시작 클릭 없이 재생/녹음하지 않는다. */
 
 /** 한 응답을 기다린다. no-speech로 엔진이 일찍 끝나도 설정한 무응답 기한은 유지한다. */
-export function listenForReply(signal, silenceSeconds, onTranscript) {
+export function listenForReply(signal, silenceSeconds, onTranscript, onListening = () => {}) {
   return new Promise((resolve, reject) => {
     const Engine = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!Engine) { reject(new Error('Chrome에서 음성 대화를 시작해 주세요. 이 브라우저는 음성 인식을 지원하지 않아요.')); return; }
+    if (!Engine) { reject(new Error('이 브라우저는 음성 인식을 지원하지 않아요. 같은 입력칸에 직접 입력하거나 기기의 키보드 받아쓰기로 대화를 이어갈 수 있어요.')); return; }
     let engine, retry, quietTimer, speechTimer, done = false, text = '', failed = false, speaking = false;
     /** 타이머·이벤트를 정리하고 현재 녹음만 중단한다. 늦은 콜백은 적용하지 않는다. */
     function finish(error, value) {
       if (done) return;
       done = true;
+      onListening(false);
       clearTimeout(retry); clearTimeout(quietTimer); clearTimeout(speechTimer);
       signal.removeEventListener('abort', cancel);
       if (engine) {
-        engine.onend = engine.onerror = engine.onresult = engine.onspeechstart = engine.onspeechend = null;
+        engine.onend = engine.onerror = engine.onresult = engine.onspeechstart = engine.onspeechend = engine.onaudiostart = engine.onaudioend = null;
         try { engine.abort(); } catch { /* 이미 종료된 엔진 */ }
       }
       error ? reject(error) : resolve(value);
@@ -30,9 +31,12 @@ export function listenForReply(signal, silenceSeconds, onTranscript) {
       if (done || signal.aborted) { cancel(); return; }
       engine = new Engine(); engine.lang = 'ko-KR'; engine.interimResults = false; engine.continuous = false;
       const attempt = engine;
+      engine.onaudiostart = () => { if (!done && !signal.aborted && attempt === engine) onListening(true); };
+      engine.onaudioend = () => { if (!done && !signal.aborted && attempt === engine) onListening(false); };
       engine.onspeechstart = () => {
         if (done || attempt !== engine) return;
         speaking = true;
+        onListening(true);
         clearTimeout(quietTimer);
         if (!speechTimer) speechTimer = setTimeout(() => finish(new Error('한 번에 60초까지 말할 수 있어요. 내용을 나누어 다시 시작해 주세요.')), 60000);
       };
@@ -49,9 +53,10 @@ export function listenForReply(signal, silenceSeconds, onTranscript) {
       };
       engine.onend = () => {
         if (done || failed || attempt !== engine) return;
+        onListening(false);
         if (text) { finish(null, text); return; }
         if (speaking) { speaking = false; waitForSpeech(); }
-        engine.onend = engine.onerror = engine.onresult = engine.onspeechstart = engine.onspeechend = null;
+        engine.onend = engine.onerror = engine.onresult = engine.onspeechstart = engine.onspeechend = engine.onaudiostart = engine.onaudioend = null;
         retry = setTimeout(begin, 500);
       };
       try { engine.start(); } catch { finish(new Error('마이크를 시작하지 못했어요. Chrome의 마이크 권한을 확인해 주세요.')); }
@@ -120,8 +125,11 @@ export class VoiceSession {
         if (signal.aborted) return;
       }
       while (this.controller === controller && this.turns < maxTurns) {
-        phase('listening', `듣고 있어요. ${silenceSeconds}초 동안 답변이 없으면 마칩니다.`);
-        const text = await listenForReply(signal, silenceSeconds, this.onTranscript);
+        phase('starting', '마이크 연결을 기다려요. 권한 안내가 나오면 허용해 주세요.');
+        const text = await listenForReply(signal, silenceSeconds, this.onTranscript, listening => {
+          if (this.controller !== controller || signal.aborted) return;
+          phase(listening ? 'listening' : 'starting', listening ? `듣고 있어요. 지금 말씀해 주세요. ${silenceSeconds}초 동안 답변이 없으면 마칩니다.` : '마이크 연결을 기다리고 있어요.');
+        });
         if (signal.aborted) return;
         phase('thinking', '말씀하신 조건을 확인하고 있어요…');
         const result = await this.submit(text, signal);

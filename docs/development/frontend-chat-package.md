@@ -75,3 +75,7 @@ git apply /패키지경로/team-chat.patch
 ## 최신 · 마이크 켜기/끄기 표시
 
 현재는 `.local/chat-handoff-6accf0e-063bdde13b/team-chat-handoff.zip` (8파일, 프론트6accf0e)이다. 마이크 아이콘/켜짐·꺼짐 상태와 누른 상태, 같은 버튼으로 중지·재시작을 보강했다. 프론트의 배포주소 추가를 확인하고 로컬 대화는 같은 주소의 프록시를 쓰도록 맞췄다. 5175 실행본을 갱신했으며 팀 원본/배포에 반영했다는 뜻은 아니다.
+
+## 최신 · 듣는 중 파동 표시
+
+`.local/chat-handoff-6accf0e-026a06b9ea/team-chat-handoff.zip` (8파일). 오디오 시작/끝으로 실제 듣기 상태를 표시하고 마이크에 파동을 추가했다. 연결 대기·TTS·처리·중지에서는 멈추고 움직임 줄이기 설정을 반영한다. 접두어 음성 API/미지원 텍스트 복귀 검사 포함. [실기기 미검증 범위](voice-browser-compatibility.md)를 함께 전달한다.

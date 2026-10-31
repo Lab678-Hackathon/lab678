@@ -30,7 +30,7 @@ box.innerHTML = `<h2>AI와 자동으로 대화하기</h2>
  <label for="chat-text">하고 싶은 말씀</label>
  <textarea id="chat-text" rows="3" maxlength="1000" placeholder="국악을 듣고 싶어요"></textarea>
  <p id="chat-mic-state">자동 대화 꺼짐</p>
- <div class="chat-actions"><button type="button" class="btn btn--primary" id="chat-mic" aria-pressed="false" aria-label="자동 음성 대화 켜기" aria-describedby="chat-mic-state chat-voice-status"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/><path class="mic-off-slash" d="m3 3 18 18"/></svg><span id="chat-mic-label">자동 음성 대화 시작</span></button>
+ <div class="chat-actions"><button type="button" class="btn btn--primary" id="chat-mic" data-phase="idle" aria-pressed="false" aria-label="자동 음성 대화 켜기" aria-describedby="chat-mic-state chat-voice-status"><span class="mic-visual" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/><path class="mic-off-slash" d="m3 3 18 18"/></svg></span><span id="chat-mic-label">자동 음성 대화 시작</span></button>
  <button type="button" class="btn btn--outline" id="chat-voice-stop" disabled>대화 중지</button>
  <button type="button" class="btn btn--primary" id="chat-send">보내기</button></div>
  <p id="chat-voice-status" role="status" aria-live="polite" data-phase="idle">마이크 버튼을 누르면 AI가 먼저 질문해요. 다시 누르면 대화와 마이크가 꺼져요.</p>
@@ -50,6 +50,7 @@ document.head.append(style);
 style.textContent += '#chat-voice-settings{border:1px solid #687c71;border-radius:12px;padding:12px;margin:12px 0}#chat-voice-settings summary{font-weight:700;cursor:pointer;padding:6px 0}#chat-voice-settings label{display:block;margin:12px 0}#chat-voice-settings input{font:inherit;width:90px;min-height:44px;padding:6px;box-sizing:border-box;margin:0 6px}#chat-voice-status{white-space:pre-wrap}';
 style.textContent += '#dj-chat{padding:20px;border:2px solid #547562;border-radius:16px;background:#fff;margin:16px 0}#dj-chat h2{font-size:1.35rem;margin:0 0 12px}#dj-chat p{overflow-wrap:anywhere}';
 style.textContent += '#dj-chat #chat-mic{display:flex;align-items:center;justify-content:center;gap:12px;flex-basis:100%;min-height:64px;padding:16px;font-size:19px;line-height:1.5;border:2px solid #245e48;background:#fff;color:#245e48}#dj-chat #chat-mic svg{width:30px;height:30px;flex-shrink:0}#dj-chat #chat-mic[aria-pressed="true"]{background:#205d46;color:#fff;border-color:#205d46;box-shadow:0 0 0 4px #d9eee2}#chat-mic[aria-pressed="true"] .mic-off-slash{display:none}#chat-mic-state{font-size:18px;font-weight:750;padding:10px 12px;border-radius:10px;background:#edf1ee;color:#43564a}#chat-mic-state[data-active="true"]{background:#d9eee2;color:#164c36}';
+style.textContent += '#chat-mic .mic-visual{position:relative;display:grid;place-items:center;width:44px;height:44px;flex-shrink:0}#chat-mic .mic-visual svg{position:relative;z-index:1}#chat-mic .mic-visual::before,#chat-mic .mic-visual::after{content:"";position:absolute;inset:0;border:2px solid currentColor;border-radius:50%;opacity:0;pointer-events:none}#chat-mic[data-phase="listening"] .mic-visual::before,#chat-mic[data-phase="listening"] .mic-visual::after{animation:lab678-mic-ripple 1.8s ease-out infinite}#chat-mic[data-phase="listening"] .mic-visual::after{animation-delay:.9s}#chat-mic-state[data-phase="listening"]{border-left:5px solid #205d46}#chat-mic-state[data-phase="starting"]{background:#fff3d9;color:#6a4b12}@keyframes lab678-mic-ripple{0%{transform:scale(.65);opacity:.75}100%{transform:scale(1.65);opacity:0}}@media(prefers-reduced-motion:reduce){#chat-mic[data-phase="listening"] .mic-visual::before,#chat-mic[data-phase="listening"] .mic-visual::after{animation:none;transform:scale(1.1);opacity:.6}#chat-mic[data-phase="listening"] .mic-visual::after{display:none}}';
 root.querySelector('[data-field="start"]').before(box);
 const $ = (selector) => box.querySelector(selector);
 $('#chat-text').value = state.chat.text || '';
@@ -357,9 +358,11 @@ voiceSession = new VoiceSession({
   onState: ({ active, phase, turns, limit, message }) => {
     $('#chat-mic-label').textContent = active ? '자동 음성 대화 중지' : '자동 음성 대화 시작';
     $('#chat-mic').setAttribute('aria-pressed', String(active));
+    $('#chat-mic').dataset.phase = phase;
     $('#chat-mic').setAttribute('aria-label', active ? '자동 음성 대화 끄기' : '자동 음성 대화 켜기');
-    const phases = { listening: '듣는 중', thinking: '답변 확인 중', speaking: 'AI 질문·답변 읽는 중' };
+    const phases = { starting: '마이크 연결 중', listening: '듣는 중 · 지금 말씀해 주세요', thinking: '답변 확인 중', speaking: 'AI 질문·답변 읽는 중' };
     $('#chat-mic-state').dataset.active = String(active);
+    $('#chat-mic-state').dataset.phase = phase;
     $('#chat-mic-state').textContent = active ? `자동 대화 켜짐 · ${phases[phase] || '준비 중'}` : '자동 대화 꺼짐';
     $('#chat-voice-stop').disabled = !active;
     $('#chat-max-turns').disabled = $('#chat-silence-seconds').disabled = active;

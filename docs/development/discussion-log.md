@@ -538,3 +538,9 @@ Naito 실제 연결을 확인했습니다.
 사용자가 희영님 설명(기존계정에공개Git URL develop수동배포완료,별도fork/설치승인불필요)을 전달. 이슈16최종댓글6541241808에서 frontend6accf0e/backend06c0443과공개URL QA01 recorded PASS/미래날짜200/REST키미등록 보고를 직접읽었다. 공식Render문서에서 공개Git URL은수동배포이며Git앱승인없이기존배포가능함확인. 직접GET은backendhealthz200 ok와Vercel루트200/HTML내backend주소뿐으로 전체QA나실제콘솔SHA확인으로과장하지않았다.
 
 이전'설치승인완료전에는배포못함'안내를이경우정정. 현재미해결은최신로컬코드공유/팀프론트8파일패치/키설정/희영님대상SHA수동재배포다. 사용자요청이없는Push·재배포·환경변수수정·팀메시지전송은수행하지않음. 공용plan미수정.
+
+## 2026-10-31 홈 듣기 파동·MacBook/모바일 호환성
+
+사용자가 홈음성기능/마이크파동 표시를 요청하고 팀원MacBook과모바일호환을질문했다. 자동음성은로컬5175홈에만있고공개6accf0e미반영임을분명히안내. 실제audio수집시작/끝 이벤트로연결대기와듣기를구분하고파동을듣기에서만표시. TTS/AI처리/중지에서는정지, reduced-motion은정적원. 음량측정이아니며추가getUserMedia/녹음저장없음.
+
+MDN제한지원·Chrome온라인인식과WebKit Safari/Siri설정자료확인. 접두어API 모의2턴/미지원텍스트복귀/홈320px파동/중지/늦은이벤트등16모의구간PASS. MacBook Chrome/Safari·Android Chrome·iPhone Safari실기기미검증. 대상축소로확정하지않고패치공개HTTPS배포후권한→2턴→중지/재시작→추천/상세를묶어확인할계획. 최신8파일026a06b9ea/5175 PID5648. 서버STT미구현. 공용plan/팀원본/Push/배포미변경.
