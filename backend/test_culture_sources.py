@@ -25,12 +25,14 @@ class CultureSourceTests(unittest.TestCase):
                          "items": {"item": rows} if rows else ""}}}
 
     def test_seoul_authenticated_and_sample_limits(self):
-        """정식 키100건·미설정sample5건을 구분하며 입력 키를 경로 구분자로 해석하지 않는다."""
+        """정식 키1000건·미설정sample5건을 구분하며 입력 키를 경로 구분자로 해석하지 않는다."""
         payload = {"culturalEventInfo": {"RESULT": {"CODE": "INFO-000"}, "row": [], "list_total_count": 0}}
-        for key, segment in [("", "/sample/json/culturalEventInfo/1/5/"), ("secret/key", "/secret%2Fkey/json/culturalEventInfo/1/100/")]:
+        for key, segment in [("", "/sample/json/culturalEventInfo/1/5/"), ("secret/key", "/secret%2Fkey/json/culturalEventInfo/1/1000/")]:
             with patch("outing.culture_key", return_value=key), patch("outing.urlopen", return_value=io.BytesIO(json.dumps(payload).encode())) as network:
                 self.assertEqual(seoul_page("2026-10-31", "전시", "live")[2], 0)
                 self.assertIn(segment, network.call_args.args[0])
+                # 정식 키는 날짜 조건 없이 받고 기간은 코드에서 판정, sample 은 날짜 조건 유지
+                self.assertTrue(network.call_args.args[0].endswith("/%20/%20/" if key else "/%20/2026-10-31/"))
 
     def test_seoul_auth_failure_no_sample_retry(self):
         """유효하지 않은 정식 키를 sample 성공으로 숨기지 않는다."""
