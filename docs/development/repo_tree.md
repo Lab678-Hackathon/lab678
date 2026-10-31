@@ -89,6 +89,7 @@ lab678/
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
+        2026-10-31-result-preservation.md
         2026-10-31-route-text.md
         2026-10-31-screen-spec-review.md
         2026-10-31-section-checks.md
@@ -172,6 +173,7 @@ lab678/
       check_frontend_connection.cjs
       check_input_contract.cjs
       check_outing_ui.cjs
+      check_result_preservation.cjs
       check_transit_ui.cjs
       commit_report.py
       context.py
