@@ -247,7 +247,17 @@ function speak(text, then) {
     const ko = speechSynthesis.getVoices().find((v) => v.lang?.startsWith('ko'));
     if (ko) u.voice = ko;
     let done = false;
-    const finish = () => { if (done) return; done = true; if (then) setTimeout(then, 300); };
+    const finish = () => {
+      if (done) return;
+      done = true;
+      if (!then) return;
+      // 폰은 읽기가 끝나기 전에 끝났다고 알려 주기도 해요. 정말 조용해질 때까지 기다렸다가 마이크를 켜요.
+      const wait = (tries) => {
+        if (speechSynthesis.speaking && tries < 60) { setTimeout(() => wait(tries + 1), 250); return; }
+        setTimeout(then, 700);
+      };
+      wait(0);
+    };
     u.onend = finish;
     u.onerror = finish;
     setTimeout(finish, 1500 + text.length * 180); // onend 가 안 오는 브라우저 대비
@@ -294,6 +304,42 @@ function updateVoiceUi() {
 }
 
 /**
+ * 인식 결과 합치기. 안드로이드 Chrome 은 같은 말을 누적해서 여러 번 보내요
+ * ("안녕하세요" → "안녕하세요 오늘은" …). 앞 조각을 포함하는 조각이 오면 바꿔 끼우고, 이미 있는 조각은 버려요.
+ */
+function joinResults(results) {
+  const merge = (parts, t) => {
+    const prev = parts[parts.length - 1];
+    const flat = (x) => x.replace(/\s+/g, '');
+    if (prev && flat(t).startsWith(flat(prev))) parts[parts.length - 1] = t;
+    else if (prev && flat(prev).includes(flat(t))) { /* 이미 있음 */ } else parts.push(t);
+  };
+  const fins = [];
+  const mids = [];
+  for (const r of results) {
+    const t = (r[0]?.transcript || '').trim();
+    if (!t) continue;
+    merge(r.isFinal ? fins : mids, t);
+  }
+  let fin = fins.join(' ');
+  let mid = mids.join(' ');
+  if (mid && fin && mid.replace(/\s+/g, '').startsWith(fin.replace(/\s+/g, ''))) { fin = ''; } // 중간 결과가 확정 결과를 이미 포함
+  return { fin, mid };
+}
+
+/**
+ * 마이크가 까치 말(스피커 소리)을 받아 적은 것인지. 소리를 켰을 때만,
+ * 들은 말이 까치의 마지막 말 안에 그대로 이어져 있으면 메아리로 봐요 (사용자 말이 예시와 비슷한 건 통과).
+ */
+function isEcho(text) {
+  if (!state.sound) return false;
+  const lastAi = [...state.messages].reverse().find((m) => m.role === 'ai' && m.text)?.text || '';
+  const flat = (x) => x.replace(/[^가-힣0-9a-zA-Z]/g, '');
+  const t = flat(text);
+  return t.length >= 6 && flat(lastAi).includes(t);
+}
+
+/**
  * 음성 시간 설정 (민규·동조 요청, 10/31). 주소에 ?endms=5000&nospeechms=12000 처럼 붙이면 시험해 볼 수 있어요.
  * endOfSpeechMs: 마지막 말 뒤 이만큼 조용하면 말이 끝난 것으로 보고 보내요 (말 사이 쉬는 시간은 기다려요)
  * noSpeechMs: 듣기 시작 뒤 아무 말도 없으면 이만큼 기다렸다가 끝내요
@@ -322,6 +368,7 @@ function listen(auto = false) {
     if (autoTurns >= VOICE.maxAutoTurns) { updateVoiceUi(); return; }
     autoTurns += 1;
   } else autoTurns = 0;
+  if (auto && 'speechSynthesis' in window && speechSynthesis.speaking) { setTimeout(() => listen(true), 400); autoTurns -= 1; return; } // 까치가 말하는 중엔 켜지 않아요
   if ('speechSynthesis' in window) speechSynthesis.cancel();
   discardVoice = false;
   const s = session = { kept: '', finalText: '', interim: '', done: false, timers: {}, startedAt: Date.now() };
@@ -355,9 +402,8 @@ function listen(auto = false) {
     eng.interimResults = true;
     eng.continuous = true;
     eng.onresult = (e) => {
-      let fin = '';
-      let mid = '';
-      for (const r of e.results) { if (r.isFinal) fin += r[0].transcript; else mid += r[0].transcript; }
+      const { fin, mid } = joinResults(e.results);
+      if (isEcho(`${fin} ${mid}`)) return; // 까치 목소리를 마이크가 다시 들은 것이면 무시
       s.finalText = fin;
       s.interim = mid;
       show();
