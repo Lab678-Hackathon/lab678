@@ -4,10 +4,13 @@
  */
 import { state, save } from './state.js';
 import { renderSearch } from './search.js';
+import { preferenceFields, preferenceText, renderResultPreferences } from './dj-preferences.js';
 
 const root = document.querySelector('#s02');
 const api = (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
-const labels = { start_query: '출발지', start_at: '출발 시각', end_at: '종료 시각', category: '활동', request_kind: '추천 방식', stay_minutes: '체류시간' };
+const labels = { start_query: '출발지', start_at: '출발 시각', end_at: '종료 시각', category: '활동', request_kind: '추천 방식', stay_minutes: '체류시간',
+  categories: '관심 활동', free_only: '무료만', budget_krw: '관람 예산', keywords: '관심어', exclude_terms: '제외 조건',
+  walking_preference: '걷기 선호', indoor_outdoor: '실내·실외', unsupported_requirements: '필수 조건' };
 state.chat ||= { revision: 0, history: [], pending: null, text: '' };
 let abort = null;
 let busy = false;
@@ -19,13 +22,13 @@ const box = document.createElement('section');
 box.id = 'dj-chat';
 box.className = 'field';
 box.setAttribute('aria-label', 'AI와 나들이 조건 정하기');
-box.innerHTML = `<h2>더 원하는 게 있으세요?</h2>
- <p class="muted">출발지·날짜·시간·보고 싶은 활동을 말하거나 적어 주세요.</p>
+box.innerHTML = `<h2>어떤 나들이를 하고 싶으세요?</h2>
+ <p class="muted">한 번에 다 말씀하지 않아도 괜찮아요. 대화하면서 조건을 함께 정해요.</p>
  <label for="chat-text">하고 싶은 말씀</label>
  <textarea id="chat-text" rows="3" maxlength="1000" placeholder="국악을 듣고 싶어요"></textarea>
  <div class="chat-actions"><button type="button" class="btn btn--outline" id="chat-mic">한 번 말하기</button>
  <button type="button" class="btn btn--primary" id="chat-send">보내기</button></div>
- <p id="chat-status" role="status" aria-live="polite"></p>
+ <p id="chat-status" role="status" aria-live="polite"></p><p id="chat-preferences"></p>
  <div id="chat-conflicts" hidden></div><details><summary>대화 기록</summary><div id="chat-history"></div></details>
  <div class="chat-actions"><button type="button" class="link-btn" id="chat-read">답변 읽기</button>
  <button type="button" class="link-btn" id="chat-stop">읽기 중지</button>
@@ -33,7 +36,7 @@ box.innerHTML = `<h2>더 원하는 게 있으세요?</h2>
 const style = document.createElement('style');
 style.textContent = '#dj-chat textarea{width:100%;box-sizing:border-box;font:inherit;padding:12px;border:1px solid #687c71;border-radius:12px}#dj-chat .chat-actions{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}#dj-chat .btn{flex:1;min-width:120px}#dj-chat [hidden]{display:none!important}#chat-history p{white-space:pre-wrap;overflow-wrap:anywhere}#chat-conflicts{padding:16px;border:2px solid #8b632a;border-radius:12px;margin:12px 0}#chat-conflicts p{overflow-wrap:anywhere}';
 document.head.append(style);
-document.querySelector('#confirm').before(box);
+root.querySelector('[data-field="start"]').before(box);
 const $ = (selector) => box.querySelector(selector);
 $('#chat-text').value = state.chat.text || '';
 
@@ -41,6 +44,7 @@ $('#chat-text').value = state.chat.text || '';
 function draft() {
   const f = state.form;
   const d = { request_kind: f.kind || 'place' };
+  Object.assign(d, state.chat.preferences || {});
   if (f.date) d.date = f.date;
   if (f.category) d.category = f.category;
   if (f.date && f.startTime) d.start_at = `${f.date}T${f.startTime}:00+09:00`;
@@ -58,8 +62,10 @@ let fingerprint = JSON.stringify(draft());
 /** 현재 안내와 추천 잠금을 갱신한다. 미해결 충돌/AI 처리 중 추천은 진행하지 않는다. */
 function note(text) {
   $('#chat-status').textContent = text;
+  $('#chat-preferences').textContent = preferenceText(state.chat.preferences || {});
   $('#chat-send').disabled = busy;
-  document.querySelector('#btn-search').disabled = busy || Boolean(state.chat.pending);
+  document.querySelector('#btn-search').disabled = busy || Boolean(state.chat.pending)
+    || Boolean(state.chat.preferences?.music_followup) || Boolean(state.chat.preferences?.unsupported_requirements?.length);
 }
 
 /** 평문 대화 기록을 세션에 최대12개 보관한다. HTML로 해석하지 않는다. */
@@ -106,6 +112,7 @@ function applyDraft(d) {
   if (d.end_at) { f.date = d.end_at.slice(0, 10); f.endTime = d.end_at.slice(11, 16); }
   if (d.category) f.category = d.category;
   if (d.request_kind) f.kind = d.request_kind;
+  state.chat.preferences = Object.fromEntries(preferenceFields.filter(key => d[key] !== undefined).map(key => [key, structuredClone(d[key])]));
   state.confirmed = null;
   save();
   renderSearch();
@@ -121,8 +128,7 @@ function showConflicts() {
   if (!state.chat.pending) return;
   for (const change of state.chat.pending.conflicts) {
     const p = document.createElement('p');
-    const before = typeof change.before === 'object' ? change.before?.label : change.before;
-    p.textContent = `${labels[change.field] || change.field}: ${before} → ${change.after}`;
+    p.textContent = `${labels[change.field] || change.field}: ${conditionLabel(change.before)} → ${conditionLabel(change.related?.categories || change.after)}`;
     panel.append(p);
   }
   for (const [accept, text] of [[true, '변경 모두 반영'], [false, '기존 조건 유지']]) {
@@ -134,6 +140,14 @@ function showConflicts() {
   }
 }
 
+/** 변경 조건을 좌표/JSON 대신 읽을 수 있는 이름으로 표시한다. */
+function conditionLabel(value) {
+  if (Array.isArray(value)) return value.join(', ') || '없음';
+  if (value && typeof value === 'object') return value.label || '선택한 장소';
+  if (typeof value === 'boolean') return value ? '적용' : '해제';
+  return ({ any: '제한 없음', short: '적게 걷기', indoor: '실내', outdoor: '실외', place: '행사 찾기', course: '문화코스' })[value] || String(value ?? '미설정');
+}
+
 /** 명시적 동의만 새 조건에 반영한다. 선택 뒤 최종 S02a 확인은 다시 거친다. */
 function decide(accept) {
   const pending = state.chat.pending;
@@ -143,6 +157,7 @@ function decide(accept) {
     const updated = draft();
     for (const change of pending.conflicts) {
       updated[change.field] = change.after;
+      Object.assign(updated, change.related || {});
       if (change.field === 'start_query') delete updated.start_location;
     }
     if (!applyDraft(updated)) return;
@@ -190,7 +205,8 @@ async function send() {
   note('말씀하신 조건을 확인하고 있어요…');
   try {
     const payload = { message, revision: mine, condition_draft: current,
-      confirmed_fields: Object.keys(current).filter(k => !['start_query', 'date'].includes(k)), conversation_context: history };
+      confirmed_fields: Object.keys(state.chat.confirmedDraft || {}).filter(k => !['start_query', 'date'].includes(k)
+        && JSON.stringify(current[k]) === JSON.stringify(state.chat.confirmedDraft[k])), conversation_context: history };
     while (new TextEncoder().encode(JSON.stringify(payload)).length > 8192 && history.length) history.shift();
     const response = await fetch(`${api}/preview/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
       signal: controller.signal, body: JSON.stringify(payload) });
@@ -262,8 +278,15 @@ $('#chat-text').addEventListener('input', () => {
 });
 for (const type of ['input', 'change', 'click']) root.addEventListener(type, event => {
   if (box.contains(event.target)) return;
-  queueMicrotask(() => { if (fingerprint !== JSON.stringify(draft())) invalidate(); });
-}, true);
+  const manualCategory = event.target.closest('[data-category]')?.dataset.category;
+  queueMicrotask(() => {
+    if (manualCategory) {
+      state.chat.preferences ||= {};
+      state.chat.preferences.categories = [manualCategory]; state.chat.preferences.music_followup = false;
+    }
+    if (fingerprint !== JSON.stringify(draft())) { state.chat.confirmedDraft = null; invalidate(); note('바꾼 조건을 반영했어요.'); }
+  });
+});
 root.addEventListener('click', event => {
   if (event.target.closest('#btn-search') && (busy || state.chat.pending)) {
     event.preventDefault(); event.stopImmediatePropagation();
@@ -272,5 +295,7 @@ root.addEventListener('click', event => {
 }, true);
 window.addEventListener('hashchange', () => {
   if (location.hash !== '#/search') { invalidate(); ++voiceGeneration; recognition?.abort(); listening = false; window.speechSynthesis?.cancel(); }
+  queueMicrotask(renderResultPreferences);
 });
+renderResultPreferences();
 showHistory(); showConflicts(); note(state.chat.pending ? '이전 변경 요청을 확인해 주세요.' : '조건을 말씀해 주세요.');

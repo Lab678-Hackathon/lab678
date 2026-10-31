@@ -1,6 +1,6 @@
 # 대화 조건 처리 코어와 연결 제안
 
-2026-10-31 · 김동조 개발 기록. **코어·Naito 어댑터·HTTP 경로 구현, 실제 AI 고정 예문 검증 완료, 프론트 연결 미완료.** 공통 계약 확정 문서가 아니다.
+2026-10-31 · 김동조 개발 기록. **코어·Naito·로컬 팀 화면 연결 검증 완료. 팀 원본 UI 통합은 미완료.** 공통 계약 확정 문서가 아니다. 복수 관심사·예산·제외 등 추가 필드와 최신 검증은 [자연어 자동 설정 인계](natural-language-handoff.md)를 따른다.
 
 ## 구현한 부분
 
@@ -28,12 +28,12 @@ result = apply_interpretation(
 기존 `category`가 `전시`였다면 초안은 그대로 유지되고 다음 충돌이 생긴다.
 
 ```json
-{"field":"category","before":"전시","after":"국악"}
+{"field":"category","before":"전시","after":"국악","related":{"categories":["국악"],"music_followup":false}}
 ```
 
 사용자 선택을 `resolve_changes(result, {"category": true}, current_draft, current_revision)`로 전달한다(Python에서는 `True`). 거절은 false, 선택하지 않은 항목은 키를 생략한다. 변경 동의 결과도 최종 추천 승인이 아니다.
 
-모델 해석의 허용 필드: `start_query`(최대80자), `start_at`/`end_at`(시간대 포함 ISO), `category`(기존 단일 분류), `request_kind`(place/course/route), `stay_minutes`(1~240 정수). null은 변경 없음이다. 상대 날짜·모호한 시각 해석의 정확도는 실제 공급자 연결 후 따로 평가한다.
+모델 해석의 기본 허용 필드: `start_query`(최대80자), `start_at`/`end_at`(시간대 포함 ISO), `category`(기존 단일 분류), `request_kind`(place/course/route), `stay_minutes`(1~240 정수). 추가 선호 필드는 위 인계 문서를 참고한다. null은 변경 없음이다. 실제 고정 발화 검증을 했으며 모든 자유 발화의 정확도를 보장하지 않는다.
 
 반환 필드: `status`, `base_revision`, `assistant_text`, `updated_condition_draft`, `missing_fields`, `field_errors`, `conflicts`, `ready_to_search`, `requires_final_confirmation`. stale 응답에는 status/revision/ready만 있으므로 초안을 덮어쓰면 안 된다.
 

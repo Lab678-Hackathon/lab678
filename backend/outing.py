@@ -1,4 +1,4 @@
-"""서울시 행사 다섯 건에서 날짜·시간·분류를 확인하고 직선거리 순으로 반환한다."""
+"""서울시 분류별 공개 후보에서 날짜·시간·대화 선호를 확인해 추천한다."""
 import json
 import math
 import re
@@ -6,6 +6,8 @@ from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from urllib.parse import parse_qs, quote, urlsplit
 from urllib.request import urlopen
+from concurrent.futures import ThreadPoolExecutor
+import preferences
 
 KST = timezone(timedelta(hours=9))
 EXAMPLES = Path(__file__).resolve().parents[1] / "docs/development/examples"
@@ -42,6 +44,15 @@ def validate(data):
         raise InputError("invalid_kind", "request_kind", "행사 찾기 또는 문화코스를 선택해 주세요.")
     if not isinstance(data.get("category"), str) or data["category"] not in CATEGORIES:
         raise InputError("invalid_category", "category", "지원하는 분류를 선택해 주세요.")
+    try:
+        options = preferences.normalize(data)
+    except ValueError as exc:
+        raise InputError("invalid_preferences", "preferences", str(exc)) from None
+    if options.get("unsupported_requirements"):
+        raise InputError("unsupported_constraint", "unsupported_requirements",
+                         "아직 확인할 수 없는 필수 조건입니다: " + ", ".join(options["unsupported_requirements"]) + ". 이 조건을 유지할지, 직접 확인할 조건으로 바꿀지 알려 주세요.")
+    if options.get("music_followup"):
+        raise InputError("interest_confirmation", "categories", "어떤 음악이 좋으세요? 골고루도 선택할 수 있어요.")
     times = []
     for field in ("start_at", "end_at"):
         try:
@@ -122,8 +133,16 @@ def time_match(row, start, end):
 def recommend(data, mode="live"):
     """검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다."""
     start, end, lat, lng = validate(data)
+    options = preferences.normalize(data)
+    categories = options.get("categories", [data["category"]])
     try:
-        rows, checked, total = seoul_page(start.date().isoformat(), data["category"], mode)
+        if len(categories) == 1:
+            rows, checked, total = seoul_page(start.date().isoformat(), categories[0], mode)
+        else:
+            with ThreadPoolExecutor(max_workers=5) as pool:
+                pages = list(pool.map(lambda category: seoul_page(start.date().isoformat(), category, mode), categories))
+            rows = list({row.get("HMPG_ADDR"): row for page, _, _ in pages for row in page}.values())
+            checked, total = min(page[1] for page in pages), sum(page[2] for page in pages)
     except ValueError as exc:
         if mode == "live":
             raise RuntimeError("서울시 응답을 읽지 못했습니다.") from exc
@@ -131,7 +150,7 @@ def recommend(data, mode="live"):
     candidates = []
     for row in rows:
         genres = {part.strip() for part in row["CODENAME"].split("/")}
-        if data["category"] != "전체" and data["category"] not in genres:
+        if "전체" not in categories and not set(categories) & genres:
             continue
         url = urlsplit(row.get("HMPG_ADDR") or "")
         ids = parse_qs(url.query).get("cultcode", [])
@@ -165,6 +184,9 @@ def recommend(data, mode="live"):
                                genre=row["CODENAME"], opening_info=row.get("PRO_TIME") or None, price_info=row.get("USE_FEE") or None,
                                fee_type=row.get("IS_FREE") or None, audience=row.get("USE_TRGT") or None,
                                status="check", checks_required=checks, source_checked_at=checked))
-    candidates.sort(key=lambda item: (item["distance_km"] is None, item["distance_km"], item["id"]))
+    candidates = list({candidate["id"]: candidate for candidate in candidates}.values())
+    candidates, assessment = preferences.apply(candidates, options)
+    coverage = "선택한 분류마다 공개 샘플 최대 5건을 조회했습니다. 전체 행사 검색 결과가 아니며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다."
     return dict(status="ready" if candidates else "no_results", mode=mode, source_checked_at=checked,
-                searched_count=len(rows), source_total=total, candidates=candidates)
+                searched_count=len(rows), source_total=total, candidates=candidates,
+                applied_preferences=options, queried_categories=categories, coverage_note=coverage, **assessment)

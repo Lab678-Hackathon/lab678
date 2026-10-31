@@ -64,6 +64,9 @@ async function main() {
       assert.equal(await page.locator('#f-start').inputValue(), '14:00');
       assert.equal(await page.locator('#f-end').inputValue(), '17:00');
       assert.equal(await page.locator('#f-date').inputValue(), '2026-10-31');
+      // 입력 초안은 자동 변경, S02a로 확인한 조건부터 변경 동의를 받는다.
+      await page.locator('#btn-search').click();
+      await page.locator('#confirm').waitFor({ state: 'visible' });
       body = await send(page, '국악을 듣고 싶어요');
       assert.ok(body.conflicts.some(c => c.field === 'category' && c.after === '국악'));
       assert.equal(await page.locator('[data-category="전시"]').getAttribute('aria-pressed'), 'true');

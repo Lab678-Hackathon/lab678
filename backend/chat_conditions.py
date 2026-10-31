@@ -7,8 +7,9 @@ from copy import deepcopy
 from datetime import datetime
 
 from outing import CATEGORIES, InputError, KST, validate
+from preferences import FIELDS as PREFERENCE_FIELDS, normalize
 
-FIELDS = {"start_query", "start_at", "end_at", "category", "request_kind", "stay_minutes"}
+FIELDS = {"start_query", "start_at", "end_at", "category", "request_kind", "stay_minutes"} | PREFERENCE_FIELDS
 REQUIRED = ("start_location", "start_at", "end_at", "category", "request_kind")
 QUESTIONS = {
     "start_location": "어디에서 출발하세요? 장소 검색 결과에서 출발지를 선택해 주세요.",
@@ -24,9 +25,9 @@ def normalize_proposal(proposal):
     """허용된 조건만 정규화한다. null은 변경 없음, 좌표·잘못된 값은 ValueError다."""
     if not isinstance(proposal, dict) or set(proposal) - FIELDS:
         raise ValueError("AI 조건 형식을 확인해 주세요.")
-    result = {}
+    result = normalize(proposal)
     for field, value in proposal.items():
-        if value is None:
+        if value is None or field in PREFERENCE_FIELDS:
             continue
         if field == "start_query":
             if not isinstance(value, str) or not 1 <= len(value.strip()) <= 80 or any(ord(c) < 32 for c in value):
@@ -49,6 +50,13 @@ def normalize_proposal(proposal):
         elif type(value) is not int or not 1 <= value <= 240:
             raise ValueError("체류시간은 1~240분 정수여야 합니다.")
         result[field] = value
+    # 분류와 복수 관심사는 하나의 변경 단위로 병합한다.
+    if "categories" in result:
+        result["category"] = result["categories"][0]
+    elif "category" in result:
+        result["categories"] = [result["category"]]
+    if "categories" in result and "music_followup" not in result:
+        result["music_followup"] = False
     return result
 
 
@@ -72,6 +80,10 @@ def summarize(draft, revision, conflicts=None):
         message = "이미 확인한 조건과 달라요. 변경 전후를 확인하고 반영할 항목을 선택해 주세요."
     elif errors:
         message = errors[0]["message"]
+    elif draft.get("unsupported_requirements"):
+        message = "아직 확인할 수 없는 필수 조건이에요: " + ", ".join(draft["unsupported_requirements"]) + ". 필수로 유지할까요, 직접 확인할 조건으로 바꿀까요?"
+    elif draft.get("music_followup"):
+        message = "음악이라면 국악·클래식·콘서트를 찾아볼 수 있어요. 어떤 음악이 좋으세요? 골고루 듣고 싶다고 하셔도 돼요."
     elif missing:
         message = QUESTIONS[missing[0]]
     else:
@@ -79,12 +91,14 @@ def summarize(draft, revision, conflicts=None):
     return dict(status="needs_confirmation" if conflicts else "draft", base_revision=revision,
                 assistant_text=message, updated_condition_draft=deepcopy(draft),
                 missing_fields=missing, field_errors=errors, conflicts=conflicts,
-                ready_to_search=not (missing or errors or conflicts), requires_final_confirmation=True)
+                ready_to_search=not (missing or errors or conflicts or draft.get("music_followup") or draft.get("unsupported_requirements")), requires_final_confirmation=True)
 
 
 def put_value(draft, field, value):
     """출발지 검색어가 바뀌면 이전 좌표를 제거한다. 다른 조건은 초안에만 반영한다."""
     draft[field] = deepcopy(value)
+    if field == "categories":
+        draft["category"] = value[0]
     if field == "start_query":
         draft.pop("start_location", None)
 
@@ -99,11 +113,28 @@ def apply_interpretation(draft, proposal, confirmed_fields, base_revision, curre
     if base_revision != current_revision:
         return dict(status="stale", base_revision=base_revision, ready_to_search=False)
     changes = normalize_proposal(proposal)
+    # 확정 분류를 거절해도 연결된 categories/music_followup이 몰래 바뀌지 않게 묶는다.
+    category_change = {k: changes.pop(k) for k in ("category", "categories", "music_followup") if k in changes}
+    if category_change:
+        categories = category_change.get("categories", draft.get("categories", [draft["category"]] if draft.get("category") else None))
+        if categories:
+            changes["categories"] = categories
+        if "music_followup" in category_change:
+            changes["music_followup"] = category_change["music_followup"]
     updated = deepcopy(draft)
     conflicts = []
     for field, value in changes.items():
         before = draft.get(field)
         protected = field in confirmed_fields
+        if field == "categories":
+            before = draft.get("categories", [draft["category"]] if draft.get("category") else None)
+            protected = protected or "category" in confirmed_fields
+            if before != value and before is not None and protected:
+                conflicts.append(dict(field="category", before=draft.get("category"), after=value[0],
+                                      related={"categories": value, "music_followup": category_change.get("music_followup", False)}))
+                continue
+        if field == "music_followup" and any(c["field"] == "category" for c in conflicts):
+            continue
         if field == "start_query" and draft.get("start_location"):
             before = draft["start_location"]
             # 좌표가 있는 출발지는 항상 다시 검색·선택하도록 동의를 받는다.
@@ -135,4 +166,6 @@ def resolve_changes(result, decisions, current_draft, current_revision):
             unresolved.append(item)
         elif decisions[field]:
             put_value(updated, field, item["after"])
+            for key, value in item.get("related", {}).items():
+                put_value(updated, key, value)
     return summarize(updated, current_revision, unresolved)

@@ -28,15 +28,18 @@ lab678/
     naito_chat.py
     outing.py
     places.py
+    preferences.py
     preview.html
     preview.py
     team_chat.js
+    team_preferences.js
     test_chat_conditions.py
     test_course.py
     test_map_config.py
     test_naito_chat.py
     test_outing.py
     test_places.py
+    test_preferences.py
     test_preview.py
     test_transit.py
     test_walking.py
@@ -79,6 +82,7 @@ lab678/
       mobility-routing-review.md
       mvp-plan.md
       naito-usage.md
+      natural-language-handoff.md
       natural-language-recommendation-review.md
       outing-handoff.md
       place-search-api.md
@@ -86,6 +90,10 @@ lab678/
         chat-conflict.png
         chat-to-detail.png
         result.json
+      qa-natural/
+        confirmation.png
+        result.json
+        results.png
       qa01-team-connection.md
       qa01/
         live-s03.png
@@ -159,6 +167,7 @@ lab678/
         20261031-team-chat-connected.md
         20261031-team-flow-connected.md
         20261031-user-preferences-kakao-review.md
+        natural-language-recommendation.md
       screen-spec-review.md
       state.json
       tasks.md
@@ -230,6 +239,7 @@ lab678/
       check_input_contract.cjs
       check_kakao_map.cjs
       check_location_ui.cjs
+      check_natural_flow.cjs
       check_outing_ui.cjs
       check_place_search.cjs
       check_result_preservation.cjs

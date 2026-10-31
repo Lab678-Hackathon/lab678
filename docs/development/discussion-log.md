@@ -461,3 +461,13 @@ Naito 실제 연결을 확인했습니다.
 - 공식 문서와 PRD를 검토했으며 실제 로그인 연동이나 서비스 코드 변경은 하지 않았습니다. Push는 하지 않았습니다.
 
 근거: https://developers.kakao.com/docs/ko/kakaologin/utilize · https://developers.kakao.com/docs/ko/kakaologin/rest-api#req-user-info · https://devtalk.kakao.com/t/topic/148362/4
+
+## 2026-10-31 · 자연어·자동 설정 추천 구현
+
+사용자가 “그래 통과 일단 자연어처리및 자동설정 추천 부터 구현하자”로 실행 승인했다. 공용 plan/팀 frontend 원본은 수정하지 않고 개인 백엔드 및 격리 UI 연결을 확장했다.
+
+음악→국악/클래식/콘서트 후보 질문→구체 장르/골고루, 무료·1인 관람 예산·제외·관심어·근접 선호를 조건과 실제 추천에 연결했다. 한 번에 주어진 시간/관심사를 함께 채우고 이미 확인한 값만 변경 동의를 받는다. 가격 미확인·지원 못하는 필수 제약은 충족 처리하지 않는다. 공개 샘플 분류별5건 한계와 실내 미적용/걷기 미보장을 표시한다.
+
+실제 Naito 다회차→최종확인→기록4후보→상세 ID, 서울시 live 미래날짜 음악3분류/2후보 PASS. 백엔드70개, UI5구간, 로컬HTTP4검사 PASS. 초기 UI 확인값 보호 실패를 확정 함수 내 스냅샷으로 수정 후 재검증했다. 첫 HTTP 검사는 로컬 소켓 권한 제한으로 실행되지 않아 허용된 실행에서 재검사했다. 키 값 미출력/미커밋. 지도 타일/실기기 음성/공개 배포는 미검증.
+
+최신 계약·인계·검증 근거: [자연어 자동 설정 인계](natural-language-handoff.md). 전체 완료 보고문: [자연어 추천 보고](reports/natural-language-recommendation.md). 작업 체크표는 무시된 plan_dj/natural-language-implementation.md, Push/PR/병합은 미실행.

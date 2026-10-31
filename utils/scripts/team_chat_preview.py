@@ -55,6 +55,22 @@ def main():
             elif path == "/js/dj-chat.js":
                 body = (ROOT / "backend/team_chat.js").read_bytes()
                 content_type = "text/javascript; charset=utf-8"
+            elif path == "/js/dj-preferences.js":
+                body = (ROOT / "backend/team_preferences.js").read_bytes()
+                content_type = "text/javascript; charset=utf-8"
+            elif path == "/js/search.js":
+                # 해당 팀 버전의 두 연결 지점만 응답에서 확장한다. 디스크 원본은 보존한다.
+                source = (front / "js/search.js").read_text(encoding="utf-8")
+                hooks = {"state.confirmed = request;": "state.confirmed = withPreferences(request);",
+                         "$('#confirm-mode').hidden = testMode() !== 'recorded';":
+                         "$('#confirm-mode').hidden = testMode() !== 'recorded'; renderPreferenceSummary(r);"}
+                for before, after in hooks.items():
+                    if source.count(before) != 1:
+                        self.send_error(409, "Team frontend changed; integration review required")
+                        return
+                    source = source.replace(before, after)
+                body = ("import { withPreferences, renderPreferenceSummary } from './dj-preferences.js';\n" + source).encode()
+                content_type = "text/javascript; charset=utf-8"
             else:
                 super().do_GET()
                 return
