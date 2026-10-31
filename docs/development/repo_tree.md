@@ -68,6 +68,7 @@ lab678/
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
+        2026-10-31-section-checks.md
         2026-10-31-speaker-check.md
         2026-10-31-speech-input-errors.md
         2026-10-31-speech-offline.md
