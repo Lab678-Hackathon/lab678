@@ -400,3 +400,19 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 @keyframes listen-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-2deg); } }
 @media (prefers-reduced-motion: reduce) { .listen__bird.is-listening img { animation: none !important; } }
 #s02[data-mode="voice"] .msg--user .msg__col { max-width: calc(100% - 44px); } /* 떠 있는 까치와 겹치지 않게 */
+
+/* S08 대중교통 경로 카드 · 카카오 지도 핀 */
+.route-list { display: flex; flex-direction: column; gap: 10px; }
+.route-card { text-align: left; width: 100%; padding: 14px 16px; border-radius: 16px; background: var(--bg-surface); border: 1.5px solid var(--border-default); display: flex; flex-direction: column; gap: 8px; font: inherit; color: inherit; }
+.route-card[aria-pressed="true"] { border-color: var(--brand-primary); box-shadow: 0 0 0 2px var(--bg-soft); }
+.route-card__head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.route-card__head strong { font-size: var(--fs-title-m); }
+.route-steps { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.route-step { display: flex; flex-direction: column; padding-left: 12px; border-left: 4px solid #55584F; font-size: var(--fs-label); }
+.route-step--bus { border-left-color: #2E7D32; }
+.route-step--subway { border-left-color: #1565C0; }
+.route-step--walking { border-left-style: dashed; }
+.route-step__name { font-weight: 700; }
+.route-step__how { font-size: var(--fs-caption); }
+.kpin { padding: 4px 10px; border-radius: 12px; background: #fff; border: 2px solid var(--brand-primary); color: var(--brand-primary); font: 700 14px var(--font); white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.kpin--to { background: var(--brand-primary); color: #fff; }

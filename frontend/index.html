@@ -142,13 +142,13 @@
         <p class="muted" id="s08-sub"></p>
       </div>
       <div id="s08-transit" hidden>
-        <p class="badge badge--warn">앱 안 대중교통 안내는 준비 중이에요</p>
-        <h2 class="route__time">아래 지도에서 위치를 보고,<br>버스·지하철은 카카오맵에서 확인해 주세요.</h2>
-        <p class="muted">대중교통 시간·요금은 카카오맵에서만 볼 수 있어요. 버튼을 누르면 이 앱 밖(카카오맵)으로 나가요.</p>
+        <p class="muted" id="s08-tstate" hidden></p>
+        <div class="route-list" id="s08-routes"></div>
       </div>
       <div class="map map--route" id="s08-mapbox"></div>
       <p class="map-error" id="s08-maperr" hidden>지도를 불러오지 못했어요.</p>
-      <p class="caption muted" id="s08-credit">지도 © OpenStreetMap</p>
+      <p class="caption muted" id="s08-credit"></p>
+      <p class="caption muted" id="s08-tnote"></p>
       <div class="notice notice--warn" id="s08-error" hidden>
         <p id="s08-errmsg"></p>
         <button class="btn btn--outline btn--small" type="button" id="s08-retry">다시 찾기</button>
