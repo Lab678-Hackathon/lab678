@@ -85,3 +85,16 @@ class NaitoChatTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(result["interpretation_status"], "no_supported_change")
         self.assertFalse(result["ready_to_search"])
+
+
+class EndpointTest(unittest.TestCase):
+    def test_personal_anthropic_key_goes_to_anthropic(self):
+        """개인 Anthropic 키는 Anthropic 주소로, 그 외 키는 해커톤 주소로. 허용 목록 밖 주소 설정은 무시."""
+        import naito_chat
+        with patch.dict("os.environ", {"LAB678_NAITO_ENDPOINT": ""}):
+            self.assertEqual(naito_chat.endpoint("sk-ant-abc"), naito_chat.ANTHROPIC_ENDPOINT)
+            self.assertEqual(naito_chat.endpoint("other-key"), naito_chat.ENDPOINT)
+        with patch.dict("os.environ", {"LAB678_NAITO_ENDPOINT": "https://evil.example.com/v1/messages"}):
+            self.assertEqual(naito_chat.endpoint("sk-ant-abc"), naito_chat.ANTHROPIC_ENDPOINT)
+        with patch.dict("os.environ", {"LAB678_NAITO_ENDPOINT": naito_chat.ENDPOINT}):
+            self.assertEqual(naito_chat.endpoint("sk-ant-abc"), naito_chat.ENDPOINT)

@@ -11,7 +11,17 @@ from chat_conditions import apply_interpretation
 from outing import InputError, KST
 from preferences import FIELDS as PREFERENCE_FIELDS
 
-ENDPOINT = "https://copa.codyssey.kr/v1/messages"
+ENDPOINT = "https://copa.codyssey.kr/v1/messages"  # 해커톤 제공 주소 (기본)
+ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages"  # 개인 Anthropic API 키
+ENDPOINTS = {ENDPOINT, ANTHROPIC_ENDPOINT}
+
+
+def endpoint(key):
+    """호출 주소. LAB678_NAITO_ENDPOINT 가 허용 목록에 있으면 그것, 아니면 개인 Anthropic 키(sk-ant-)는 Anthropic, 그 외는 해커톤 주소."""
+    chosen = os.environ.get("LAB678_NAITO_ENDPOINT", "").strip()
+    if chosen in ENDPOINTS:
+        return chosen
+    return ANTHROPIC_ENDPOINT if key.startswith("sk-ant-") else ENDPOINT
 SLOTS = BoundedSemaphore(2)
 SYSTEM = """오늘 나들이의 한국어 조건 추출기다. JSON 객체 하나만 출력한다.
 허용 키: start_query(장소명/주소 문자열, 좌표 금지), start_at/end_at(시간대 포함 ISO8601),
@@ -83,7 +93,7 @@ def extract_conditions(message, draft, history, key, model):
     request_data = dict(model=model, max_tokens=1024, system=SYSTEM, messages=[dict(role="user", content=json.dumps(
         dict(now_kst=datetime.now(KST).isoformat(timespec="seconds"), condition_draft=context,
              conversation_context=history, message=message), ensure_ascii=False))])
-    request = Request(ENDPOINT, data=json.dumps(request_data, ensure_ascii=False).encode(),
+    request = Request(endpoint(key), data=json.dumps(request_data, ensure_ascii=False).encode(),
                       headers={"x-api-key": key, "anthropic-version": "2023-06-01",
                                "Content-Type": "application/json"}, method="POST")
     with urlopen(request, timeout=20) as response:
