@@ -32,24 +32,25 @@
 - 대화 조건 코어·Naito 어댑터·POST /preview/chat 구현. 확인값 변경 동의/거절, revision 보호, 좌표 생성 금지, 기존60분 검증. 백엔드60개·실제 로컬HTTP4구간PASS(공급자 응답은 모의).
 - 사용자 제공 Naito 주소/프로토콜/모델표/설정 예제 저장. 앱 모델claude-sonnet-4, 로컬 .local/naito.env 생성(키 미출력·Git 제외).
 - 작업 재개용 state/context·파일/함수 색인 운영. 상세 완료 이력은 기존 reports/discussion-log에 보존.
+- Naito 실제 키로 claude-sonnet-4 예문3개 PASS, 실행 서버 /preview/chat HTTP200·CORS PASS. OpenAI 경로403(프로토콜 권한)을 Anthropic /v1/messages로 수정. 개발 서버PID31240 재시작. 키 미출력/Git제외.
 
 ## 진행 중
 
-- 실제 Naito 키 호출 미실시. API 키 저장 후 한국어 조건 추출·모호한 시각·조건 정정 품질 확인 필요. HTTP/API 구조와 오류는 모의 테스트 완료.
+- Naito 단일 조건 추출 실제3예문 검증 완료. 프론트 STT 자동전송/충돌 UI/revision 비교는 아직 연결 전. 자유대화 전체 품질과 예외는 후속 검증.
 - Render 가입 및 GitHub 조직 연결 요청 진행했으나 승인/배포 확인 전 사용자 요청으로 보류. 공개 서비스 URL 없음.
 - 채팅 API는 개인 백엔드 구현이며 팀 계약 합의/최종UI 연결 전. 지원 필드는 대표 분류·출발지 검색어·날짜시각·종류·체류시간. 복수관심사/걷기/예산 등 요구 유지·미적용.
 
 ## 다음 할 일 — 순서대로
 
-- Naito API 키를 .local/naito.env의 LAB678_NAITO_API_KEY에 저장하면 모델claude-sonnet-4 실호출 검증. 키 값을 채팅/로그/문서에 남기지 않는다.
-- 채팅 계약 초안을 프론트 담당과 확인: STT 종료 자동 요청, revision 비교, 변경 동의/거절, S02a 최종 확인, 실패 시 입력 유지. 현재 서버는 새 코드 반영 재시작 필요.
+- 프론트 담당과 chat-conditions.md 계약 확인 후 /preview/chat 연결: STT 종료 자동 요청·현재 조건 보존·revision 비교·변경 동의/거절·S02a 최종 확인.
+- Naito 사용 안내와 examples/naito-chat.live.json 실제 예문 결과 공유. 현재 서버 새 경로 반영 완료. 호출3회 검사도구는 사용량 발생하므로 필요한 경우만 재실행.
 - 최신 작업 기록/코드는 로컬 커밋만. Push/PR/develop 병합은 사용자 별도 요청 후. QA-01과 채팅 완료 범위를 혼동하지 않는다.
 - Render 승인 확인·Vercel 프록시/백엔드 배포 통신은 사용자 재개 요청 시 진행. 이후 팀 UI/모바일 실기기 최종QA.
 - 개인 계획 plan_dj/chat-progress.md와 팀 통합 체크표 유지. 공용 plan 수정 금지.
 
 ## 미정·주의
 
-- Naito 실제 키·모델 권한·한국어 추출 품질 미검증. API 전송에 사용자 문장과 최근 대화/조건 요약이 포함되며 좌표는 제외한다.
+- Naito 실제 키·claude-sonnet-4 호출은 확인. 자유대화 일반화/상대날짜/모호한 시각/복수관심사 및 실제 차감량은 미검증. 사용자 문장·대화·조건 요약을 전송하며 좌표는 제외한다.
 - 팀 프론트의 충돌 UI·revision·STT 자동전송 및 대화 계약 합의 필요. 코어 구현만으로 브라우저 최신값 보호 완료를 주장하지 않는다.
 - 복수관심사/걷기/예산/제외 등 조건은 미적용. 자유로운 전체 AI 상담·TTS 응답·팀 최종 UI 완료가 아니다.
 - PRD v0.6.1·화면명세 v0.2 기준. 기술 통합/최종배포 담당과 main 승인 기준은 TEAM_WORKFLOW를 따른다.

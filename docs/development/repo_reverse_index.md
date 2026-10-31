@@ -5,7 +5,7 @@
 ## 기능 → 파일
 
 - **대화 조건 초안·변경 동의·최신 입력 보호**: [backend/chat_conditions.py](../../backend/chat_conditions.py), [backend/test_chat_conditions.py](../../backend/test_chat_conditions.py), [docs/development/chat-conditions.md](../../docs/development/chat-conditions.md)
-- **Naito 채팅·모델 설정·HTTP 검증**: [backend/naito_chat.py](../../backend/naito_chat.py), [backend/test_naito_chat.py](../../backend/test_naito_chat.py), [utils/scripts/check_chat_api.py](../../utils/scripts/check_chat_api.py), [docs/development/naito-usage.md](../../docs/development/naito-usage.md)
+- **Naito 채팅·모델 설정·HTTP 검증**: [backend/naito_chat.py](../../backend/naito_chat.py), [backend/test_naito_chat.py](../../backend/test_naito_chat.py), [utils/scripts/check_chat_api.py](../../utils/scripts/check_chat_api.py), [utils/scripts/check_chat_live.py](../../utils/scripts/check_chat_live.py), [docs/development/naito-usage.md](../../docs/development/naito-usage.md), [docs/development/examples/naito-chat.live.json](../../docs/development/examples/naito-chat.live.json)
 - **QA-01 실제 팀 화면·추천·상세 ID 검증**: [utils/scripts/check_team_flow.cjs](../../utils/scripts/check_team_flow.cjs), [docs/development/qa01-team-connection.md](../../docs/development/qa01-team-connection.md), [docs/development/examples/qa01-request.recorded.json](../../docs/development/examples/qa01-request.recorded.json)
 - **출발지 장소·주소 검색과 프론트 연결**: [backend/places.py](../../backend/places.py), [backend/test_places.py](../../backend/test_places.py), [backend/preview.py](../../backend/preview.py), [utils/scripts/check_place_search.cjs](../../utils/scripts/check_place_search.cjs), [docs/development/place-search-api.md](../../docs/development/place-search-api.md)
 - **내 위치 표시·정확도·갱신·수집 중지**: [backend/location_view.js](../../backend/location_view.js), [backend/map_view.js](../../backend/map_view.js), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_location_ui.cjs](../../utils/scripts/check_location_ui.cjs), [docs/development/kakao-map-location.md](../../docs/development/kakao-map-location.md)
@@ -44,7 +44,7 @@
 | `apply_interpretation` | [backend/chat_conditions.py:92](../../backend/chat_conditions.py#L92) | 해석 결과를 복사한 초안에 반영한다. 확정값 충돌·늦은 응답은 자동 반영하지 않는다. |
 | `broken_links` | [utils/scripts/harness.py:49](../../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
 | `build_course` | [backend/course.py:102](../../backend/course.py#L102) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
-| `chat` | [backend/naito_chat.py:82](../../backend/naito_chat.py#L82) | 대화 API 결과를 (HTTP상태, 본문)으로 반환한다. 장애 시 가짜 해석/추천으로 대체하지 않는다. |
+| `chat` | [backend/naito_chat.py:84](../../backend/naito_chat.py#L84) | 대화 API 결과를 (HTTP상태, 본문)으로 반환한다. 장애 시 가짜 해석/추천으로 대체하지 않는다. |
 | `ChatConditionTests` | [backend/test_chat_conditions.py:8](../../backend/test_chat_conditions.py#L8) | 공급자와 프론트가 연결되기 전에 검증할 독립적인 대화 상태 사례다. |
 | `ChatConditionTests.apply` | [backend/test_chat_conditions.py:17](../../backend/test_chat_conditions.py#L17) | 현재 입력의 revision 2에 대한 해석을 적용한다. |
 | `ChatConditionTests.resolve` | [backend/test_chat_conditions.py:22](../../backend/test_chat_conditions.py#L22) | 초안이 변하지 않은 상태에서 사용자 동의/거절을 적용한다. |
@@ -92,6 +92,7 @@
 | `load` | [backend/map_view.js:22](../../backend/map_view.js#L22) | JS/TS 정규식 후보; AST 검증 아님 |
 | `main` | [utils/scripts/catalog.py:232](../../utils/scripts/catalog.py#L232) | Write, validate, or search the catalog with bounded console output. |
 | `main` | [utils/scripts/check_chat_api.py:35](../../utils/scripts/check_chat_api.py#L35) | 외부 키 사용 없이 4개 HTTP 구간을 검사하고 임시 서버를 반드시 종료한다. |
+| `main` | [utils/scripts/check_chat_live.py:18](../../utils/scripts/check_chat_live.py#L18) | 국악·장소/시간·확정 시간 변경을 1회씩 호출하고 사실 경계와 충돌 보존을 검사한다. |
 | `main` | [utils/scripts/commit_report.py:52](../../utils/scripts/commit_report.py#L52) | Check by default; stage and commit only when --commit is explicitly given. |
 | `main` | [utils/scripts/context.py:48](../../utils/scripts/context.py#L48) | Write, check, or print only the short restart brief. |
 | `main` | [utils/scripts/harness.py:88](../../utils/scripts/harness.py#L88) | Run the harness once; fixing failures requires a separately scoped change. |
@@ -108,12 +109,12 @@
 | `metric` | [backend/transit.py:34](../../backend/transit.py#L34) | 응답의 초·m·원 값을 유한한 음수 아닌 수로 제한한다. 미확인은 0으로 대체하지 않는다. |
 | `NaitoChatTests` | [backend/test_naito_chat.py:12](../../backend/test_naito_chat.py#L12) | 서비스 키 없이 실행되는 공급자 어댑터 회귀다. |
 | `NaitoChatTests.setUp` | [backend/test_naito_chat.py:15](../../backend/test_naito_chat.py#L15) | 최소 정상 대화 입력을 준비한다. |
-| `NaitoChatTests.test_empty_interpretation_not_reported_as_applied` | [backend/test_naito_chat.py:76](../../backend/test_naito_chat.py#L76) | 지원하지 않는 발화를 반영 완료로 안내하지 않는다. |
-| `NaitoChatTests.test_errors_do_not_disclose_or_replace` | [backend/test_naito_chat.py:55](../../backend/test_naito_chat.py#L55) | 공급자 오류/비JSON/사실 생성은 오류로 남기고 키·원문·가짜 초안을 노출하지 않는다. |
+| `NaitoChatTests.test_empty_interpretation_not_reported_as_applied` | [backend/test_naito_chat.py:78](../../backend/test_naito_chat.py#L78) | 지원하지 않는 발화를 반영 완료로 안내하지 않는다. |
+| `NaitoChatTests.test_errors_do_not_disclose_or_replace` | [backend/test_naito_chat.py:57](../../backend/test_naito_chat.py#L57) | 공급자 오류/비JSON/사실 생성은 오류로 남기고 키·원문·가짜 초안을 노출하지 않는다. |
 | `NaitoChatTests.test_missing_key` | [backend/test_naito_chat.py:19](../../backend/test_naito_chat.py#L19) | 미설정은 503이며 외부 호출을 하지 않는다. |
 | `NaitoChatTests.test_provider_request_excludes_coordinates` | [backend/test_naito_chat.py:32](../../backend/test_naito_chat.py#L32) | 키는 헤더에만, 좌표는 제외하며 공식 고정 주소로 한 번 요청한다. |
-| `NaitoChatTests.test_response_size_and_json_boundary` | [backend/test_naito_chat.py:70](../../backend/test_naito_chat.py#L70) | 과대 응답/일반 텍스트/잘못된 응답 구조를 파싱 성공으로 취급하지 않는다. |
-| `NaitoChatTests.test_success_and_no_recommendation` | [backend/test_naito_chat.py:45](../../backend/test_naito_chat.py#L45) | 모의 국악 해석 뒤 출발지 질문으로 이어지며 추천은 실행하지 않는다. |
+| `NaitoChatTests.test_response_size_and_json_boundary` | [backend/test_naito_chat.py:72](../../backend/test_naito_chat.py#L72) | 과대 응답/일반 텍스트/잘못된 응답 구조를 파싱 성공으로 취급하지 않는다. |
+| `NaitoChatTests.test_success_and_no_recommendation` | [backend/test_naito_chat.py:47](../../backend/test_naito_chat.py#L47) | 모의 국악 해석 뒤 출발지 질문으로 이어지며 추천은 실행하지 않는다. |
 | `NaitoChatTests.test_validate_before_provider` | [backend/test_naito_chat.py:25](../../backend/test_naito_chat.py#L25) | 잘못된 요청은 공급자/키 조회 전에 거절한다. |
 | `normalize_places` | [backend/places.py:32](../../backend/places.py#L32) | 공급자 x/y를 숫자 lng/lat로 바꾸고 선택 가능한 최대5건만 반환한다. 손상과0건을 구분한다. |
 | `normalize_proposal` | [backend/chat_conditions.py:23](../../backend/chat_conditions.py#L23) | 허용된 조건만 정규화한다. null은 변경 없음, 좌표·잘못된 값은 ValueError다. |

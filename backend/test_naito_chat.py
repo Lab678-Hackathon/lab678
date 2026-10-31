@@ -31,13 +31,15 @@ class NaitoChatTests(unittest.TestCase):
 
     def test_provider_request_excludes_coordinates(self):
         """키는 헤더에만, 좌표는 제외하며 공식 고정 주소로 한 번 요청한다."""
-        body = {"choices": [{"message": {"content": '{"category":"국악"}'}}]}
+        body = {"content": [{"type": "text", "text": '{"category":"국악"}'}], "stop_reason": "end_turn"}
         draft = dict(start_location=dict(label="청량리역", lat=37.5805961, lng=127.0482573))
         with patch("naito_chat.urlopen", return_value=io.BytesIO(json.dumps(body).encode())) as call:
             self.assertEqual(extract_conditions("국악", draft, [], "secret-test", "claude-sonnet-4"), {"category": "국악"})
         request = call.call_args.args[0]
-        self.assertEqual(request.full_url, "https://copa.codyssey.kr/v1/chat/completions")
-        self.assertEqual(request.get_header("Authorization"), "Bearer secret-test")
+        self.assertEqual(request.full_url, "https://copa.codyssey.kr/v1/messages")
+        self.assertEqual(request.get_header("X-api-key"), "secret-test")
+        self.assertEqual(request.get_header("Anthropic-version"), "2023-06-01")
+        self.assertEqual(json.loads(request.data)["max_tokens"], 1024)
         self.assertNotIn(b"secret-test", request.data)
         self.assertNotIn(b"37.5805961", request.data)
         self.assertEqual(call.call_count, 1)
@@ -69,7 +71,7 @@ class NaitoChatTests(unittest.TestCase):
 
     def test_response_size_and_json_boundary(self):
         """과대 응답/일반 텍스트/잘못된 응답 구조를 파싱 성공으로 취급하지 않는다."""
-        for raw in [b"x" * 65537, b"not-json", b"{}"]:
+        for raw in [b"x" * 65537, b"not-json", b"{}", b'{"content":[],"stop_reason":"max_tokens"}']:
             with patch("naito_chat.urlopen", return_value=io.BytesIO(raw)), self.assertRaises((ValueError, KeyError)):
                 extract_conditions("국악", {}, [], "secret", "test")
 

@@ -8,7 +8,7 @@
   "repo_indexes": ["docs/development/repo_index.md", "docs/development/repo_reverse_index.md", "docs/development/repo_tree.md"],
   "features": {
     "대화 조건 초안·변경 동의·최신 입력 보호": ["backend/chat_conditions.py", "backend/test_chat_conditions.py", "docs/development/chat-conditions.md"],
-    "Naito 채팅·모델 설정·HTTP 검증": ["backend/naito_chat.py", "backend/test_naito_chat.py", "utils/scripts/check_chat_api.py", "docs/development/naito-usage.md"],
+    "Naito 채팅·모델 설정·HTTP 검증": ["backend/naito_chat.py", "backend/test_naito_chat.py", "utils/scripts/check_chat_api.py", "utils/scripts/check_chat_live.py", "docs/development/naito-usage.md", "docs/development/examples/naito-chat.live.json"],
     "QA-01 실제 팀 화면·추천·상세 ID 검증": ["utils/scripts/check_team_flow.cjs", "docs/development/qa01-team-connection.md", "docs/development/examples/qa01-request.recorded.json"],
     "출발지 장소·주소 검색과 프론트 연결": ["backend/places.py", "backend/test_places.py", "backend/preview.py", "utils/scripts/check_place_search.cjs", "docs/development/place-search-api.md"],
     "내 위치 표시·정확도·갱신·수집 중지": ["backend/location_view.js", "backend/map_view.js", "backend/preview.html", "utils/scripts/check_location_ui.cjs", "docs/development/kakao-map-location.md"],

@@ -59,6 +59,7 @@ lab678/
       examples/
         course-selected-place.live.json
         demo-users.sample.json
+        naito-chat.live.json
         outing-request.json
         outing-response.json
         place-search.address.live.json
@@ -142,6 +143,7 @@ lab678/
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
         20261031-naito-chat-prepared.md
+        20261031-naito-live-verified.md
         20261031-place-search-integration.md
         20261031-push-pr-issue.md
         20261031-qa01-received.md
@@ -208,6 +210,7 @@ lab678/
     scripts/
       catalog.py
       check_chat_api.py
+      check_chat_live.py
       check_course_alternatives.cjs
       check_course_edit.cjs
       check_deployment.cjs

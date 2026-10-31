@@ -8,14 +8,17 @@
 
 - Public API Base URL: `https://copa.codyssey.kr`
 - OpenAI 호환 Base URL: `https://copa.codyssey.kr/v1`
-- 채팅: `POST https://copa.codyssey.kr/v1/chat/completions`
-- 헤더: `Authorization: Bearer <virtual-key>`, `Content-Type: application/json`
+- **현재 앱 채팅:** `POST https://copa.codyssey.kr/v1/messages` (Anthropic 호환)
+- 현재 헤더: `x-api-key: <virtual-key>`, `anthropic-version: 2023-06-01`, `Content-Type: application/json`
+- OpenAI 호환 키를 별도로 사용할 때의 참고 주소: `/v1/chat/completions`, `Authorization: Bearer <virtual-key>`
 
 ```json
-{"model":"claude-sonnet-4","messages":[{"role":"user","content":"안녕하세요"}]}
+{"model":"claude-sonnet-4","max_tokens":1024,"messages":[{"role":"user","content":"안녕하세요"}]}
 ```
 
-사용자 원문 예제는 같은 요청 구조에 `gpt-5-mini`를 사용했다. 우리 앱은 사용자 후속 지시에 따라 `claude-sonnet-4`로 설정한다.
+사용자 원문 OpenAI 호환 예제는 `gpt-5-mini`와 messages를 사용했다. 실제 제공 키로 OpenAI 호환 경로를 호출하니 HTTP403 permission_denied(해당 프로토콜 권한 없음)가 반환됐다. 따라서 **키를 바꾸지 않고 Anthropic 호환 경로로 수정했으며 실제 호출에 성공했다.** 현재 앱은 두 프로토콜을 자동 전환하지 않는다.
+
+Anthropic 요청의 system/messages/max_tokens 및 응답 content 구조는 [공식 Messages 문서](https://platform.claude.com/docs/en/api/messages/create)를 참고하고 Naito 실제 응답으로 확인했다. API 키 발급 시 선택한 프로토콜을 구분해야 한다.
 
 ## 앱 설정
 
@@ -28,7 +31,7 @@ LAB678_NAITO_MODEL=claude-sonnet-4
 
 발급한 키를 첫 줄 값에만 넣는다. 따옴표 없이 저장한다. 실행 환경변수가 있으면 파일보다 우선하며, 배포할 때는 같은 이름으로 서버 환경변수에 등록한다. 키를 프론트/저장소/채팅에 복사하지 않는다. 전역 Claude Code 설정을 앱에서 가져오거나 변경하지 않는다.
 
-구현 파일은 `backend/naito_chat.py`. 표준 Python으로 고정 주소를 한 번 호출하며 자동 재시도·다른 모델 대체는 없다. 응답 상한 64KiB, 네트워크 timeout 20초, 동시 호출 최대2개다. 키/원문을 로그에 남기지 않는다. 입력 문장·최근 대화·조건 요약은 해석을 위해 Naito로 보내며 출발지 좌표는 제외한다.
+구현 파일은 `backend/naito_chat.py`. 표준 Python으로 고정 주소를 한 번 호출하며 자동 재시도·다른 모델 대체는 없다. 출력 토큰 한도1024, 응답 상한64KiB, 네트워크 timeout20초, 동시 호출 최대2개다. 토큰 한도로 잘린 응답은 적용하지 않는다. 키/원문을 로그에 남기지 않는다. 입력 문장·최근 대화·조건 요약은 해석을 위해 Naito로 보내며 출발지 좌표는 제외한다.
 
 ## Endpoint reference 원문 정보
 
@@ -98,4 +101,6 @@ Claude Code는 Windows `%USERPROFILE%\.claude\settings.json`, macOS/Linux/WSL `~
 
 ## 현재 확인 범위
 
-공급자와 모델·요청 형식은 사용자 제공 자료로 확인했다. 키 미설정/모의 성공·오류는 테스트했다. 실제 키 호출·모델 권한·응답 품질·과금량은 아직 검증하지 않았다. 이미지/영상/Media TTS는 저장한 참고 목록이며 이번 앱에 연결하지 않았다.
+공급자와 모델 목록은 사용자 제공 자료로 확인했다. 키 미설정/모의 성공·오류 검증 후, 사용자 저장 키로 **claude-sonnet-4 실제 호출 3개와 실행 서버 HTTP 연결 1개가 통과**했다. 국악 분류, 명시한 날짜·시간·출발지, 확정 시각 변경 동의를 검증했다. [고정 예문 실제 결과](examples/naito-chat.live.json)에 키 없는 결과를 보관했다.
+
+재검사: `python utils/scripts/check_chat_live.py`는 실제 호출 3회로 사용량이 발생하므로 필요한 때만 실행한다. 전체 자유 대화 품질·STT 자동전송·팀 UI 연결·실제 차감량은 미검증이다. 이미지/영상/Media TTS는 이번 앱에 연결하지 않았다.

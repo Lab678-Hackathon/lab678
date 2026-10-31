@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 from chat_conditions import apply_interpretation
 from outing import InputError, KST
 
-ENDPOINT = "https://copa.codyssey.kr/v1/chat/completions"
+ENDPOINT = "https://copa.codyssey.kr/v1/messages"
 SLOTS = BoundedSemaphore(2)
 SYSTEM = """오늘 나들이의 한국어 조건 추출기다. JSON 객체 하나만 출력한다.
 허용 키: start_query(장소명/주소 문자열, 좌표 금지), start_at/end_at(시간대 포함 ISO8601),
@@ -63,19 +63,21 @@ def extract_conditions(message, draft, history, key, model):
     context = {k: draft[k] for k in ("start_at", "end_at", "category", "request_kind", "stay_minutes", "start_query") if k in draft}
     if isinstance(draft.get("start_location"), dict):
         context["start_query"] = draft["start_location"].get("label")
-    request_data = dict(model=model, messages=[dict(role="system", content=SYSTEM), dict(role="user", content=json.dumps(
+    request_data = dict(model=model, max_tokens=1024, system=SYSTEM, messages=[dict(role="user", content=json.dumps(
         dict(now_kst=datetime.now(KST).isoformat(timespec="seconds"), condition_draft=context,
              conversation_context=history, message=message), ensure_ascii=False))])
     request = Request(ENDPOINT, data=json.dumps(request_data, ensure_ascii=False).encode(),
-                      headers={"Authorization": "Bearer " + key, "Content-Type": "application/json"}, method="POST")
+                      headers={"x-api-key": key, "anthropic-version": "2023-06-01",
+                               "Content-Type": "application/json"}, method="POST")
     with urlopen(request, timeout=20) as response:
         raw = response.read(65537)
     if len(raw) > 65536:
         raise ValueError("AI 응답 크기 초과")
     payload = json.loads(raw)
-    content = payload["choices"][0]["message"]["content"]
-    if not isinstance(content, str):
+    blocks = payload["content"]
+    if not isinstance(blocks, list) or payload.get("stop_reason") == "max_tokens":
         raise ValueError("AI 응답 형식 오류")
+    content = "".join(block["text"] for block in blocks if block.get("type") == "text")
     return json.loads(content)
 
 
