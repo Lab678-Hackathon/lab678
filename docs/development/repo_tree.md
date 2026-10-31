@@ -149,6 +149,7 @@ lab678/
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
+        20261031-conversation-discovery-direction.md
         20261031-naito-chat-prepared.md
         20261031-naito-live-verified.md
         20261031-natural-language-review.md
