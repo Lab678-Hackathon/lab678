@@ -144,6 +144,10 @@ async function main() {
             start() { queueMicrotask(() => { const result = [{ transcript: '국악을 듣고 싶어요' }]; result.isFinal = true; this.onresult({ results: [result] }); this.onend(); }); }
             stop() {} abort() {}
           };
+          window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+          Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
+            cancel() {}, speak(speech) { queueMicrotask(() => speech.onend?.()); },
+          } });
         });
         await p.route('**/preview/chat', route => { ++calls; return route.fulfill({ json: mockBody(route.request().postDataJSON()) }); });
       });

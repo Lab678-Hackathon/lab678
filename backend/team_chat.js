@@ -5,6 +5,7 @@
 import { state, save } from './state.js';
 import { renderSearch } from './search.js';
 import { preferenceFields, preferenceText, renderResultPreferences } from './dj-preferences.js';
+import { VoiceSession } from './dj-voice.js';
 
 const root = document.querySelector('#s02');
 const api = (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
@@ -14,9 +15,7 @@ const labels = { start_query: '출발지', start_at: '출발 시각', end_at: '�
 state.chat ||= { revision: 0, history: [], pending: null, text: '' };
 let abort = null;
 let busy = false;
-let recognition = null;
-let listening = false;
-let voiceGeneration = 0;
+let voiceSession = null;
 let lastReply = '';
 const box = document.createElement('section');
 box.id = 'dj-chat';
@@ -26,19 +25,29 @@ box.innerHTML = `<h2>어떤 나들이를 하고 싶으세요?</h2>
  <p class="muted">한 번에 다 말씀하지 않아도 괜찮아요. 대화하면서 조건을 함께 정해요.</p>
  <label for="chat-text">하고 싶은 말씀</label>
  <textarea id="chat-text" rows="3" maxlength="1000" placeholder="국악을 듣고 싶어요"></textarea>
- <div class="chat-actions"><button type="button" class="btn btn--outline" id="chat-mic">한 번 말하기</button>
+ <div class="chat-actions"><button type="button" class="btn btn--outline" id="chat-mic">음성 대화 시작</button>
+ <button type="button" class="btn btn--outline" id="chat-voice-stop" disabled>대화 중지</button>
  <button type="button" class="btn btn--primary" id="chat-send">보내기</button></div>
+ <p id="chat-voice-status" role="status" aria-live="polite"></p>
+ <details id="chat-voice-settings"><summary>음성 대화 설정</summary>
+ <label>최대 대화 횟수 <input id="chat-max-turns" type="number" min="1" max="10" step="1">회</label>
+ <label>무응답 자동 종료 <input id="chat-silence-seconds" type="number" min="5" max="60" step="1">초</label>
+ <p class="caption muted">내 말과 AI 답변을 합쳐 1회예요. 답변 읽기 중에는 무응답 시간을 세지 않아요. 조건이 준비되면 먼저 멈추며, 추천은 직접 확인 후 진행해요.</p></details>
  <p id="chat-status" role="status" aria-live="polite"></p><p id="chat-preferences"></p>
  <div id="chat-conflicts" hidden></div><details><summary>대화 기록</summary><div id="chat-history"></div></details>
  <div class="chat-actions"><button type="button" class="link-btn" id="chat-read">답변 읽기</button>
  <button type="button" class="link-btn" id="chat-stop">읽기 중지</button>
- <label><input id="chat-auto-read" type="checkbox"> 답변 자동 읽기</label></div>`;
+ <label><input id="chat-auto-read" type="checkbox"> 텍스트 대화 답변도 읽기</label></div>`;
 const style = document.createElement('style');
 style.textContent = '#dj-chat textarea{width:100%;box-sizing:border-box;font:inherit;padding:12px;border:1px solid #687c71;border-radius:12px}#dj-chat .chat-actions{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}#dj-chat .btn{flex:1;min-width:120px}#dj-chat [hidden]{display:none!important}#chat-history p{white-space:pre-wrap;overflow-wrap:anywhere}#chat-conflicts{padding:16px;border:2px solid #8b632a;border-radius:12px;margin:12px 0}#chat-conflicts p{overflow-wrap:anywhere}';
 document.head.append(style);
+style.textContent += '#chat-voice-settings{border:1px solid #687c71;border-radius:12px;padding:12px;margin:12px 0}#chat-voice-settings summary{font-weight:700;cursor:pointer;padding:6px 0}#chat-voice-settings label{display:block;margin:12px 0}#chat-voice-settings input{font:inherit;width:90px;min-height:44px;padding:6px;box-sizing:border-box;margin:0 6px}#chat-voice-status{white-space:pre-wrap}';
 root.querySelector('[data-field="start"]').before(box);
 const $ = (selector) => box.querySelector(selector);
 $('#chat-text').value = state.chat.text || '';
+const savedVoice = state.chat.voiceSettings || {};
+$('#chat-max-turns').value = Number.isInteger(savedVoice.maxTurns) && savedVoice.maxTurns >= 1 && savedVoice.maxTurns <= 10 ? savedVoice.maxTurns : 5;
+$('#chat-silence-seconds').value = Number.isInteger(savedVoice.silenceSeconds) && savedVoice.silenceSeconds >= 5 && savedVoice.silenceSeconds <= 60 ? savedVoice.silenceSeconds : 15;
 
 /** 현재 팀 입력을 조건 초안으로 만든다. 미선택 출발지에 기본 좌표를 채우지 않는다. */
 function draft() {
@@ -63,8 +72,9 @@ let fingerprint = JSON.stringify(draft());
 function note(text) {
   $('#chat-status').textContent = text;
   $('#chat-preferences').textContent = preferenceText(state.chat.preferences || {});
-  $('#chat-send').disabled = busy;
-  document.querySelector('#btn-search').disabled = busy || Boolean(state.chat.pending)
+  $('#chat-send').disabled = busy || Boolean(voiceSession?.active);
+  $('#chat-mic').disabled = busy && !voiceSession?.active;
+  document.querySelector('#btn-search').disabled = busy || Boolean(voiceSession?.active) || Boolean(state.chat.pending)
     || Boolean(state.chat.preferences?.music_followup) || Boolean(state.chat.preferences?.unsupported_requirements?.length);
 }
 
@@ -176,8 +186,8 @@ function searchOrigin() {
 }
 
 /** 직접 수정·화면 이동 시 이전 요청/충돌을 무효화한다. */
-function invalidate() {
-  if (listening) { ++voiceGeneration; recognition?.abort(); listening = false; $('#chat-mic').textContent = '한 번 말하기'; }
+function invalidate(keepVoice = false) {
+  if (!keepVoice) voiceSession?.stop();
   state.chat.revision++;
   abort?.abort();
   abort = null;
@@ -190,10 +200,11 @@ function invalidate() {
 }
 
 /** 텍스트/최종 음성 전사를 API로 한 번 전송한다. 응답 적용 직전 revision·현재값을 다시 비교한다. */
-async function send() {
+async function send(voiceSignal = null) {
   const message = $('#chat-text').value.trim();
   if (!message) { note('하고 싶은 말씀을 입력해 주세요.'); return; }
-  invalidate();
+  invalidate(Boolean(voiceSignal));
+  if (voiceSignal?.aborted) return;
   const mine = ++state.chat.revision;
   const current = draft();
   const before = JSON.stringify(current);
@@ -202,6 +213,8 @@ async function send() {
   state.chat.text = message;
   busy = true; abort = new AbortController();
   const controller = abort;
+  const cancelVoiceRequest = () => controller.abort();
+  voiceSignal?.addEventListener('abort', cancelVoiceRequest, { once: true });
   note('말씀하신 조건을 확인하고 있어요…');
   try {
     const payload = { message, revision: mine, condition_draft: current,
@@ -211,7 +224,7 @@ async function send() {
     const response = await fetch(`${api}/preview/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
       signal: controller.signal, body: JSON.stringify(payload) });
     const result = await response.json();
-    if (mine !== state.chat.revision) return;
+    if (mine !== state.chat.revision || voiceSignal?.aborted) return;
     if (before !== JSON.stringify(draft())) { invalidate(); note('직접 바꾼 조건을 유지했어요. 이전 AI 응답은 적용하지 않습니다.'); return; }
     if (!response.ok) throw new Error(result.message || 'AI 응답을 받지 못했어요. 다시 시도해 주세요.');
     if (result.base_revision !== mine || !result.updated_condition_draft) throw new Error('응답 조건을 확인하지 못했어요. 다시 시도해 주세요.');
@@ -228,13 +241,15 @@ async function send() {
       if (el) { el.textContent = error.message; el.hidden = false; }
     }
     searchOrigin();
-    if ($('#chat-auto-read').checked) speak();
+    if (!voiceSignal && $('#chat-auto-read').checked) speak();
+    return result;
   } catch (error) {
     if (mine === state.chat.revision && error.name !== 'AbortError') {
       const message = error instanceof SyntaxError ? '응답을 읽지 못했어요. 입력을 유지했으니 다시 시도해 주세요.' : error.message;
       note(message); remember('assistant', message);
     }
   } finally {
+    voiceSignal?.removeEventListener('abort', cancelVoiceRequest);
     if (mine === state.chat.revision) {
       busy = false; abort = null;
       note($('#chat-status').textContent); save();
@@ -242,38 +257,46 @@ async function send() {
   }
 }
 
-/** 브라우저 음성 인식 종료 후 최종 전사를 한 번 자동 전송한다. 실패하면 텍스트 입력을 유지한다. */
-function startVoice() {
-  if (listening) { recognition?.stop(); return; }
-  const Engine = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Engine) { note('이 브라우저는 음성 인식을 지원하지 않아요. Chrome 또는 텍스트 입력을 사용해 주세요.'); return; }
-  window.speechSynthesis?.cancel();
-  invalidate();
-  const generation = ++voiceGeneration;
-  let text = '', failed = false;
-  recognition = new Engine(); recognition.lang = 'ko-KR'; recognition.interimResults = false; recognition.continuous = false;
-  recognition.onresult = event => {
-    if (generation !== voiceGeneration) return;
-    text = Array.from(event.results).filter(item => item.isFinal).map(item => item[0].transcript).join(' ').slice(0, 1000);
-    $('#chat-text').value = text; state.chat.text = text; save();
-  };
-  recognition.onerror = event => { failed = true; if (generation === voiceGeneration) note(`음성 인식을 완료하지 못했어요 (${event.error}). 입력 칸에서 고치거나 다시 말해 주세요.`); };
-  recognition.onend = () => {
-    if (generation !== voiceGeneration) return;
-    listening = false; $('#chat-mic').textContent = '한 번 말하기';
-    if (text && !failed) send();
-    else if (!failed) note('들은 말이 없어요. 다시 말하거나 입력해 주세요.');
-  };
-  try { recognition.start(); listening = true; $('#chat-mic').textContent = '말하기 마치기'; note('듣고 있어요…'); }
-  catch { listening = false; note('음성 인식을 시작하지 못했어요. 텍스트로 입력해 주세요.'); }
+/** 설정 범위를 검증하고 현재 브라우저 세션에 저장한다. 자동 대화는 저장·재개하지 않는다. */
+function voiceSettings() {
+  const maxTurns = Number($('#chat-max-turns').value);
+  const silenceSeconds = Number($('#chat-silence-seconds').value);
+  if (!Number.isInteger(maxTurns) || maxTurns < 1 || maxTurns > 10 || !Number.isInteger(silenceSeconds) || silenceSeconds < 5 || silenceSeconds > 60) {
+    $('#chat-voice-status').textContent = '대화 횟수는 1~10회, 무응답 시간은 5~60초로 설정해 주세요.';
+    return null;
+  }
+  state.chat.voiceSettings = { maxTurns, silenceSeconds }; save();
+  return state.chat.voiceSettings;
 }
-
-$('#chat-send').addEventListener('click', send);
-$('#chat-mic').addEventListener('click', startVoice);
-$('#chat-read').addEventListener('click', speak);
-$('#chat-stop').addEventListener('click', () => window.speechSynthesis?.cancel());
+voiceSession = new VoiceSession({
+  submit: async (text, signal) => { $('#chat-text').value = text; return send(signal); },
+  onTranscript: text => { $('#chat-text').value = text; state.chat.text = text; save(); },
+  onState: ({ active, phase, turns, limit, message }) => {
+    $('#chat-mic').textContent = active ? '음성 대화 중지' : '음성 대화 시작';
+    $('#chat-mic').setAttribute('aria-pressed', String(active));
+    $('#chat-voice-stop').disabled = !active;
+    $('#chat-max-turns').disabled = $('#chat-silence-seconds').disabled = active;
+    $('#chat-voice-status').dataset.phase = phase;
+    $('#chat-voice-status').textContent = `${turns}/${limit}회 · ${message}`;
+    note($('#chat-status').textContent);
+  },
+});
+$('#chat-max-turns').addEventListener('change', voiceSettings);
+$('#chat-silence-seconds').addEventListener('change', voiceSettings);
+$('#chat-send').addEventListener('click', () => send());
+$('#chat-mic').addEventListener('click', () => {
+  if (voiceSession.active) { voiceSession.stop(); return; }
+  if (state.chat.pending) { note('변경할 조건을 먼저 화면에서 확인해 주세요.'); return; }
+  const settings = voiceSettings();
+  if (!settings) return;
+  invalidate(); window.speechSynthesis?.cancel();
+  voiceSession.start(settings);
+});
+$('#chat-voice-stop').addEventListener('click', () => voiceSession.stop());
+$('#chat-read').addEventListener('click', () => { voiceSession.stop(); speak(); });
+$('#chat-stop').addEventListener('click', () => { voiceSession.stop(); window.speechSynthesis?.cancel(); });
 $('#chat-text').addEventListener('input', () => {
-  if (listening) invalidate();
+  invalidate();
   state.chat.text = $('#chat-text').value; save();
 });
 for (const type of ['input', 'change', 'click']) root.addEventListener(type, event => {
@@ -288,14 +311,16 @@ for (const type of ['input', 'change', 'click']) root.addEventListener(type, eve
   });
 });
 root.addEventListener('click', event => {
-  if (event.target.closest('#btn-search') && (busy || state.chat.pending)) {
+  if (event.target.closest('#btn-search') && (busy || voiceSession.active || state.chat.pending)) {
     event.preventDefault(); event.stopImmediatePropagation();
     note('대화 처리가 끝난 뒤 변경할 조건을 확인해 주세요.');
   }
 }, true);
 window.addEventListener('hashchange', () => {
-  if (location.hash !== '#/search') { invalidate(); ++voiceGeneration; recognition?.abort(); listening = false; window.speechSynthesis?.cancel(); }
+  if (location.hash !== '#/search') { invalidate(); window.speechSynthesis?.cancel(); }
   queueMicrotask(renderResultPreferences);
 });
+document.addEventListener('visibilitychange', () => { if (document.hidden) invalidate(); });
+window.addEventListener('pagehide', () => invalidate());
 renderResultPreferences();
 showHistory(); showConflicts(); note(state.chat.pending ? '이전 변경 요청을 확인해 주세요.' : '조건을 말씀해 주세요.');

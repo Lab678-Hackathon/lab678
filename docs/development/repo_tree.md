@@ -49,6 +49,7 @@ lab678/
     test_walking.py
     tour_places.py
     transit.py
+    voice_session.js
     walking.py
   design/
     AGENTS.md
@@ -58,6 +59,7 @@ lab678/
     README.md
     development/
       README.md
+      automatic-voice.md
       chat-conditions.md
       chat-ui-handoff.md
       conversation-validation.md
@@ -120,6 +122,10 @@ lab678/
         keys.json
         manifest.json
         map-check.json
+      qa-voice-session/
+        live-ai-check.json
+        manifest.json
+        mock-checks.json
       qa01-team-connection.md
       qa01/
         live-s03.png
@@ -193,6 +199,7 @@ lab678/
         20261031-team-chat-connected.md
         20261031-team-flow-connected.md
         20261031-user-preferences-kakao-review.md
+        automatic-voice-session.md
         conversation-validation.md
         culture-source-preparation.md
         frontend-chat-package.md
@@ -284,6 +291,7 @@ lab678/
       check_service_keys.py
       check_team_flow.cjs
       check_transit_ui.cjs
+      check_voice_session.cjs
       commit_report.py
       context.py
       harness.py

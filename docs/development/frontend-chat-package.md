@@ -63,3 +63,7 @@ git apply /패키지경로/team-chat.patch
 ## 최신 패키지 · 문화시설 선택 포함
 
 기존 네파일 패키지 이후 추가된 최신 버전은 **6파일**이다. results.js 출처표시와 dj-culture.js 입력선택을 추가했다. 현재 실행본은 `.local/chat-handoff-164cd40-78acae4abc/`이고5175로 제공한다. 문화시설은 live만 지원하므로 http://127.0.0.1:5175/?debug=1#/search 로 확인한다. 이전 recorded 링크는 서울시 기록 검증에만 사용한다. [키별 반영·최신 검증·인계](service-key-status.md). 기존 본문의 네파일/ab4591e631은 이전 작업 이력이다.
+
+## 최신 패키지 · 자동 음성 대화 포함
+
+현재 최신은 **7파일**이며 `.local/chat-handoff-164cd40-1588144da0/`다. dj-voice.js 추가, 채팅 시작/중지·최대횟수/무응답 설정 포함. 기존6파일은 문화정보 연결 시점 이력. 실파일5175와 동적5174를 갱신했다. [자동 음성 계약과 검증](automatic-voice.md).

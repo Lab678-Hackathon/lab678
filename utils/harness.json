@@ -253,6 +253,12 @@
       "utils/scripts/check_service_keys.py",
       "utils/scripts/check_culture_ui.cjs",
       "docs/development/service-key-status.md"
+    ],
+    "자동 음성 대화·횟수/무응답 종료": [
+      "backend/voice_session.js",
+      "backend/team_chat.js",
+      "utils/scripts/check_voice_session.cjs",
+      "docs/development/automatic-voice.md"
     ]
   }
 }
