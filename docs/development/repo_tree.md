@@ -101,6 +101,7 @@ lab678/
         edges.json
         recovery.json
       qa-culture/
+        authenticated-check.json
         initial-check.json
       qa-handoff/
         manifest.json
@@ -187,6 +188,7 @@ lab678/
         culture-source-preparation.md
         frontend-chat-package.md
         natural-language-recommendation.md
+        seoul-live-and-tour-key.md
       screen-spec-review.md
       state.json
       tasks.md

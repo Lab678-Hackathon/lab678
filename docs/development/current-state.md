@@ -26,7 +26,6 @@
 
 ## 완료·검증
 
-- 사용자 제공 Naito 주소/프로토콜/모델표/설정 예제 저장. 앱 모델claude-sonnet-4, 로컬 .local/naito.env 생성(키 미출력·Git 제외).
 - 작업 재개용 state/context·파일/함수 색인 운영. 상세 완료 이력은 기존 reports/discussion-log에 보존.
 - Naito 실제 키로 claude-sonnet-4 예문3개 PASS, 실행 서버 /preview/chat HTTP200·CORS PASS. OpenAI 경로403(프로토콜 권한)을 Anthropic /v1/messages로 수정. 개발 서버PID31240 재시작. 키 미출력/Git제외.
 - 팀 화면 채팅 연결: backend/team_chat.js와 격리 실행기. 실제Naito3회→조건동의/거절→S02a→recorded추천→S03/S04 seoul:159578 PASS. 오류·지연·좌표초기화·모의STT 포함UI5구간PASS. 백엔드60개PASS.
@@ -36,18 +35,18 @@
 - 추가검증: 실제 Naito 해석10건(예산/제외 취소·필수제약/해제·모호시간·59/60·부정관심사) PASS. 브라우저4구간(0건→동의→재추천/새로고침/상세·모의502) PASS. AI총11호출, 행사recorded. 서비스 수정 결함 없음.
 - 프론트 인계: 원격develop06c0443/front164cd40 재확인. 네파일 적용패치·manifest·ZIP 생성, 별도 복사본 실제 git apply/해시 PASS. 일반팀서버5175에서 AI→기록추천/상세·실시간음악·회복4구간 PASS. 실제AI4회.
 - 문화소스 확장 코드: 서울시정식키 분류별100/sample5, source_access표시. 국문문화시설 /preview/culture-places 목록/소개/홈페이지, 미확인/오류/키비노출. 백엔드79개 PASS(신규9모의), 서울sample 실조회200, Tour키없음503 확인.
+- 사용자 저장 서울시 정식키 실조회 PASS: 2026-11-01 전체분류 HTTP200, authenticated/상한100, 원본23건(총23)/추천22건. 키 미출력/미커밋. Tour키503미설정, 국문서비스 활용신청 안내.
 
 ## 진행 중
 
-- 서울시 API키가 있다는 사용자 답변 수신. .local/culture.env 또는 기존키파일 경로 요청 중. 현재seoul/tour 키미설정; 정식100건·Tour실호출은 미검증.
+- 서울시 정식키 저장/실조회 완료. TourAPI 키는 아직 미설정: 공공데이터포털 국문 관광정보 서비스 활용신청과 culture.env 저장 안내. Tour실호출은 미실시.
 - 백엔드8765 PID7512로 최신 코드 재시작. 실파일팀통합본5175 PID22552, 복사본5174 유지. 팀원본/공용plan 미변경.
 - Tour 문화시설은 행사날짜/공연과 분리한 선택API로 준비. 현재팀UI·기존추천 자동혼합 미실시. 3시설/최대7외부호출 제한.
 - 패키지 인계는 준비완료, 담당 확인/최신 코드Push는 별도. Render 보류. 실기기음성·모바일·지도타일 미검증.
 
 ## 다음 할 일 — 순서대로
 
-- 서울시 키 경로/저장 답변 후 값 미출력으로 연결, check_culture_sources.py 실조회. 인증 실패를sample로 대체하지 않음.
-- TourAPI 국문서비스키 확인 후 실제 목록/소개/홈페이지/ID/좌표 검증. 미설정을 실제연결완료라고 보고하지 않음.
+- TourAPI 국문서비스키 저장 확인 후 check_culture_sources.py 실제 목록/소개/홈페이지/ID/좌표 검증. 서울시 정식키는 이미 실조회 성공.
 - 프론트담당에게 네파일 패키지·추가소스계약 공유 준비. 원본UI반영/공통계약은 담당 확인 후.
 - 사용자명시 요청 시 최신코드Push·PR. 최종UI통합/실기기음성/배포 검증 후속.
 

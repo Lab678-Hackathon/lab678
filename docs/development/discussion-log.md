@@ -493,3 +493,7 @@ Naito 실제 연결을 확인했습니다.
 서울시 정식키100건/sample5건 설정·조회범위 표시 구현, 인증실패 무대체. /preview/culture-places는 상설문화시설의 국문목록/소개/공식홈페이지를 연결하되 행사날짜/공연으로 추측하지 않는다. 팀UI나 행사추천에 자동혼합하지 않았다. 백엔드79개 PASS(새9개 모의). 서버재시작7512/8765. 서울sample 실제HTTP200, Tour503미설정 동작PASS이나 Tour공급자실호출/서울정식100건 미실시. 키값·공급자원문오류는 출력/커밋 안 함.
 
 [설정/계약/공식자료](culture-sources.md), [초기 실조회 기록](qa-culture/initial-check.json), [전체 보고문](reports/culture-source-preparation.md). 키설정 확인 후 실조회가 다음. 개인체크표 plan_dj/culture-source-progress.md. 공용plan/팀원본/Push/배포 변경 없음.
+
+## 2026-10-31 · 서울시 정식 키 실제 조회·TourAPI 발급 안내
+
+사용자가 서울시 키 저장 완료 및 TourAPI 발급 위치를 질문했다. 설정존재 여부만 확인하고 실제 서버로 조회: 서울시authenticated 상한100, 2026-11-01 전체분류 원본23건/총23건/추천22건 HTTP200. TourAPI는 미설정503이며 공급자 호출은 안 했다. 공식 공공데이터포털 국문 서비스 활용신청/마이페이지 인증키/culture.env 저장을 안내. 키 값은 출력·커밋하지 않았다. 근거 qa-culture/authenticated-check.json, 전체보고 reports/seoul-live-and-tour-key.md. Push 미실행.
