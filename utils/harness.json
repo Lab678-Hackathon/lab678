@@ -1,0 +1,24 @@
+{
+  "source_roots": ["utils", "backend", "frontend"],
+  "skip_dirs": [".git", ".venv", "node_modules", "__pycache__", "dist", "vendor", ".local", ".aws", ".codex", ".agents"],
+  "markdown_roots": ["utils", "backend", "frontend", "design", "docs/development"],
+  "branch": "dj/develop",
+  "commit_deadline": "2026-11-01T13:00:00+09:00",
+  "state_file": "docs/development/state.json",
+  "repo_indexes": ["docs/development/repo_index.md", "docs/development/repo_reverse_index.md", "docs/development/repo_tree.md"],
+  "features": {
+    "두 곳 도보 문화코스": ["backend/course.py", "backend/test_course.py", "backend/walking.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md"],
+    "행사장 사이 도보 거리·시간": ["backend/walking.py", "backend/preview.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/mobility-routing-review.md"],
+    "문화행사 추천·점검 화면": ["backend/outing.py", "backend/local_voice.py", "backend/preview.py", "backend/preview.html", "backend/test_outing.py", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md"],
+    "문화외출 MVP 실행계획·시연 검증": ["docs/development/mvp-plan.md", "docs/development/tasks.md"],
+    "작업 재개·대화 압축": ["docs/development/current-state.md", "utils/scripts/context.py"],
+    "자동 색인·코드 재사용": ["utils/scripts/catalog.py", "utils/scripts/watch.py", "utils/index.md"],
+    "검증·수정 루프": ["utils/scripts/harness.py", "utils/scripts/loop.py", "docs/development/engineering-loop.md"],
+    "원본 복사·검증": ["utils/scripts/reuse.py", "docs/reference/README.md"],
+    "작업별 전체 보고문 커밋": ["utils/scripts/commit_report.py", "docs/development/reports"],
+    "문화외출·이동 안내 검토": ["docs/development/tasks.md", "docs/development/mobility-routing-review.md"],
+    "무인증·체험 프로필·브라우저 저장": ["docs/development/demo-profile-design.md", "docs/development/examples/demo-users.sample.json"],
+    "해커톤 GPU 서버·매뉴얼": ["docs/development/hackathon-server-usage-review.md", "docs/reference/hackathon-server/README.md", "utils/scripts/read_pdf.py"],
+    "framework·KONNECT 분석 우선 재사용": ["docs/development/konnect-reuse-reading-guide.md"]
+  }
+}

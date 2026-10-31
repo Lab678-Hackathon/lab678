@@ -17,6 +17,7 @@ frontend/   화면
 backend/    API · AI 연동
 docs/       기획 · 회의록 · 발표 PDF · 시연 영상
 design/     Figma 링크 · 화면 · 아이콘
+utils/      재사용 개발 도구 · 코드/파일 색인 · 검증
 ```
 
 ## 협업 규칙
@@ -33,3 +34,7 @@ design/     Figma 링크 · 화면 · 아이콘
 
 ## 실행
 > 기술 스택 정한 뒤 채워요.
+
+## 개발 도구·작업 재개
+
+먼저 [현재 상태와 다음 할 일](docs/development/current-state.md)을 확인하고, [저장소 파일 색인](docs/development/repo_index.md)·[기능/함수 역색인](docs/development/repo_reverse_index.md)·[구조](docs/development/repo_tree.md)로 필요한 원문만 찾아요. 도구 사용법과 자동 갱신은 [utils/README.md](utils/README.md), 현재 도구 구축 진행은 [체크표](docs/development/tooling-progress.md)를 확인해요. 서비스 실행 방법은 아직 미확정이에요.
