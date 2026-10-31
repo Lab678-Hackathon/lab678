@@ -1,0 +1,33 @@
+/* Figma 03 · UI Kit 의 색·글자 값과 같게 유지해요. 바꿀 땐 Figma도 같이 바꿔요. */
+:root {
+  --bg-canvas: #F6F3EC;
+  --bg-surface: #FFFFFF;
+  --bg-soft: #E7F0E9;
+  --brand-primary: #1E5B43;
+  --text-primary: #1B1D1A;
+  --text-secondary: #55584F;
+  --text-on-primary: #FFFFFF;
+  --border-default: #DFDACD;
+  --status-warn-bg: #FCEFD8;
+  --status-warn-text: #8F5410;
+  --status-danger: #B3261E;
+  --status-ok-bg: #E2F1E6;
+
+  --font: "Noto Sans KR", system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  /* 글자 크게를 켜면 --scale 이 1.15 가 돼요 */
+  --scale: 1;
+  --fs-display: calc(32px * var(--scale));
+  --fs-title-l: calc(26px * var(--scale));
+  --fs-title-m: calc(21px * var(--scale));
+  --fs-body-l: calc(18px * var(--scale));
+  --fs-body-m: calc(16px * var(--scale));
+  --fs-label: calc(15px * var(--scale));
+  --fs-caption: calc(14px * var(--scale));
+
+  --radius-card: 18px;
+  --radius-button: 14px;
+  --button-height: 60px;
+  --gutter: 24px;
+}
+
+:root.text-large { --scale: 1.15; }
