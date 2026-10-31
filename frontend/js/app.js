@@ -1,4 +1,6 @@
 import { pickSeason, setSeasonArt, startLeaves } from './landing.js';
+import { initSearch, renderSearch } from './search.js';
+import { initResults, renderResults, renderPlace } from './results.js';
 
 /** 브라우저 저장 키 (화면명세서 S06 개념 이름 기준, 최종 키는 개발 협의) */
 const KEYS = {
@@ -42,18 +44,23 @@ function writeStore(key, value) {
 
 /**
  * 주소의 # 뒤를 보고 화면 하나만 보여줘요.
- * #/ 또는 없음 = S00 시작 화면, #/home = S01, #/search = S02, #/me = S07
+ * #/ 또는 없음 = S00 시작 화면, #/home = S01, #/search = S02(+S02a), #/results = S03,
+ * #/place/<후보 id> = S04, #/me = S07
  */
 function route() {
   const path = location.hash.replace(/^#/, '') || '/';
-  const id = { '/': 's00', '/home': 's01', '/search': 's02', '/me': 's07' }[path] || 's01';
+  const id = path.startsWith('/place/') ? 's04'
+    : { '/': 's00', '/home': 's01', '/search': 's02', '/results': 's03', '/me': 's07' }[path] || 's01';
   document.querySelectorAll('.screen').forEach((el) => el.classList.toggle('is-active', el.id === id));
   document.querySelectorAll('.tab').forEach((tab) => {
     if (tab.dataset.go === path) tab.setAttribute('aria-current', 'page');
     else tab.removeAttribute('aria-current');
   });
-  document.querySelector('.tabbar').hidden = id === 's00' || id === 's02';
+  document.querySelector('.tabbar').hidden = !['s01', 's07'].includes(id);
   if (id === 's01') renderHome();
+  if (id === 's02') renderSearch();
+  if (id === 's03') renderResults();
+  if (id === 's04') renderPlace(decodeURIComponent(path.slice('/place/'.length)));
   window.scrollTo(0, 0);
 }
 
@@ -133,5 +140,7 @@ function initNavigation() {
 
 initTextSize();
 initNavigation();
+initSearch();
+initResults();
 initLanding();
 route();

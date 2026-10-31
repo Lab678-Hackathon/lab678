@@ -8,6 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous" defer></script>
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/app.css">
   <script type="module" src="js/app.js"></script>
@@ -66,12 +68,117 @@
     </div>
   </section>
 
-  <!-- S02 나들이 찾기 (다음 단계에서 채워요) -->
+  <!-- S02 나들이 찾기 + S02a 조건 확인 (같은 화면 안에서 펼침) -->
   <section class="screen" id="s02" aria-label="나들이 찾기">
-    <div class="stub">
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="/home" aria-label="뒤로">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
       <h1>나들이 찾기</h1>
-      <p class="muted">입력 칸과 대화 화면은 다음 단계에서 연결해요.</p>
-      <button class="btn btn--outline" type="button" data-go="/home">홈으로</button>
+    </header>
+    <div class="page">
+      <div class="field" data-field="start">
+        <span class="field__label" id="lbl-start">출발지</span>
+        <div class="chips" role="group" aria-labelledby="lbl-start">
+          <button class="chip" type="button" data-start-key="cheongnyangni" aria-pressed="false">청량리역</button>
+          <button class="chip" type="button" data-start-key="seoulstation" aria-pressed="false">서울역</button>
+          <button class="chip" type="button" data-start-key="here" aria-pressed="false">현재 위치 사용</button>
+        </div>
+        <p class="field__error" id="err-start" hidden></p>
+      </div>
+      <div class="field" data-field="date">
+        <label class="field__label" for="f-date">날짜</label>
+        <input class="input" type="date" id="f-date">
+        <p class="field__error" id="err-date" hidden></p>
+      </div>
+      <div class="field" data-field="time">
+        <div class="field-row">
+          <div><label class="field__label" for="f-start">출발 시각</label><input class="input" type="time" id="f-start" step="600"></div>
+          <div><label class="field__label" for="f-end">끝나는 시각</label><input class="input" type="time" id="f-end" step="600"></div>
+        </div>
+        <p class="field__error" id="err-time" hidden></p>
+      </div>
+      <div class="field" data-field="category">
+        <span class="field__label" id="lbl-cat">보고 싶은 것</span>
+        <div class="chips" role="group" aria-labelledby="lbl-cat">
+          <button class="chip" type="button" data-category="전시" aria-pressed="false">전시</button>
+          <button class="chip" type="button" data-category="국악" aria-pressed="false">국악</button>
+          <button class="chip" type="button" data-category="클래식" aria-pressed="false">클래식</button>
+          <button class="chip" type="button" data-category="콘서트" aria-pressed="false">콘서트</button>
+          <button class="chip" type="button" data-category="연극" aria-pressed="false">연극</button>
+          <button class="chip" type="button" data-category="전체" aria-pressed="false">전체</button>
+        </div>
+        <p class="field__error" id="err-category" hidden></p>
+      </div>
+      <div class="field" data-field="kind" tabindex="-1">
+        <span class="field__label" id="lbl-kind">찾는 방식</span>
+        <div class="segmented" role="group" aria-labelledby="lbl-kind">
+          <button type="button" data-kind="place" aria-pressed="true">장소 하나씩 보기</button>
+          <button type="button" data-kind="course" aria-pressed="false" disabled>2~3곳 코스로 (준비 중)</button>
+        </div>
+      </div>
+      <div class="bubble bubble--ai">어디서, 언제 출발하세요? 위에서 골라 주시면 맞는 곳을 찾아드려요.</div>
+
+      <section class="confirm" id="confirm" hidden aria-labelledby="confirm-title">
+        <h2 id="confirm-title">이렇게 찾아볼까요?</h2>
+        <p class="muted">맞는지 확인해 주세요. 고칠 곳은 수정하기를 눌러요.</p>
+        <span class="badge badge--warn" id="confirm-mode" hidden>시험: 기록 데이터(recorded)</span>
+        <div id="confirm-rows"></div>
+        <p class="field__error" id="confirm-error" role="alert" hidden></p>
+      </section>
+    </div>
+    <div class="bottombar">
+      <button class="btn btn--primary" type="button" id="btn-search">나들이 추천받기</button>
+    </div>
+  </section>
+
+  <!-- S03 추천 결과 -->
+  <section class="screen" id="s03" aria-label="추천 결과">
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="/search" aria-label="뒤로">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h1>추천 장소</h1>
+      <span class="badge badge--warn" id="s03-mode" hidden>기록 데이터</span>
+    </header>
+    <div id="s03-map-wrap" class="map-wrap">
+      <div id="s03-map" class="map" aria-label="추천 장소 지도"></div>
+      <div id="s03-map-error" class="map-error" hidden>
+        <p>지도를 불러오지 못했어요. 아래 목록은 그대로 볼 수 있어요.</p>
+        <button class="btn btn--outline btn--small" type="button" id="s03-map-retry">지도 다시 보기</button>
+      </div>
+    </div>
+    <div class="page">
+      <div class="chips" id="s03-conditions"></div>
+      <p class="notice" id="s03-notice" role="status" hidden></p>
+      <div id="s03-found">
+        <div class="list-head"><h2 id="s03-count">추천 장소</h2><span class="caption muted" id="s03-source"></span></div>
+        <div id="s03-list" class="cards"></div>
+      </div>
+      <div id="s03-empty" class="empty" hidden>
+        <h2>지금 조건에 맞는 곳을 찾지 못했어요</h2>
+        <p class="muted">날짜나 시간, 보고 싶은 것을 바꿔서 다시 찾아볼까요?</p>
+      </div>
+    </div>
+    <div class="bottombar bottombar--row">
+      <button class="btn btn--outline" type="button" id="s03-more">다른 곳 찾기</button>
+      <button class="btn btn--secondary" type="button" data-go="/search">조건 바꾸기</button>
+    </div>
+  </section>
+
+  <!-- S04 장소 상세 -->
+  <section class="screen" id="s04" aria-label="장소 정보">
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="/results" aria-label="뒤로">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <h1>장소 정보</h1>
+    </header>
+    <div class="page" id="s04-body"></div>
+    <div class="bottombar" id="s04-actions">
+      <p class="caption muted" id="s04-save-note" hidden>저장은 다음 단계(체험용 로그인)에서 연결해요.</p>
+      <button class="btn btn--primary" type="button" id="s04-pick">이 장소 선택</button>
+      <button class="btn btn--outline" type="button" id="s04-save">내가 고른 장소에 저장</button>
     </div>
   </section>
 
