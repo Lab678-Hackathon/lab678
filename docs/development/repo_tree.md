@@ -79,6 +79,7 @@ lab678/
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
         2026-10-31-route-text.md
+        2026-10-31-screen-spec-review.md
         2026-10-31-section-checks.md
         2026-10-31-speaker-check.md
         2026-10-31-speech-input-errors.md
@@ -92,6 +93,7 @@ lab678/
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
+      screen-spec-review.md
       state.json
       tasks.md
       tooling-progress.md
@@ -100,6 +102,7 @@ lab678/
       2026-10-28.md
     planning/
       AGENTS.md
+      Lab_678_MVP_Screen_Spec_v0.1_20261030.md
       Lab_678_UI_착수패키지_손희영_20261030.md
       Lab_678_개발_착수패키지_김동조_20261030.md
       Lab_678_공동설계_병렬착수_공통합의안_20261030.md
