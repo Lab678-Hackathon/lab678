@@ -11,7 +11,23 @@ from chat_conditions import apply_interpretation
 from outing import InputError, KST
 from preferences import FIELDS as PREFERENCE_FIELDS
 
-ENDPOINT = "https://copa.codyssey.kr/v1/messages"
+ENDPOINT = "https://copa.codyssey.kr/v1/messages"  # 해커톤 제공 주소 (기본, Anthropic 형식)
+ANTHROPIC_ENDPOINT = "https://api.anthropic.com/v1/messages"  # 개인 Anthropic 키
+OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions"  # 개인 OpenAI 키
+PROVIDERS = {"codyssey": ENDPOINT, "anthropic": ANTHROPIC_ENDPOINT, "openai": OPENAI_ENDPOINT}
+
+
+def provider():
+    """LAB678_NAITO_PROVIDER: codyssey(기본) / anthropic / openai. 키 모양으로 추측하지 않는다(해커톤 키도 sk- 로 시작)."""
+    chosen = os.environ.get("LAB678_NAITO_PROVIDER", "").strip().lower()
+    return chosen if chosen in PROVIDERS else "codyssey"
+
+
+def endpoint(key=""):
+    """호출 주소 (허용된 세 곳 중 하나)."""
+    return PROVIDERS[provider()]
+
+
 SLOTS = BoundedSemaphore(2)
 SYSTEM = """오늘 나들이의 한국어 조건 추출기다. JSON 객체 하나만 출력한다.
 허용 키: start_query(장소명/주소 문자열, 좌표 금지), start_at/end_at(시간대 포함 ISO8601),
@@ -80,21 +96,32 @@ def extract_conditions(message, draft, history, key, model):
     context = {k: draft[k] for k in {"date", "start_at", "end_at", "category", "request_kind", "stay_minutes", "start_query"} | PREFERENCE_FIELDS if k in draft}
     if isinstance(draft.get("start_location"), dict):
         context["start_query"] = draft["start_location"].get("label")
-    request_data = dict(model=model, max_tokens=1024, system=SYSTEM, messages=[dict(role="user", content=json.dumps(
-        dict(now_kst=datetime.now(KST).isoformat(timespec="seconds"), condition_draft=context,
-             conversation_context=history, message=message), ensure_ascii=False))])
-    request = Request(ENDPOINT, data=json.dumps(request_data, ensure_ascii=False).encode(),
-                      headers={"x-api-key": key, "anthropic-version": "2023-06-01",
-                               "Content-Type": "application/json"}, method="POST")
+    user_text = json.dumps(dict(now_kst=datetime.now(KST).isoformat(timespec="seconds"), condition_draft=context,
+                                conversation_context=history, message=message), ensure_ascii=False)
+    if provider() == "openai":
+        # OpenAI Chat Completions: JSON 객체만 받도록 지정
+        request_data = dict(model=model, max_completion_tokens=1024, response_format=dict(type="json_object"),
+                            messages=[dict(role="system", content=SYSTEM), dict(role="user", content=user_text)])
+        headers = {"Authorization": "Bearer " + key, "Content-Type": "application/json"}
+    else:
+        request_data = dict(model=model, max_tokens=1024, system=SYSTEM, messages=[dict(role="user", content=user_text)])
+        headers = {"x-api-key": key, "anthropic-version": "2023-06-01", "Content-Type": "application/json"}
+    request = Request(endpoint(), data=json.dumps(request_data, ensure_ascii=False).encode(), headers=headers, method="POST")
     with urlopen(request, timeout=20) as response:
         raw = response.read(65537)
     if len(raw) > 65536:
         raise ValueError("AI 응답 크기 초과")
     payload = json.loads(raw)
-    blocks = payload["content"]
-    if not isinstance(blocks, list) or payload.get("stop_reason") == "max_tokens":
-        raise ValueError("AI 응답 형식 오류")
-    content = "".join(block["text"] for block in blocks if block.get("type") == "text")
+    if provider() == "openai":
+        choice = payload["choices"][0]
+        if choice.get("finish_reason") == "length" or not isinstance(choice["message"].get("content"), str):
+            raise ValueError("AI 응답 형식 오류")
+        content = choice["message"]["content"]
+    else:
+        blocks = payload["content"]
+        if not isinstance(blocks, list) or payload.get("stop_reason") == "max_tokens":
+            raise ValueError("AI 응답 형식 오류")
+        content = "".join(block["text"] for block in blocks if block.get("type") == "text")
     return json.loads(content)
 
 

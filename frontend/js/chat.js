@@ -8,10 +8,25 @@
 import { state, save, resetChat } from './state.js';
 import { requestRecommend, requestChat, searchPlaces } from './api.js';
 import { parseUtterance, longEnough } from './parse.js';
-import { $, el, button, formatDate, formatTime, todayIso, minutes, hhmm, isTest, isDebug, talkFor, unlockSpeech } from './util.js';
+import { $, el, button, formatDate, formatTime, todayIso, minutes, hhmm, isTest, isDebug, talkFor, unlockSpeech, photo } from './util.js';
 
 const QA_START = { label: '청량리역', lat: 37.5805961, lng: 127.0482573 };
-const CATEGORIES = ['전시', '국악', '클래식', '콘서트', '연극', '전체'];
+/**
+ * 고르는 버튼 (Figma UI Kit 유형 아이콘과 같은 묶음, 11/1 희영 결정).
+ * 서버는 전시·국악·클래식·콘서트·연극·전체만 받아서, 공연·체험·축제는 "전체"로 받고 코드가 장르 이름으로 골라요.
+ * "국악 듣고 싶어요"처럼 세부 장르로 말하면 그 장르만 찾아요.
+ */
+const CATEGORIES = [['전시', '전시'], ['공연', '공연'], ['체험', '체험·배우기'], ['축제', '축제·행사'], ['전체', '아무거나 좋아요']];
+const CATEGORY_LABEL = { 전시: '전시', 공연: '공연', 체험: '체험·배우기', 축제: '축제·행사', 전체: '아무거나' };
+const GROUP = {
+  공연: /국악|클래식|콘서트|연극|뮤지컬|오페라|무용|독주|독창|공연|영화/,
+  체험: /교육|체험/,
+  축제: /축제/,
+};
+/** 서버에 보낼 분류 (묶음은 전체로) */
+const serverCategory = (cat) => (GROUP[cat] ? '전체' : cat);
+/** 묶음 분류면 장르 이름으로 골라요 */
+const inGroup = (cat, c) => !GROUP[cat] || GROUP[cat].test(c.genre || '');
 const FIELD_NAME = { startLocation: '출발지', date: '날짜', time: '시간', category: '보고 싶은 것' };
 const MAX_CARDS = 3;
 let ticket = 0;
@@ -49,7 +64,7 @@ function summary() {
   if (d().startLocation) parts.push(d().startLocation.label);
   if (d().date) parts.push(formatDate(d().date));
   if (d().startTime && d().endTime) parts.push(`${formatTime(d().startTime)}–${formatTime(d().endTime)}`);
-  if (d().category) parts.push(d().category);
+  if (d().category) parts.push(CATEGORY_LABEL[d().category] || d().category);
   return parts.join(' · ');
 }
 
@@ -74,6 +89,7 @@ const show = (field, v) => {
   if (field === 'startLocation') return v.label;
   if (field === 'date') return formatDate(v);
   if (field === 'startTime' || field === 'endTime') return formatTime(v);
+  if (field === 'category') return CATEGORY_LABEL[v] || String(v);
   return String(v);
 };
 
@@ -98,9 +114,7 @@ function userSays(text) {
 function card(c, index) {
   const art = el('article', 'chat-card');
   art.dataset.id = c.id;
-  const top = el('div', 'chat-card__img');
-  top.style.backgroundImage = `url(assets/${c.genre?.includes('전시') ? 'place-museum' : 'place-palace'}.jpg)`;
-  top.append(el('span', 'chat-card__imgnote', '분위기 사진 · 실제 장소 아님'));
+  const top = photo(c, 'chat-card__img');
   const meta = [c.genre?.split('/')[0], c.district, c.fee_type].filter(Boolean).join(' · ');
   const body = el('div', 'chat-card__body');
   body.append(el('p', 'chat-card__meta', `${index + 1} · ${meta || '문화행사'}`), el('h3', null, c.title), el('p', 'muted', c.venue || '장소 이름 확인 필요'));
@@ -156,7 +170,7 @@ function actions() {
   if (last?.retry) { chip('같은 조건으로 다시 찾기', () => search()); return; }
   if (last?.music && !state.pending) {
     ['국악', '클래식', '콘서트'].forEach((c) => chip(c, () => answer(c, { category: c })));
-    chip('골고루 좋아요', () => answer('골고루 좋아요', { category: '전체' }));
+    chip('골고루 좋아요', () => answer('골고루 좋아요', { category: '공연' }));
     return;
   }
   if (state.pending) {
@@ -166,7 +180,7 @@ function actions() {
     return;
   }
   const need = missing();
-  if (need === 'category') CATEGORIES.forEach((c) => chip(c === '전체' ? '아무거나 좋아요' : c, () => answer(c, { category: c })));
+  if (need === 'category') CATEGORIES.forEach(([c, label]) => chip(label, () => answer(label, { category: c })));
   else if (need === 'date') {
     chip('오늘', () => answer('오늘이요', { date: todayIso(0) }));
     chip('내일', () => answer('내일이요', { date: todayIso(1) }));
@@ -462,7 +476,7 @@ function toText() {
 function toServerDraft() {
   const out = { request_kind: 'place' };
   if (d().startLocation) out.start_location = d().startLocation;
-  if (d().category) out.category = d().category;
+  if (d().category) out.category = serverCategory(d().category);
   if (d().date && d().startTime) out.start_at = `${d().date}T${d().startTime}:00+09:00`;
   if (d().date && d().endTime) out.end_at = `${d().date}T${d().endTime}:00+09:00`;
   return out;
@@ -487,6 +501,9 @@ async function interpret(text) {
     if (r.kind === 'ok') {
       state.revision += 1;
       const p = fromServerDraft(r.data.updated_condition_draft);
+      // 서버 AI 는 공연·체험·축제 묶음을 몰라서 "전체"로 줄 수 있어요. 문장에 묶음 말이 있으면 그걸 써요.
+      const local = parseUtterance(text).category;
+      if (GROUP[local] && (!p.category || p.category === '전체')) p.category = local;
       if (r.data.music_followup || r.data.updated_condition_draft?.music_followup) p.ask = r.data.assistant_text;
       return p;
     }
@@ -548,7 +565,7 @@ function nothingUnderstood(asked) {
     startLocation: '어디에서 출발하시는지 동네나 역 이름으로 말씀해 주세요. 예: "개포동", "청량리역". 아래 "현재 위치 사용"을 눌러도 돼요.',
     date: '언제 가실지 알려 주세요. 예: "오늘", "내일", "11월 2일".',
     time: '몇 시부터 몇 시까지인지 알려 주세요. 예: "오후 2시부터 5시까지".',
-    category: '어떤 걸 보고 싶으세요? 전시, 국악, 클래식, 콘서트, 연극 중에서 골라 주세요.',
+    category: '어떤 걸 보고 싶으세요? 전시, 공연, 체험, 축제 중에서 골라 주세요.',
   };
   if (asked && hints[asked]) return `제가 잘 알아듣지 못했어요. ${hints[asked]}`;
   if (state.shown.length) return '다른 곳을 더 보여 드릴까요, 아니면 시간이나 보고 싶은 것, 출발지를 바꿔 볼까요? 바꾸실 내용을 말씀해 주세요.';
@@ -620,7 +637,7 @@ function next() {
     return;
   }
   const need = missing();
-  if (need === 'category') { say('어떤 걸 보고 싶으세요? 전시, 국악, 클래식, 콘서트, 연극 중에서 골라 주셔도 돼요.', { ask: true }); return; }
+  if (need === 'category') { say('어떤 걸 보고 싶으세요? 전시, 공연, 체험·배우기, 축제·행사 중에서 골라 주셔도 돼요.', { ask: true }); return; }
   if (need === 'date') { say('언제 가실 건가요?', { ask: true }); return; }
   if (need === 'time') { say('몇 시부터 몇 시까지 시간이 되세요?', { ask: true }); return; }
   if (!longEnough(d().startTime, d().endTime) || minutes(d().endTime) <= minutes(d().startTime)) {
@@ -641,7 +658,7 @@ function requestBody() {
     start_location: d().startLocation,
     start_at: `${d().date}T${d().startTime}:00+09:00`,
     end_at: `${d().date}T${d().endTime}:00+09:00`,
-    category: d().category,
+    category: serverCategory(d().category),
   };
 }
 
@@ -667,7 +684,7 @@ async function search() {
   if (res.kind === 'error') { say(`${res.message}`, { retry: true }); return; }
   state.lastRequest = body;
   state.sourceCheckedAt = res.data.source_checked_at || null;
-  const list = res.data.candidates || [];
+  const list = (res.data.candidates || []).filter((c) => inGroup(d().category, c)); // 공연·체험·축제는 장르로 골라요
   if (!list.length) {
     state.pool = [];
     say('조건에 맞는 곳을 찾지 못했어요. 날짜나 시간, 보고 싶은 것을 바꿔 말씀해 주시면 다시 찾아볼게요.');
@@ -714,7 +731,7 @@ async function other() {
   busy = false;
   if (res.kind === 'ready') {
     res.data.candidates.forEach((c) => { state.candidates[c.id] = c; });
-    const more = [...res.data.candidates].sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9))
+    const more = res.data.candidates.filter((c) => inGroup(d().category, c)).sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9))
       .map((c) => c.id).filter((id) => !state.shown.includes(id));
     state.pool.push(...more.filter((id) => !state.pool.includes(id)));
     if (more.length) { showCards(more.slice(0, MAX_CARDS), '같은 조건으로 새로 찾은 곳이에요.'); return; }

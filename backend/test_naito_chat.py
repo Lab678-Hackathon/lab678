@@ -85,3 +85,31 @@ class NaitoChatTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(result["interpretation_status"], "no_supported_change")
         self.assertFalse(result["ready_to_search"])
+
+
+class EndpointTest(unittest.TestCase):
+    def test_provider_switch(self):
+        """설정한 제공자 주소로만 호출하고, 모르는 값이면 해커톤 주소. 키 모양으로 추측하지 않는다."""
+        import naito_chat
+        with patch.dict("os.environ", {"LAB678_NAITO_PROVIDER": ""}):
+            self.assertEqual(naito_chat.endpoint("sk-ant-abc"), naito_chat.ENDPOINT)
+        with patch.dict("os.environ", {"LAB678_NAITO_PROVIDER": "openai"}):
+            self.assertEqual(naito_chat.endpoint(), naito_chat.OPENAI_ENDPOINT)
+        with patch.dict("os.environ", {"LAB678_NAITO_PROVIDER": "anthropic"}):
+            self.assertEqual(naito_chat.endpoint(), naito_chat.ANTHROPIC_ENDPOINT)
+        with patch.dict("os.environ", {"LAB678_NAITO_PROVIDER": "https://evil.example.com"}):
+            self.assertEqual(naito_chat.endpoint(), naito_chat.ENDPOINT)
+
+    def test_openai_request_and_response(self):
+        """OpenAI 형식: Bearer 키, system+user 메시지, JSON 응답을 꺼내요."""
+        import io, json as _json, naito_chat
+        body = {"choices": [{"finish_reason": "stop", "message": {"content": "{\"category\": \"전시\"}"}}]}
+        with patch.dict("os.environ", {"LAB678_NAITO_PROVIDER": "openai"}), \
+             patch("naito_chat.urlopen", return_value=io.BytesIO(_json.dumps(body).encode())) as net:
+            out = naito_chat.extract_conditions("전시 보고 싶어요", {}, [], "sk-test", "gpt-test")
+        req = net.call_args.args[0]
+        self.assertEqual(out, {"category": "전시"})
+        self.assertEqual(req.full_url, naito_chat.OPENAI_ENDPOINT)
+        self.assertEqual(req.get_header("Authorization"), "Bearer sk-test")
+        sent = _json.loads(req.data)
+        self.assertEqual([m["role"] for m in sent["messages"]], ["system", "user"])

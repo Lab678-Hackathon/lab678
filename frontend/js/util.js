@@ -126,3 +126,42 @@ export function speakKo(text) {
     speechSynthesis.speak(u);
   } catch { /* 무시 */ }
 }
+
+/** 장르 → 유형 아이콘 (Figma 03 · UI Kit "아이콘 · 까치 스타일 2D") */
+export function typeIcon(genre = '') {
+  const g = String(genre);
+  if (/전시|미술/.test(g)) return 'exhibition';
+  if (/전통|역사/.test(g)) return 'historic-visit';
+  if (/축제/.test(g)) return 'festival-event';
+  if (/교육|체험/.test(g)) return 'hands-on';
+  if (/연극|국악|클래식|콘서트|뮤지컬|오페라|무용|독주|독창|공연|영화/.test(g)) return 'performance';
+  return 'default';
+}
+
+/**
+ * 행사 사진. 서울시 문화포털 공식 이미지가 있으면 그걸, 없거나 안 열리면 행사 유형 아이콘을 보여줘요.
+ * @param {object} c 후보
+ * @param {string} className 감싸는 요소 클래스
+ */
+export function photo(c, className) {
+  const box = el('div', `${className} photo`);
+  const img = el('img');
+  img.loading = 'lazy';
+  img.alt = c.title ? `${c.title} 공식 이미지` : '';
+  const note = el('span', 'photo__note');
+  const fallback = () => {
+    img.onerror = null;
+    img.src = `assets/icons/type-${typeIcon(c.genre)}.png`;
+    img.alt = '';
+    box.classList.add('is-icon');
+    note.textContent = '공식 사진 없음';
+  };
+  if (c.image_url) {
+    img.src = c.image_url;
+    img.referrerPolicy = 'no-referrer';
+    img.onerror = fallback;
+    note.textContent = '사진 · 서울시 문화포털';
+  } else fallback();
+  box.append(img, note);
+  return box;
+}
