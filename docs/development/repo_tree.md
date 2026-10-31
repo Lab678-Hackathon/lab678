@@ -128,6 +128,7 @@ lab678/
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
         20261031-place-search-integration.md
+        20261031-push-pr-issue.md
         20261031-qa01-received.md
       screen-spec-review.md
       state.json

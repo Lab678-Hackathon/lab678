@@ -370,3 +370,13 @@ Chrome 음성 입력·국악 카드·스피커 청취 확인 뒤 다음 개발 �
 정민규14:20 현황답변의7bdb01f/34개는 이전 기준이며 현재 기능기준d6194e0/42개다. 출발지 검색은 이미 실제 키 검증 완료. 팀 Push/PR 요청은 할 일로 기록하고 실행하지 않았다. QA-01은 기존 좌표 청량리역·10/31·14~17시·전시·place의 recorded 화면 연결 후 별도 미래 날짜 live 검증이다. 기존 요청JSON은 mode 생략으로 live이므로 QA에는 recorded를 명시해야 한다. 후보ID 목록은 기존 스냅샷에서 확인했을 뿐 팀 S03/S04 실행 결과가 아니다.
 
 대표 관심사1개 첫 통합은 기획 기준 수신으로 이전 제안 상태를 갱신. 복수 관심사 요구 유지·걷기 미적용·임의기본위치 금지·Mock 자동대체 금지·미확인 표시·프론트/서버60분 기준과 보고양식을 plan_dj/qa-01-integration.md에 저장. 공용 plan/팀프론트 수정과 서비스 재검증은 하지 않았다.
+
+
+## 2026-10-31 최신 백엔드 공유·PR·QA 이슈
+
+사용자가 Push, 문제 없을 때 develop 병합, 이슈 작성을 차례로 승인했다. 원격 fetch 후 dj/develop이 로컬보다11커밋 뒤이며 원격 단독 커밋은 없음을 확인. 1602ebb까지 일반 Push 완료. develop의 추가1커밋은 기획/역할 문서 변경이며 PR #15는 GitHub mergeable=true 확인. 백엔드42개 재실행 PASS. 조회한 GitHub PR workflow/status 목록은 비어 있어 CI PASS로 주장하지 않는다.
+
+- 공유 PR: https://github.com/Lab678-Hackathon/lab678/pull/15
+- 후속 QA 이슈: https://github.com/Lab678-Hackathon/lab678/issues/16
+- 이슈는 완료백엔드/미검증팀화면/QA-01 요청·ID·결과양식/배포를 구분하며 백엔드 병합만으로 닫지 않는다.
+- 이 기록 작성 시점은 병합 직전이다. 이후 병합 여부·최종 SHA는 PR에서 확인한다. main·팀프론트·공용기획 변경과 Discord 전송은 수행하지 않는다.
