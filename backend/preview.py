@@ -4,7 +4,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.error import URLError
 
-from outing import EXAMPLES, recommend
+from outing import EXAMPLES, InputError, recommend
 from local_voice import render_wave
 from course import build_course
 from walking import walk_between
@@ -76,8 +76,10 @@ class Preview(BaseHTTPRequestHandler):
                     self.reply(200, audio, "audio/wav")
                 return
             result = recommend(data, data.get("mode", "live"))
-            if data.get("request_kind") == "course":
+            if data.get("request_kind") in ("course", "route"):
                 result["course"] = build_course(data, result["candidates"])
+        except InputError as exc:
+            self.reply(400, dict(status="need_input", message=str(exc), code=exc.code, field=exc.field))
         except (ValueError, TypeError, KeyError):
             self.reply(400, dict(status="need_input", message="출발 좌표·분류·당일 시간 범위 또는 재생 가능한 기록을 확인해 주세요."))
         except (URLError, OSError, RuntimeError, AttributeError):

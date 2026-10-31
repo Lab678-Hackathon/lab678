@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **추천 입력 60분·route 호환·오류 계약**: [backend/outing.py](../../backend/outing.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [backend/test_outing.py](../../backend/test_outing.py), [backend/test_preview.py](../../backend/test_preview.py), [utils/scripts/check_input_contract.cjs](../../utils/scripts/check_input_contract.cjs), [docs/development/recommend-api.md](../../docs/development/recommend-api.md)
 - **동료·LLM 백엔드 참조·실행 안내**: [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md), [docs/development/team-integration-checklist.md](../../docs/development/team-integration-checklist.md), [backend/README.md](../../backend/README.md)
 - **화면명세 수신·화면별 구현 차이 점검**: [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md)
 - **대중교통 내부 텍스트·지도 안내·서버 키 연결**: [backend/transit.py](../../backend/transit.py), [backend/test_transit.py](../../backend/test_transit.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_transit_ui.cjs](../../utils/scripts/check_transit_ui.cjs), [docs/development/transit-progress.md](../../docs/development/transit-progress.md)
@@ -36,7 +37,7 @@
 | `compact` | [utils/scripts/catalog.py:63](../../utils/scripts/catalog.py#L63) | Return one short Markdown-safe line from a docstring. |
 | `config` | [utils/scripts/catalog.py:21](../../utils/scripts/catalog.py#L21) | Read only the public harness configuration, never environment values. |
 | `contents` | [utils/scripts/verify_watch.py:24](../../utils/scripts/verify_watch.py#L24) | Read generated text, tolerating a brief replacement window. |
-| `coordinate` | [backend/outing.py:15](../../backend/outing.py#L15) | 유한한 위경도 숫자를 검증하고 잘못된 입력은 ValueError로 알린다. |
+| `coordinate` | [backend/outing.py:26](../../backend/outing.py#L26) | 유한한 위경도 숫자를 검증하고 잘못된 입력은 ValueError로 알린다. |
 | `course_alternatives` | [backend/course.py:69](../../backend/course.py#L69) | 동의 요청에만 같은 시간 한 곳·최대 두 시간 이른 두 곳의 검증된 대안을 반환한다. |
 | `CourseTests` | [backend/test_course.py:9](../../backend/test_course.py#L9) | 전시와 고정 공연이 있는 당일 요청을 독립적으로 검증한다. |
 | `CourseTests.setUp` | [backend/test_course.py:12](../../backend/test_course.py#L12) | 한국 시각 한 시간과 20분씩 관람할 수 있는 두 전시를 준비한다. |
@@ -48,12 +49,14 @@
 | `decode_shape` | [backend/walking.py:50](../../backend/walking.py#L50) | Valhalla polyline6를 위도·경도 배열로 변환한다. 손상·범위 초과는 ValueError다. |
 | `describe` | [utils/scripts/catalog.py:69](../../utils/scripts/catalog.py#L69) | Extract file overview, fingerprint, imports and symbol locations statically. |
 | `describe.visit` | [utils/scripts/catalog.py:79](../../utils/scripts/catalog.py#L79) | Walk definitions and keep qualified names for nested functions. |
-| `distance_km` | [backend/outing.py:72](../../backend/outing.py#L72) | 두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다. |
+| `distance_km` | [backend/outing.py:99](../../backend/outing.py#L99) | 두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다. |
 | `entries` | [utils/scripts/catalog.py:113](../../utils/scripts/catalog.py#L113) | Describe every active code file once; do not scan historical snapshots. |
 | `expected` | [utils/scripts/context.py:42](../../utils/scripts/context.py#L42) | Read the configured public state file and generate the brief. |
 | `file_hash` | [utils/scripts/reuse.py:33](../../utils/scripts/reuse.py#L33) | Hash file contents in chunks without logging their values. |
 | `file_overview` | [utils/scripts/catalog.py:138](../../utils/scripts/catalog.py#L138) | Describe a file using only its static overview, heading, or file type. |
 | `generated_paths` | [utils/scripts/catalog.py:150](../../utils/scripts/catalog.py#L150) | Return the actual output paths, independent of optional configuration hints. |
+| `InputError` | [backend/outing.py:16](../../backend/outing.py#L16) | 추천 입력 오류의 공개 코드·필드·안내문을 담는다. 원본 입력값은 포함하지 않는다. |
+| `InputError.__init__` | [backend/outing.py:19](../../backend/outing.py#L19) | HTTP 오류 응답과 필드별 안내에 사용할 고정 메타데이터를 보관한다. |
 | `main` | [utils/scripts/catalog.py:232](../../utils/scripts/catalog.py#L232) | Write, validate, or search the catalog with bounded console output. |
 | `main` | [utils/scripts/commit_report.py:52](../../utils/scripts/commit_report.py#L52) | Check by default; stage and commit only when --commit is explicitly given. |
 | `main` | [utils/scripts/context.py:48](../../utils/scripts/context.py#L48) | Write, check, or print only the short restart brief. |
@@ -69,19 +72,28 @@
 | `OutingTests` | [backend/test_outing.py:9](../../backend/test_outing.py#L9) | 개인 추천의 의미가 바뀌는 경계 사례를 재현한다. |
 | `OutingTests.setUp` | [backend/test_outing.py:12](../../backend/test_outing.py#L12) | 각 사례에 독립적인 청량리역 요청을 준비한다. |
 | `OutingTests.test_actual_fields` | [backend/test_outing.py:16](../../backend/test_outing.py#L16) | 빈 요금, 무료 분류, 명시한 0원, 거리 오름차순을 보존한다. |
-| `OutingTests.test_bad_input` | [backend/test_outing.py:34](../../backend/test_outing.py#L34) | 잘못된 출발 좌표나 종료 시각으로 외부 API를 호출하지 않는다. |
-| `OutingTests.test_empty_and_error` | [backend/test_outing.py:41](../../backend/test_outing.py#L41) | 실제 후보 0건을 공급자 장애와 구분한다. |
+| `OutingTests.test_bad_input` | [backend/test_outing.py:61](../../backend/test_outing.py#L61) | 잘못된 출발 좌표나 종료 시각으로 외부 API를 호출하지 않는다. |
+| `OutingTests.test_empty_and_error` | [backend/test_outing.py:68](../../backend/test_outing.py#L68) | 실제 후보 0건을 공급자 장애와 구분한다. |
 | `OutingTests.test_end_boundary` | [backend/test_outing.py:27](../../backend/test_outing.py#L27) | 전시 종료 시각에 도착하는 입력은 단순 운영구간에서 제외한다. |
-| `OutingTests.test_genre_mismatch` | [backend/test_outing.py:48](../../backend/test_outing.py#L48) | 국악 조회에 전시가 섞이거나 전시만 반환돼도 국악 외 행사는 제외한다. |
-| `OutingTests.test_recording_scope` | [backend/test_outing.py:59](../../backend/test_outing.py#L59) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
+| `OutingTests.test_genre_mismatch` | [backend/test_outing.py:75](../../backend/test_outing.py#L75) | 국악 조회에 전시가 섞이거나 전시만 반환돼도 국악 외 행사는 제외한다. |
+| `OutingTests.test_input_error_fields` | [backend/test_outing.py:47](../../backend/test_outing.py#L47) | 시간 누락·형식·시간대·역전·다음날 및 잘못된 좌표의 필드를 특정한다. |
+| `OutingTests.test_minimum_duration_before_source` | [backend/test_outing.py:34](../../backend/test_outing.py#L34) | 59분과 59분59초는 외부 조회 전에 거절하며 정확히 60분은 허용한다. |
+| `OutingTests.test_recording_scope` | [backend/test_outing.py:86](../../backend/test_outing.py#L86) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
 | `Preview` | [backend/preview.py:14](../../backend/preview.py#L14) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
 | `Preview.do_GET` | [backend/preview.py:28](../../backend/preview.py#L28) | 점검 폼과 저장소의 대표 요청만 제공한다. |
 | `Preview.do_POST` | [backend/preview.py:37](../../backend/preview.py#L37) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
 | `Preview.reply` | [backend/preview.py:17](../../backend/preview.py#L17) | UTF-8 본문을 길이와 함께 응답한다. |
+| `PreviewContractTests` | [backend/test_preview.py:12](../../backend/test_preview.py#L12) | 실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다. |
+| `PreviewContractTests.request` | [backend/test_preview.py:15](../../backend/test_preview.py#L15) | JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다. |
+| `PreviewContractTests.setUp` | [backend/test_preview.py:28](../../backend/test_preview.py#L28) | 각 테스트가 사용할 독립적인 정상 요청을 읽는다. |
+| `PreviewContractTests.test_invalid_kind` | [backend/test_preview.py:61](../../backend/test_preview.py#L61) | 지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다. |
+| `PreviewContractTests.test_kind_compatibility` | [backend/test_preview.py:44](../../backend/test_preview.py#L44) | 정확히 60분인 route/course가 같은 코스 경로로, place는 후보만 반환한다. |
+| `PreviewContractTests.test_short_duration_response` | [backend/test_preview.py:33](../../backend/test_preview.py#L33) | 60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다. |
+| `PreviewContractTests.test_source_error_is_not_input_error` | [backend/test_preview.py:54](../../backend/test_preview.py#L54) | 공급자 장애는 필드 오류 대신 502이며 공급자 예외 내용은 숨긴다. |
 | `provider_response` | [backend/test_transit.py:11](../../backend/test_transit.py#L11) | 공식 스키마를 따르는 가상 도보·지하철·도보 3구간을 만든다. 시연 데이터가 아니다. |
 | `query_walking` | [backend/walking.py:16](../../backend/walking.py#L16) | 개인 화면의 도보 조회 간격을 제한하고 공급자의 JSON 또는 실패 상태를 반환한다. |
-| `recommend` | [backend/outing.py:95](../../backend/outing.py#L95) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
+| `recommend` | [backend/outing.py:122](../../backend/outing.py#L122) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
 | `record` | [utils/scripts/loop.py:21](../../utils/scripts/loop.py#L21) | Append one evidenced attempt, rejecting terminal states and blind repeats. |
 | `refresh` | [utils/scripts/watch.py:30](../../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
 | `render` | [utils/scripts/catalog.py:204](../../utils/scripts/catalog.py#L204) | Produce all utility and repository indexes without volatile timestamps. |
@@ -95,13 +107,13 @@
 | `run` | [utils/scripts/harness.py:63](../../utils/scripts/harness.py#L63) | Execute finite static checks and optional isolated utility tests. |
 | `safe_target` | [utils/scripts/reuse.py:18](../../utils/scripts/reuse.py#L18) | Resolve a relative destination without traversal, links or Git internals. |
 | `schedule_pair` | [backend/course.py:35](../../backend/course.py#L35) | 두 구간과 당일 시간표를 합산해 가능·미확인·충돌 및 방문별 예상시각을 반환한다. |
-| `seoul_page` | [backend/outing.py:41](../../backend/outing.py#L41) | 지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다. |
+| `seoul_page` | [backend/outing.py:68](../../backend/outing.py#L68) | 지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다. |
 | `short_text` | [backend/transit.py:41](../../backend/transit.py#L41) | 이동 안내 원문을 길이 제한된 텍스트로 받아 HTML 실행 없이 표시하도록 반환한다. |
 | `signature` | [utils/scripts/watch.py:18](../../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |
 | `source_files` | [utils/scripts/catalog.py:26](../../utils/scripts/catalog.py#L26) | List supported source files in configured roots, excluding symlinks. |
 | `start` | [utils/scripts/loop.py:14](../../utils/scripts/loop.py#L14) | Create an explicit task state with at most ten verification attempts. |
-| `time_match` | [backend/outing.py:79](../../backend/outing.py#L79) | 단순 전시 개방구간/공연 시작을 검사한다. 복합 운영규칙은 미확인(None)이다. |
+| `time_match` | [backend/outing.py:106](../../backend/outing.py#L106) | 단순 전시 개방구간/공연 시작을 검사한다. 복합 운영규칙은 미확인(None)이다. |
 | `ToolsTest` | [utils/tests/test_tools.py:25](../../utils/tests/test_tools.py#L25) | Check behavior with independent fixtures rather than mirrored implementation. |
 | `ToolsTest.git_repo` | [utils/tests/test_tools.py:46](../../utils/tests/test_tools.py#L46) | Initialize only the disposable Git fixture; set fixture-local identity. |
 | `ToolsTest.setUp` | [utils/tests/test_tools.py:28](../../utils/tests/test_tools.py#L28) | Create a minimal isolated repository fixture and public harness config. |
@@ -142,7 +154,7 @@
 | `TransitTests.test_request_and_provider_errors` | [backend/test_transit.py:88](../../backend/test_transit.py#L88) | 헤더만 키를 담고 날짜는 보내지 않으며 인증·한도·통신·본문 오류를 구분한다. |
 | `TransitTests.test_route_geometry` | [backend/test_transit.py:49](../../backend/test_transit.py#L49) | 경위도 순서를 검증하고 손상/누락 경로선 때문에 텍스트 안내까지 잃지 않는다. |
 | `TransitTests.test_unconfigured_and_coordinates` | [backend/test_transit.py:80](../../backend/test_transit.py#L80) | 미설정 시 외부 호출을 하지 않고 입력 누락·중복 좌표는 거절한다. |
-| `validate` | [backend/outing.py:25](../../backend/outing.py#L25) | 개인 장소 요청을 검증하고 한국 시각의 당일 구간과 출발점을 반환한다. |
+| `validate` | [backend/outing.py:36](../../backend/outing.py#L36) | 개인 장소 요청을 검증하고 한국 시각의 당일 구간과 출발점을 반환한다. |
 | `verify_message` | [utils/scripts/commit_report.py:17](../../utils/scripts/commit_report.py#L17) | Compare raw latest-commit message bytes to the complete report file. |
 | `visit_window` | [backend/course.py:11](../../backend/course.py#L11) | 행사 시간 원문에서 검증 가능한 당일 시작·종료와 고정 공연 여부를 얻는다. |
 | `wait_for` | [utils/scripts/verify_watch.py:14](../../utils/scripts/verify_watch.py#L14) | Wait a bounded period for generated evidence or report the failed phase. |

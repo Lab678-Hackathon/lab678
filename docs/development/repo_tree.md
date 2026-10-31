@@ -26,6 +26,7 @@ lab678/
     preview.py
     test_course.py
     test_outing.py
+    test_preview.py
     test_transit.py
     test_walking.py
     transit.py
@@ -48,6 +49,7 @@ lab678/
         demo-users.sample.json
         outing-request.json
         outing-response.json
+        recommend-response.recorded.json
         seoul-events.capture.json
       hackathon-server-usage-review.md
       keyless-routing-review.md
@@ -57,6 +59,7 @@ lab678/
       mobility-routing-review.md
       mvp-plan.md
       outing-handoff.md
+      recommend-api.md
       repo_index.md
       repo_reverse_index.md
       repo_tree.md
@@ -74,6 +77,7 @@ lab678/
         2026-10-31-discord-status-checklist.md
         2026-10-31-events.md
         2026-10-31-guide-push-ready.md
+        2026-10-31-input-contract.md
         2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md
         2026-10-31-local-plan-folder.md
@@ -164,6 +168,7 @@ lab678/
     scripts/
       catalog.py
       check_course_alternatives.cjs
+      check_input_contract.cjs
       check_outing_ui.cjs
       check_transit_ui.cjs
       commit_report.py

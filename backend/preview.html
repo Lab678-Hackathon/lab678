@@ -76,8 +76,8 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <label>위도 <input name="lat" type="number" step="any" min="-90" max="90" required></label>
 <label>경도 <input name="lng" type="number" step="any" min="-180" max="180" required></label></div>
 <small>기본 위치 <a href="https://www.openstreetmap.org/node/3436803670">청량리역 · © OpenStreetMap contributors</a></small></details></div>
-<div class="grid"><label>출발 시각 <input name="start" type="datetime-local" required></label>
-<label>종료 시각 <input name="end" type="datetime-local" required></label></div><small>한국 시각 기준</small>
+<div class="grid"><label>출발 시각 <input name="start" type="datetime-local" required aria-describedby="start-error"><span id="start-error" role="alert" hidden></span></label>
+<label>종료 시각 <input name="end" type="datetime-local" required aria-describedby="end-error"><span id="end-error" role="alert" hidden></span></label></div><small>한국 시각 기준 · 나들이 시간은 최소 1시간</small>
 <div class="group"><label>어떤 활동을 찾으세요? <select name="category" required><option value="" disabled>분류를 선택해 주세요</option><option selected>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label></div>
 <div class="group"><label>더 원하는 게 있으세요? <input name="note" placeholder="예: 전시를 보고 싶어요" aria-describedby="voice-help"></label>
 <div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
@@ -1033,9 +1033,41 @@ async function findAlternatives() {
 document.querySelector("#find-alternatives").onclick = findAlternatives;
 document.querySelector("#keep-course").onclick = resetAlternatives;
 
+/** 시간 오류를 입력 항목 바로 아래 표시한다. 기존 조건이나 음성 전사는 바꾸지 않는다. */
+function showTimeError(name, message) {
+  const error = document.getElementById(name + "-error");
+  error.textContent = message;
+  error.hidden = !message;
+  fields[name].setAttribute("aria-invalid", String(Boolean(message)));
+}
+
+/** 한국 시각 당일 구간과 최소 60분을 검사해 잘못된 요청이 서버로 나가지 않게 한다. */
+function checkTimeInputs(focus = false) {
+  for (const name of ["start", "end"]) showTimeError(name, "");
+  const start = Date.parse(fields.start.value + "+09:00");
+  const end = Date.parse(fields.end.value + "+09:00");
+  let name = "end", message = "";
+  if (!Number.isFinite(start)) { name = "start"; message = "날짜와 시각을 확인해 주세요."; }
+  else if (!Number.isFinite(end)) message = "날짜와 시각을 확인해 주세요.";
+  else if (end <= start || fields.start.value.slice(0,10) !== fields.end.value.slice(0,10))
+    message = "같은 날 출발보다 늦은 종료 시각을 입력해 주세요.";
+  else if (end - start < 60 * 60 * 1000) message = "나들이 시간은 최소 1시간 이상으로 설정해 주세요.";
+  if (!message) return true;
+  showTimeError(name, message);
+  if (focus) fields[name].focus();
+  return false;
+}
+for (const name of ["start", "end"]) {
+  fields[name].addEventListener("input", () => {
+    if (["start", "end"].some(key => !document.getElementById(key + "-error").hidden)) checkTimeInputs();
+  });
+  fields[name].addEventListener("invalid", event => { event.preventDefault(); checkTimeInputs(true); });
+}
+
 /** 입력을 유지하면서 재조회하고 시도별 결과·실패를 구분한다. */
 async function search(event) {
   event.preventDefault();
+  if (!checkTimeInputs(true)) return;
   if (session) {
     voiceStatus.textContent = "음성 입력을 마치는 중입니다. 입력된 조건을 확인한 뒤 추천받기를 눌러 주세요.";
     session.stop(); return;
@@ -1059,7 +1091,10 @@ async function search(event) {
     const response = await fetch("/preview/recommend", {method:"POST",headers:{"Content-Type":"application/json"},
       body:JSON.stringify(recommendationRequest(data))});
     const body = await response.json();
-    if (!response.ok) throw new Error(body.message);
+    if (!response.ok) {
+      if (["start_at", "end_at"].includes(body.field)) showTimeError(body.field === "start_at" ? "start" : "end", body.message);
+      throw new Error(body.message);
+    }
     renderRecommendation(body, data);
   } catch (error) {
     excludedIds = [];

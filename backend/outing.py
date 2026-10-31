@@ -10,6 +10,17 @@ from urllib.request import urlopen
 KST = timezone(timedelta(hours=9))
 EXAMPLES = Path(__file__).resolve().parents[1] / "docs/development/examples"
 CATEGORIES = {"전시", "전체", "국악", "클래식", "콘서트", "연극"}
+MIN_OUTING_MINUTES = 60
+
+
+class InputError(ValueError):
+    """추천 입력 오류의 공개 코드·필드·안내문을 담는다. 원본 입력값은 포함하지 않는다."""
+
+    def __init__(self, code, field, message):
+        """HTTP 오류 응답과 필드별 안내에 사용할 고정 메타데이터를 보관한다."""
+        super().__init__(message)
+        self.code = code
+        self.field = field
 
 
 def coordinate(value, limit):
@@ -26,16 +37,32 @@ def validate(data):
     """개인 장소 요청을 검증하고 한국 시각의 당일 구간과 출발점을 반환한다."""
     origin = data.get("start_location")
     if not isinstance(origin, dict) or not isinstance(origin.get("label"), str) or not origin["label"].strip():
-        raise ValueError("출발지를 입력해 주세요.")
-    if data.get("request_kind") not in ("place", "course") or data.get("category") not in CATEGORIES:
-        raise ValueError("장소 찾기와 지원하는 분류를 선택해 주세요.")
-    start, end = (datetime.fromisoformat(data[key]) for key in ("start_at", "end_at"))
-    if not start.tzinfo or not end.tzinfo:
-        raise ValueError("시간대를 포함해 주세요.")
-    start, end = start.astimezone(KST), end.astimezone(KST)
+        raise InputError("invalid_location", "start_location", "출발지를 입력해 주세요.")
+    if data.get("request_kind") not in ("place", "course", "route"):
+        raise InputError("invalid_kind", "request_kind", "행사 찾기 또는 문화코스를 선택해 주세요.")
+    if not isinstance(data.get("category"), str) or data["category"] not in CATEGORIES:
+        raise InputError("invalid_category", "category", "지원하는 분류를 선택해 주세요.")
+    times = []
+    for field in ("start_at", "end_at"):
+        try:
+            value = datetime.fromisoformat(data[field])
+        except (ValueError, TypeError, KeyError):
+            raise InputError("invalid_time", field, "날짜와 시각을 확인해 주세요.") from None
+        if not value.tzinfo:
+            raise InputError("timezone_required", field, "시간대를 포함해 주세요.")
+        times.append(value.astimezone(KST))
+    start, end = times
     if start >= end or start.date() != end.date():
-        raise ValueError("같은 날 출발보다 늦은 종료 시각을 입력해 주세요.")
-    return start, end, coordinate(origin.get("lat"), 90), coordinate(origin.get("lng"), 180)
+        raise InputError("invalid_time_range", "end_at", "같은 날 출발보다 늦은 종료 시각을 입력해 주세요.")
+    if end - start < timedelta(minutes=MIN_OUTING_MINUTES):
+        raise InputError("minimum_duration", "end_at", "나들이 시간은 최소 1시간 이상으로 설정해 주세요.")
+    coords = []
+    for field, limit in (("lat", 90), ("lng", 180)):
+        try:
+            coords.append(coordinate(origin.get(field), limit))
+        except (ValueError, TypeError):
+            raise InputError("invalid_coordinate", "start_location." + field, "위도·경도를 확인해 주세요.") from None
+    return start, end, *coords
 
 
 def seoul_page(day, category, mode):

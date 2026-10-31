@@ -1,0 +1,113 @@
+{
+  "status": "ready",
+  "mode": "recorded",
+  "source_checked_at": "2026-10-31T06:27:57+09:00",
+  "searched_count": 5,
+  "source_total": 8,
+  "candidates": [
+    {
+      "id": "seoul:159578",
+      "title": "예고를 빛낸 사람 수상작가전: 첫 장면 Award-Winning Alumni Exhibition: The First Scene",
+      "venue": "서울아트센터 도암 3층 도암갤러리",
+      "lat": 37.60603328383823,
+      "lng": 126.96904312496109,
+      "distance_km": 7.53,
+      "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159578&menuNo=200009",
+      "fixed_start_at": null,
+      "genre": "전시/미술",
+      "opening_info": "화-토, 오전10:00~18:00 (일, 월, 공휴일 휴관)",
+      "price_info": null,
+      "fee_type": "무료",
+      "audience": "누구나",
+      "status": "check",
+      "checks_required": [
+        "예약 가능 여부·실제 이동시간 확인",
+        "요일·휴관·회차별 시간 확인"
+      ],
+      "source_checked_at": "2026-10-31T06:27:57+09:00"
+    },
+    {
+      "id": "seoul:159859",
+      "title": "[송파 청년아티스트센터] 3기 릴레이 개인전 [dot to dot] - 권봉균",
+      "venue": "송파 청년아티스트센터 지하1층 아트 스페이스",
+      "lat": 37.5340686405498,
+      "lng": 127.115954729217,
+      "distance_km": 7.9,
+      "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159859&menuNo=200009",
+      "fixed_start_at": null,
+      "genre": "전시/미술",
+      "opening_info": "10:00~18:00, 일요일 및 공휴일 휴관",
+      "price_info": null,
+      "fee_type": "무료",
+      "audience": "누구나",
+      "status": "check",
+      "checks_required": [
+        "예약 가능 여부·실제 이동시간 확인",
+        "요일·휴관·회차별 시간 확인"
+      ],
+      "source_checked_at": "2026-10-31T06:27:57+09:00"
+    },
+    {
+      "id": "seoul:159829",
+      "title": "전시 [IMPRINTS OF TIME]",
+      "venue": "갤러리 지하",
+      "lat": 37.5534782220949,
+      "lng": 126.93267709449,
+      "distance_km": 10.62,
+      "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159829&menuNo=200009",
+      "fixed_start_at": null,
+      "genre": "전시/미술",
+      "opening_info": "12:00~19:00",
+      "price_info": null,
+      "fee_type": "무료",
+      "audience": "누구나",
+      "status": "check",
+      "checks_required": [
+        "예약 가능 여부·실제 이동시간 확인"
+      ],
+      "source_checked_at": "2026-10-31T06:27:57+09:00"
+    },
+    {
+      "id": "seoul:159723",
+      "title": "[구립증산도서관] 10월 미니멀 북큐레이션 [달마다, 나를 아끼는 습관] 책과 가까워지는 시간",
+      "venue": "2층 종합자료실",
+      "lat": 37.5828094398328,
+      "lng": 126.907671330325,
+      "distance_km": 12.39,
+      "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159723&menuNo=200009",
+      "fixed_start_at": null,
+      "genre": "전시/미술",
+      "opening_info": "주중 9:00~22:00 / 주말 09:00~18:00",
+      "price_info": null,
+      "fee_type": "무료",
+      "audience": "누구나",
+      "status": "check",
+      "checks_required": [
+        "예약 가능 여부·실제 이동시간 확인",
+        "요일·휴관·회차별 시간 확인"
+      ],
+      "source_checked_at": "2026-10-31T06:27:57+09:00"
+    },
+    {
+      "id": "seoul:159808",
+      "title": "김영재 개인전 [Ashes to Bones]",
+      "venue": "아케이드 서울",
+      "lat": 37.5155167575219,
+      "lng": 126.894539872062,
+      "distance_km": 15.36,
+      "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159808&menuNo=200009",
+      "fixed_start_at": null,
+      "genre": "전시/미술",
+      "opening_info": "월-일요일 12:00~19:00",
+      "price_info": "0원",
+      "fee_type": "무료",
+      "audience": "누구나",
+      "status": "check",
+      "checks_required": [
+        "예약 가능 여부·실제 이동시간 확인",
+        "요일·휴관·회차별 시간 확인"
+      ],
+      "source_checked_at": "2026-10-31T06:27:57+09:00"
+    }
+  ]
+}
