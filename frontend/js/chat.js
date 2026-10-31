@@ -154,6 +154,11 @@ function actions() {
   if (busy) return;
   const last = state.messages[state.messages.length - 1];
   if (last?.retry) { chip('같은 조건으로 다시 찾기', () => search()); return; }
+  if (last?.music && !state.pending) {
+    ['국악', '클래식', '콘서트'].forEach((c) => chip(c, () => answer(c, { category: c })));
+    chip('골고루 좋아요', () => answer('골고루 좋아요', { category: '전체' }));
+    return;
+  }
   if (state.pending) {
     const p = state.pending;
     chip(`${josa(show(p.field, p.after), '으로')} 바꾸기`, () => resolvePending(true), 'chip chip--primary');
@@ -379,7 +384,7 @@ async function handle(text) {
   busy = false;
   const { useHere: here, startQuery, ask, ...changes } = p;
   patch(changes);
-  if (ask) { say(ask); return; }
+  if (ask) { say(ask, { ask: true, music: true }); return; } // AI 가 음악 종류를 되물을 때
   if (here) { await useHere(); return; }
   if (startQuery && !d().startLocation) { await findStart(startQuery); return; }
   if (startQuery && state.lastRequest) { await findStart(startQuery, true); return; }
