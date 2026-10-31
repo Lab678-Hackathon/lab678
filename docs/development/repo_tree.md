@@ -36,6 +36,7 @@ lab678/
     team_chat.js
     team_culture.js
     team_preferences.js
+    team_voice_actions.js
     test_chat_conditions.py
     test_course.py
     test_culture_sources.py
@@ -122,6 +123,9 @@ lab678/
         keys.json
         manifest.json
         map-check.json
+      qa-voice-navigation/
+        navigation-checks.json
+        session-checks.json
       qa-voice-session/
         live-ai-check.json
         manifest.json
@@ -200,6 +204,7 @@ lab678/
         20261031-team-flow-connected.md
         20261031-user-preferences-kakao-review.md
         automatic-voice-session.md
+        common-automatic-dialogue.md
         conversation-validation.md
         culture-source-preparation.md
         frontend-chat-package.md
@@ -291,6 +296,7 @@ lab678/
       check_service_keys.py
       check_team_flow.cjs
       check_transit_ui.cjs
+      check_voice_navigation.cjs
       check_voice_session.cjs
       commit_report.py
       context.py

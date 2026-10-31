@@ -8,7 +8,7 @@ const base = process.env.LAB678_TEST_BASE || 'http://127.0.0.1:5175';
 
 /** 장치 이벤트를 통제하고 오래된 콜백도 재현한다. 실제 음성 녹음/출력은 하지 않는다. */
 function devices(config) {
-  const t = window.voiceTest = { starts: 0, aborts: 0, speaks: 0, texts: [...(config.texts || [])], sessions: [], speech: null };
+  const t = window.voiceTest = { starts: 0, aborts: 0, speaks: 0, greetings: 0, spoken: [], texts: [...(config.texts || [])], sessions: [], speech: null };
   window.SpeechRecognition = class {
     start() {
       t.starts++;
@@ -30,6 +30,8 @@ function devices(config) {
   Object.defineProperty(window, 'speechSynthesis', { configurable: true, value: {
     cancel() { t.speech = null; },
     speak(speech) {
+      t.spoken.push(speech.text);
+      if (t.starts === 0) { t.greetings++; setTimeout(() => speech.onend?.(), 30); return; }
       t.speaks++; t.speech = speech;
       if (config.autoRead !== false) setTimeout(() => speech.onend?.(), 30);
     },
@@ -65,7 +67,7 @@ async function ready(browser, config = {}, handler) {
 async function stopped(page, pattern) {
   await page.waitForFunction(() => document.querySelector('#chat-voice-status').dataset.phase === 'idle');
   assert.match(await page.locator('#chat-voice-status').textContent(), pattern);
-  assert.equal(await page.locator('#chat-mic').textContent(), '음성 대화 시작');
+  assert.equal(await page.locator('#chat-mic').textContent(), '자동 음성 대화 시작');
   assert.equal(await page.locator('#chat-max-turns').isDisabled(), false);
 }
 
@@ -119,6 +121,7 @@ async function main() {
     await check('stop_rejects_late_recognition', async () => {
       const { page, stats } = await ready(browser);
       await page.locator('#chat-mic').click();
+      await page.waitForFunction(() => voiceTest.starts === 1);
       await page.locator('#chat-voice-stop').click();
       await page.evaluate(() => {
         const h = voiceTest.sessions[0].handlers, result = [{ transcript: '늦은 국악' }]; result.isFinal = true;
@@ -157,8 +160,10 @@ async function main() {
     await check('navigation_and_manual_input_stop', async () => {
       const { page, stats } = await ready(browser);
       await page.locator('#chat-mic').click();
+      await page.waitForFunction(() => voiceTest.starts === 1);
       await page.locator('#chat-text').fill('직접 입력'); await stopped(page, /멈췄/);
       await page.locator('#chat-mic').click();
+      await page.waitForFunction(() => voiceTest.starts === 2);
       await page.evaluate(() => { location.hash = '/home'; });
       await page.waitForFunction(() => document.querySelector('#chat-voice-status').dataset.phase === 'idle');
       assert.equal(stats.calls, 0); assert.equal(await page.evaluate(() => voiceTest.aborts), 2); await page.close();
@@ -212,4 +217,5 @@ async function main() {
   }
   if (report.cases.some(c => !c.passed)) process.exitCode = 1;
 }
-main().catch(e => { console.error(e.message); process.exitCode = 1; });
+module.exports = { devices, response };
+if (require.main === module) main().catch(e => { console.error(e.message); process.exitCode = 1; });

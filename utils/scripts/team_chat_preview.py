@@ -69,6 +69,9 @@ def main():
             elif path == "/js/dj-voice.js":
                 body = (ROOT / "backend/voice_session.js").read_bytes()
                 content_type = "text/javascript; charset=utf-8"
+            elif path == "/js/dj-voice-actions.js":
+                body = (ROOT / "backend/team_voice_actions.js").read_bytes()
+                content_type = "text/javascript; charset=utf-8"
             elif path == "/js/results.js":
                 try:
                     body = integrate_results((front / "js/results.js").read_text(encoding="utf-8")).encode()

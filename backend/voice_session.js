@@ -104,7 +104,7 @@ export class VoiceSession {
     this.onState({ active: false, phase: 'idle', turns: this.turns, limit: this.limit, message });
   }
   /** 유효한 설정으로만 시작하며 횟수/준비/동의/좌표 선택/오류 중 먼저 만나는 조건에서 끝난다. */
-  async start({ maxTurns, silenceSeconds }) {
+  async start({ maxTurns, silenceSeconds, initialPrompt = '' }) {
     if (this.active) return;
     if (!Number.isInteger(maxTurns) || maxTurns < 1 || maxTurns > 10 || !Number.isInteger(silenceSeconds) || silenceSeconds < 5 || silenceSeconds > 60) {
       this.onState({ active: false, phase: 'idle', turns: 0, limit: maxTurns, message: '대화 횟수는 1~10회, 무응답 시간은 5~60초로 설정해 주세요.' }); return;
@@ -114,6 +114,11 @@ export class VoiceSession {
     /** 각 단계는 같은 세션에서만 화면에 반영한다. */
     const phase = (name, message) => this.onState({ active: true, phase: name, turns: this.turns, limit: maxTurns, message });
     try {
+      if (initialPrompt) {
+        phase('speaking', 'AI가 먼저 질문해요. 안내가 끝나면 말씀해 주세요.');
+        await readVoiceReply(initialPrompt, signal);
+        if (signal.aborted) return;
+      }
       while (this.controller === controller && this.turns < maxTurns) {
         phase('listening', `듣고 있어요. ${silenceSeconds}초 동안 답변이 없으면 마칩니다.`);
         const text = await listenForReply(signal, silenceSeconds, this.onTranscript);
@@ -126,6 +131,7 @@ export class VoiceSession {
         phase('speaking', '답변을 읽고 있어요. 읽기가 끝나면 다시 듣습니다.');
         await readVoiceReply(result.assistant_text, signal);
         if (signal.aborted) return;
+        if (result.end_session) { this.stop('요청하신 대화를 마쳤어요.'); return; }
         if (result.conflicts?.length) { this.stop('변경할 조건을 화면에서 확인해 주세요. 자동 대화를 멈췄어요.'); return; }
         if (result.ready_to_search) { this.stop('조건이 준비됐어요. 화면에서 확인하고 추천받기를 눌러 주세요.'); return; }
         const draft = result.updated_condition_draft;

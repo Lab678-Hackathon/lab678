@@ -259,6 +259,14 @@
       "backend/team_chat.js",
       "utils/scripts/check_voice_session.cjs",
       "docs/development/automatic-voice.md"
+    ],
+    "공통 자동 대화·음성 화면 이동": [
+      "backend/team_voice_actions.js",
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_navigation.cjs",
+      "utils/scripts/check_voice_session.cjs",
+      "docs/development/automatic-voice.md"
     ]
   }
 }

@@ -1,4 +1,4 @@
-/** 팀 프론트 164cd40의 S02에 붙이는 독립 채팅 모듈. 최종 반영 전 담당 확인용이다.
+/** 팀 프론트 164cd40의 공통 자동 대화 모듈. 최종 반영 전 담당 확인용이다.
  * /js/dj-chat.js로 제공하며 같은 폴더의 state/search 모듈을 사용한다.
  * 좌표/행사 사실을 만들지 않고, 입력 수정·새 발화 뒤 오래된 응답은 폐기한다.
  */
@@ -6,6 +6,7 @@ import { state, save } from './state.js';
 import { renderSearch } from './search.js';
 import { preferenceFields, preferenceText, renderResultPreferences } from './dj-preferences.js';
 import { VoiceSession } from './dj-voice.js';
+import { screenContext, openingQuestion, voiceAction, currentCandidate, candidateSpeech } from './dj-voice-actions.js';
 
 const root = document.querySelector('#s02');
 const api = (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
@@ -17,18 +18,21 @@ let abort = null;
 let busy = false;
 let voiceSession = null;
 let lastReply = '';
+let voiceRoute = null;
 const box = document.createElement('section');
 box.id = 'dj-chat';
 box.className = 'field';
 box.setAttribute('aria-label', 'AI와 나들이 조건 정하기');
-box.innerHTML = `<h2>어떤 나들이를 하고 싶으세요?</h2>
- <p class="muted">한 번에 다 말씀하지 않아도 괜찮아요. 대화하면서 조건을 함께 정해요.</p>
+box.innerHTML = `<h2>AI와 자동으로 대화하기</h2>
+ <p id="chat-screen" class="caption"></p>
+ <p class="muted">시작 한 번이면 AI 질문 → 내 답변 듣기 → 다음 질문이 자동으로 이어져요.</p>
  <label for="chat-text">하고 싶은 말씀</label>
  <textarea id="chat-text" rows="3" maxlength="1000" placeholder="국악을 듣고 싶어요"></textarea>
- <div class="chat-actions"><button type="button" class="btn btn--outline" id="chat-mic">음성 대화 시작</button>
+ <div class="chat-actions"><button type="button" class="btn btn--primary" id="chat-mic">자동 음성 대화 시작</button>
  <button type="button" class="btn btn--outline" id="chat-voice-stop" disabled>대화 중지</button>
  <button type="button" class="btn btn--primary" id="chat-send">보내기</button></div>
  <p id="chat-voice-status" role="status" aria-live="polite"></p>
+ <p class="caption muted">“음악을 듣고 싶어요”, “조건 바꿔”, “두 번째 장소 자세히 보여줘”처럼 말해 보세요.</p>
  <details id="chat-voice-settings"><summary>음성 대화 설정</summary>
  <label>최대 대화 횟수 <input id="chat-max-turns" type="number" min="1" max="10" step="1">회</label>
  <label>무응답 자동 종료 <input id="chat-silence-seconds" type="number" min="5" max="60" step="1">초</label>
@@ -42,6 +46,7 @@ const style = document.createElement('style');
 style.textContent = '#dj-chat textarea{width:100%;box-sizing:border-box;font:inherit;padding:12px;border:1px solid #687c71;border-radius:12px}#dj-chat .chat-actions{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}#dj-chat .btn{flex:1;min-width:120px}#dj-chat [hidden]{display:none!important}#chat-history p{white-space:pre-wrap;overflow-wrap:anywhere}#chat-conflicts{padding:16px;border:2px solid #8b632a;border-radius:12px;margin:12px 0}#chat-conflicts p{overflow-wrap:anywhere}';
 document.head.append(style);
 style.textContent += '#chat-voice-settings{border:1px solid #687c71;border-radius:12px;padding:12px;margin:12px 0}#chat-voice-settings summary{font-weight:700;cursor:pointer;padding:6px 0}#chat-voice-settings label{display:block;margin:12px 0}#chat-voice-settings input{font:inherit;width:90px;min-height:44px;padding:6px;box-sizing:border-box;margin:0 6px}#chat-voice-status{white-space:pre-wrap}';
+style.textContent += '#dj-chat{padding:20px;border:2px solid #547562;border-radius:16px;background:#fff;margin:16px 0}#dj-chat h2{font-size:1.35rem;margin:0 0 12px}#dj-chat p{overflow-wrap:anywhere}';
 root.querySelector('[data-field="start"]').before(box);
 const $ = (selector) => box.querySelector(selector);
 $('#chat-text').value = state.chat.text || '';
@@ -67,6 +72,70 @@ function draft() {
   return d;
 }
 let fingerprint = JSON.stringify(draft());
+
+/** 공통 패널 하나를 구현된 화면으로 옮긴다. 대화·설정·이벤트를 복제하지 않는다. */
+function mountConversation() {
+  const screen = screenContext();
+  let target = document.querySelector({ home: '#s01 .home', search: '#s02 .page', results: '#s03 .page', detail: '#chat-host-detail', me: '#chat-host-me' }[screen.kind] || '#s01 .home');
+  if (!target && ['detail', 'me'].includes(screen.kind)) {
+    target = document.createElement('div'); target.className = 'page'; target.id = `chat-host-${screen.kind}`;
+    const anchor = document.querySelector(screen.kind === 'detail' ? '#s04-body' : '#s07 .stub');
+    anchor.before(target);
+  }
+  if (screen.kind === 'landing') { box.hidden = true; return; }
+  box.hidden = false;
+  if (target && box.parentElement !== target) {
+    if (screen.kind === 'home') target.querySelector('.home__hero')?.after(box);
+    else target.prepend(box);
+  }
+  $('#chat-screen').textContent = `현재 화면 · ${screen.name}`;
+}
+
+/** 음성이 요청한 알려진 화면으로 이동할 때만 대화를 이어간다. 수동 이동은 중지한다. */
+async function navigateVoice(path) {
+  if (location.hash === '#' + path) return;
+  voiceRoute = '#' + path;
+  await new Promise(resolve => {
+    window.addEventListener('hashchange', resolve, { once: true });
+    location.hash = path;
+  });
+}
+
+/** 현재 후보와 라우터로 화면을 조작한다. 미연결 기능을 완료한 것처럼 안내하지 않는다. */
+async function handleAction(action) {
+  if (action.kind === 'stop') return { assistant_text: '음성 대화를 마칠게요.', end_session: true };
+  if (action.kind === 'navigate') { await navigateVoice(action.path); return { assistant_text: action.text }; }
+  if (action.kind === 'back') {
+    const detail = screenContext().kind === 'detail';
+    await navigateVoice(detail ? '/results' : '/search');
+    return { assistant_text: detail ? '추천 목록으로 돌아왔어요. 몇 번째 장소를 볼까요?' : '조건 입력 화면으로 돌아왔어요. 무엇을 바꿀까요?' };
+  }
+  if (action.kind === 'results') {
+    if (!state.result) return { assistant_text: '아직 추천 결과가 없어요. 먼저 나들이 조건을 말씀해 주세요.' };
+    await navigateVoice('/results');
+    return { assistant_text: `추천 결과 ${state.result.candidates.length}곳이에요. 몇 번째 장소를 볼까요?` };
+  }
+  if (action.kind === 'decision') {
+    if (!state.chat.pending) return { assistant_text: '변경 동의를 기다리는 조건은 없어요. 바꾸고 싶은 내용을 말씀해 주세요.' };
+    await navigateVoice('/search'); decide(action.accept);
+    return { assistant_text: $('#chat-status').textContent, ready_to_search: false };
+  }
+  if (action.kind === 'detail') {
+    const id = state.shownIds?.[action.index];
+    const candidate = state.result?.candidates?.find(item => item.id === id);
+    if (!candidate) return { assistant_text: '그 번호의 추천 장소가 없어요. 추천 목록에 있는 번호를 말씀해 주세요.' };
+    await navigateVoice('/place/' + encodeURIComponent(candidate.id));
+    return { assistant_text: `${action.index + 1}번째, ${candidate.title} 상세를 열었어요. 장소 정보를 읽거나 조건을 바꿀 수 있어요.` };
+  }
+  if (action.kind === 'read' || action.kind === 'select') {
+    const candidate = currentCandidate();
+    if (!candidate) return { assistant_text: '먼저 추천 장소의 상세 화면을 열어 주세요.' };
+    if (action.kind === 'read') return { assistant_text: candidateSpeech(candidate) };
+    document.querySelector('#s04-pick').click();
+    return { assistant_text: `${candidate.title}을 선택했어요. 예약이나 저장이 완료된 것은 아니에요.` };
+  }
+  return { assistant_text: '코스와 길찾기는 이 팀 화면에 아직 연결 중이에요. 장소 추천과 상세 보기를 먼저 이용해 주세요.' };
+}
 
 /** 현재 안내와 추천 잠금을 갱신한다. 미해결 충돌/AI 처리 중 추천은 진행하지 않는다. */
 function note(text) {
@@ -186,24 +255,35 @@ function searchOrigin() {
 }
 
 /** 직접 수정·화면 이동 시 이전 요청/충돌을 무효화한다. */
-function invalidate(keepVoice = false) {
+function invalidate(keepVoice = false, keepPending = false) {
   if (!keepVoice) voiceSession?.stop();
   state.chat.revision++;
   abort?.abort();
   abort = null;
   const interrupted = busy || Boolean(state.chat.pending);
   busy = false;
-  state.chat.pending = null;
+  if (!keepPending) state.chat.pending = null;
   fingerprint = JSON.stringify(draft());
   save(); showConflicts();
-  if (interrupted) note('직접 바꾼 조건을 유지했어요. 이전 AI 응답은 적용하지 않습니다.');
+  if (interrupted) note(keepPending && state.chat.pending ? '변경할 조건을 확인해 주세요.' : '직접 바꾼 조건을 유지했어요. 이전 AI 응답은 적용하지 않습니다.');
 }
 
 /** 텍스트/최종 음성 전사를 API로 한 번 전송한다. 응답 적용 직전 revision·현재값을 다시 비교한다. */
 async function send(voiceSignal = null) {
   const message = $('#chat-text').value.trim();
   if (!message) { note('하고 싶은 말씀을 입력해 주세요.'); return; }
-  invalidate(Boolean(voiceSignal));
+  const action = voiceAction(message);
+  invalidate(Boolean(voiceSignal), action?.kind === 'decision');
+  if (voiceSignal?.aborted) return;
+  if (action) {
+    remember('user', message);
+    const result = await handleAction(action);
+    if (voiceSignal?.aborted) return;
+    lastReply = result.assistant_text; remember('assistant', lastReply); note(lastReply);
+    if (!voiceSignal && $('#chat-auto-read').checked) speak();
+    return result;
+  }
+  await navigateVoice('/search');
   if (voiceSignal?.aborted) return;
   const mine = ++state.chat.revision;
   const current = draft();
@@ -272,7 +352,7 @@ voiceSession = new VoiceSession({
   submit: async (text, signal) => { $('#chat-text').value = text; return send(signal); },
   onTranscript: text => { $('#chat-text').value = text; state.chat.text = text; save(); },
   onState: ({ active, phase, turns, limit, message }) => {
-    $('#chat-mic').textContent = active ? '음성 대화 중지' : '음성 대화 시작';
+    $('#chat-mic').textContent = active ? '자동 음성 대화 중지' : '자동 음성 대화 시작';
     $('#chat-mic').setAttribute('aria-pressed', String(active));
     $('#chat-voice-stop').disabled = !active;
     $('#chat-max-turns').disabled = $('#chat-silence-seconds').disabled = active;
@@ -286,17 +366,17 @@ $('#chat-silence-seconds').addEventListener('change', voiceSettings);
 $('#chat-send').addEventListener('click', () => send());
 $('#chat-mic').addEventListener('click', () => {
   if (voiceSession.active) { voiceSession.stop(); return; }
-  if (state.chat.pending) { note('변경할 조건을 먼저 화면에서 확인해 주세요.'); return; }
   const settings = voiceSettings();
   if (!settings) return;
-  invalidate(); window.speechSynthesis?.cancel();
-  voiceSession.start(settings);
+  invalidate(false, true); window.speechSynthesis?.cancel();
+  lastReply = openingQuestion(); remember('assistant', lastReply); note(lastReply);
+  voiceSession.start({ ...settings, initialPrompt: lastReply });
 });
 $('#chat-voice-stop').addEventListener('click', () => voiceSession.stop());
 $('#chat-read').addEventListener('click', () => { voiceSession.stop(); speak(); });
 $('#chat-stop').addEventListener('click', () => { voiceSession.stop(); window.speechSynthesis?.cancel(); });
 $('#chat-text').addEventListener('input', () => {
-  invalidate();
+  invalidate(false, true);
   state.chat.text = $('#chat-text').value; save();
 });
 for (const type of ['input', 'change', 'click']) root.addEventListener(type, event => {
@@ -317,10 +397,13 @@ root.addEventListener('click', event => {
   }
 }, true);
 window.addEventListener('hashchange', () => {
-  if (location.hash !== '#/search') { invalidate(); window.speechSynthesis?.cancel(); }
+  if (voiceRoute === location.hash) voiceRoute = null;
+  else { invalidate(false, true); window.speechSynthesis?.cancel(); }
+  mountConversation();
   queueMicrotask(renderResultPreferences);
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden) invalidate(); });
-window.addEventListener('pagehide', () => invalidate());
+document.addEventListener('visibilitychange', () => { if (document.hidden) invalidate(false, true); });
+window.addEventListener('pagehide', () => invalidate(false, true));
 renderResultPreferences();
+mountConversation();
 showHistory(); showConflicts(); note(state.chat.pending ? '이전 변경 요청을 확인해 주세요.' : '조건을 말씀해 주세요.');

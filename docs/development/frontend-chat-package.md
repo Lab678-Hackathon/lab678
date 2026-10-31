@@ -67,3 +67,7 @@ git apply /패키지경로/team-chat.patch
 ## 최신 패키지 · 자동 음성 대화 포함
 
 현재 최신은 **7파일**이며 `.local/chat-handoff-164cd40-1588144da0/`다. dj-voice.js 추가, 채팅 시작/중지·최대횟수/무응답 설정 포함. 기존6파일은 문화정보 연결 시점 이력. 실파일5175와 동적5174를 갱신했다. [자동 음성 계약과 검증](automatic-voice.md).
+
+## 최신 자동 대화·화면 조작 패키지 (2026-10-31)
+
+`.local/chat-handoff-164cd40-01e552cba6/team-chat-handoff.zip` · 8파일 · frontend164cd40 대상. AI 첫 질문→자동 듣기 반복, 공통 패널·화면 이동 모듈 추가. 자세한 현재 사용법은 [자동 음성 대화](automatic-voice.md). 앞선 패키지 설명은 이력이며 현재 패키지가 우선한다. 팀 원본 반영은 담당 확인 후다.
