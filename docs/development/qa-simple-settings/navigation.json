@@ -1,0 +1,27 @@
+{
+  "base": "http://127.0.0.1:8765/app",
+  "audio": "mock",
+  "scope": "restored initial S02; home-only conversation",
+  "cases": [
+    {
+      "name": "phone_home_and_original_settings_are_distinct",
+      "passed": true
+    },
+    {
+      "name": "greeting_followup_need_then_initial_settings_preserves_draft",
+      "passed": true
+    },
+    {
+      "name": "manual_transition_stops_microphone_and_rejects_late_result",
+      "passed": true
+    },
+    {
+      "name": "original_settings_59_rejected_60_opens_inline_confirmation",
+      "passed": true
+    },
+    {
+      "name": "results_and_profile_have_no_injected_conversation_panel",
+      "passed": true
+    }
+  ]
+}

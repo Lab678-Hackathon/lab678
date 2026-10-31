@@ -1,0 +1,350 @@
+{
+  "ai": "Naito claude-sonnet-4 live",
+  "ui_recommendation": "recorded",
+  "turns": [
+    {
+      "status": "draft",
+      "base_revision": 2,
+      "assistant_text": "음악이라면 국악·클래식·콘서트를 찾아볼 수 있어요. 어떤 음악이 좋으세요? 골고루 듣고 싶다고 하셔도 돼요.",
+      "updated_condition_draft": {
+        "request_kind": "place",
+        "date": "2026-10-31",
+        "categories": [
+          "국악",
+          "클래식",
+          "콘서트"
+        ],
+        "category": "국악",
+        "music_followup": true
+      },
+      "missing_fields": [
+        "start_location",
+        "start_at",
+        "end_at"
+      ],
+      "field_errors": [],
+      "conflicts": [],
+      "ready_to_search": false,
+      "requires_final_confirmation": true,
+      "source": "naito",
+      "model": "claude-sonnet-4"
+    },
+    {
+      "status": "draft",
+      "base_revision": 4,
+      "assistant_text": "어디에서 출발하세요? 장소 검색 결과에서 출발지를 선택해 주세요.",
+      "updated_condition_draft": {
+        "request_kind": "place",
+        "categories": [
+          "국악",
+          "클래식",
+          "콘서트"
+        ],
+        "music_followup": false,
+        "date": "2026-10-31",
+        "category": "국악"
+      },
+      "missing_fields": [
+        "start_location",
+        "start_at",
+        "end_at"
+      ],
+      "field_errors": [],
+      "conflicts": [],
+      "ready_to_search": false,
+      "requires_final_confirmation": true,
+      "source": "naito",
+      "model": "claude-sonnet-4"
+    },
+    {
+      "status": "draft",
+      "base_revision": 7,
+      "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+      "updated_condition_draft": {
+        "request_kind": "place",
+        "categories": [
+          "전시"
+        ],
+        "music_followup": false,
+        "date": "2026-10-31",
+        "category": "전시",
+        "start_location": {
+          "label": "청량리역",
+          "lat": 37.5805961,
+          "lng": 127.0482573
+        },
+        "exclude_terms": [
+          "예고를 빛낸 사람"
+        ],
+        "free_only": true,
+        "walking_preference": "short",
+        "start_at": "2026-10-31T14:00:00+09:00",
+        "end_at": "2026-10-31T17:00:00+09:00"
+      },
+      "missing_fields": [],
+      "field_errors": [],
+      "conflicts": [],
+      "ready_to_search": true,
+      "requires_final_confirmation": true,
+      "source": "naito",
+      "model": "claude-sonnet-4"
+    }
+  ],
+  "checks": [
+    "PASS: 음악 탐색→골고루→복합 조건 자동 설정→실제 요청 선호→기록 후보 선별→상세 ID",
+    "PASS: 미래 날짜 서울시 실제 3분류 조회; 0건은 정상 조회와 구분 기록"
+  ],
+  "request": {
+    "request_kind": "place",
+    "start_location": {
+      "label": "청량리역",
+      "lat": 37.5805961,
+      "lng": 127.0482573
+    },
+    "start_at": "2026-10-31T14:00:00+09:00",
+    "end_at": "2026-10-31T17:00:00+09:00",
+    "category": "전시",
+    "categories": [
+      "전시"
+    ],
+    "music_followup": false,
+    "free_only": true,
+    "exclude_terms": [
+      "예고를 빛낸 사람"
+    ],
+    "walking_preference": "short",
+    "mode": "recorded"
+  },
+  "result": {
+    "status": "ready",
+    "mode": "recorded",
+    "source_checked_at": "2026-10-31T06:27:57+09:00",
+    "searched_count": 5,
+    "source_total": 8,
+    "candidates": [
+      {
+        "id": "seoul:159859",
+        "title": "[송파 청년아티스트센터] 3기 릴레이 개인전 [dot to dot] - 권봉균",
+        "venue": "송파 청년아티스트센터 지하1층 아트 스페이스",
+        "lat": 37.5340686405498,
+        "event_start_date": "2026-10-20",
+        "event_end_date": "2026-10-31",
+        "district": "송파구",
+        "address": null,
+        "lng": 127.115954729217,
+        "distance_km": 7.9,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159859&menuNo=200009",
+        "fixed_start_at": null,
+        "genre": "전시/미술",
+        "opening_info": "10:00~18:00, 일요일 및 공휴일 휴관",
+        "price_info": null,
+        "fee_type": "무료",
+        "audience": "누구나",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인",
+          "요일·휴관·회차별 시간 확인"
+        ],
+        "source_checked_at": "2026-10-31T06:27:57+09:00",
+        "preference_reasons": [
+          "공개 요금 무료 확인"
+        ],
+        "matched_keywords": []
+      },
+      {
+        "id": "seoul:159829",
+        "title": "전시 [IMPRINTS OF TIME]",
+        "venue": "갤러리 지하",
+        "lat": 37.5534782220949,
+        "event_start_date": "2026-10-28",
+        "event_end_date": "2026-10-31",
+        "district": "마포구",
+        "address": null,
+        "lng": 126.93267709449,
+        "distance_km": 10.62,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159829&menuNo=200009",
+        "fixed_start_at": null,
+        "genre": "전시/미술",
+        "opening_info": "12:00~19:00",
+        "price_info": null,
+        "fee_type": "무료",
+        "audience": "누구나",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인"
+        ],
+        "source_checked_at": "2026-10-31T06:27:57+09:00",
+        "preference_reasons": [
+          "공개 요금 무료 확인"
+        ],
+        "matched_keywords": []
+      },
+      {
+        "id": "seoul:159723",
+        "title": "[구립증산도서관] 10월 미니멀 북큐레이션 [달마다, 나를 아끼는 습관] 책과 가까워지는 시간",
+        "venue": "2층 종합자료실",
+        "lat": 37.5828094398328,
+        "event_start_date": "2026-10-06",
+        "event_end_date": "2026-10-31",
+        "district": "은평구",
+        "address": null,
+        "lng": 126.907671330325,
+        "distance_km": 12.39,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159723&menuNo=200009",
+        "fixed_start_at": null,
+        "genre": "전시/미술",
+        "opening_info": "주중 9:00~22:00 / 주말 09:00~18:00",
+        "price_info": null,
+        "fee_type": "무료",
+        "audience": "누구나",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인",
+          "요일·휴관·회차별 시간 확인"
+        ],
+        "source_checked_at": "2026-10-31T06:27:57+09:00",
+        "preference_reasons": [
+          "공개 요금 무료 확인"
+        ],
+        "matched_keywords": []
+      },
+      {
+        "id": "seoul:159808",
+        "title": "김영재 개인전 [Ashes to Bones]",
+        "venue": "아케이드 서울",
+        "lat": 37.5155167575219,
+        "event_start_date": "2026-10-04",
+        "event_end_date": "2026-10-31",
+        "district": "영등포구",
+        "address": null,
+        "lng": 126.894539872062,
+        "distance_km": 15.36,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159808&menuNo=200009",
+        "fixed_start_at": null,
+        "genre": "전시/미술",
+        "opening_info": "월-일요일 12:00~19:00",
+        "price_info": "0원",
+        "fee_type": "무료",
+        "audience": "누구나",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인",
+          "요일·휴관·회차별 시간 확인"
+        ],
+        "source_checked_at": "2026-10-31T06:27:57+09:00",
+        "preference_reasons": [
+          "공개 요금 무료 확인"
+        ],
+        "matched_keywords": []
+      }
+    ],
+    "applied_preferences": {
+      "music_followup": false,
+      "exclude_terms": [
+        "예고를 빛낸 사람"
+      ],
+      "free_only": true,
+      "walking_preference": "short",
+      "categories": [
+        "전시"
+      ]
+    },
+    "queried_categories": [
+      "전시"
+    ],
+    "coverage_note": "선택한 분류마다 공개 샘플 최대 5건을 조회했습니다. 전체 행사 검색 결과가 아니며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다.",
+    "excluded_count": 1,
+    "unknown_price_count": 0,
+    "preference_notes": [
+      "적게 걷기 선호: 직선으로 가까운 후보부터 표시했습니다. 실제 도보·계단 조건 충족은 미확인입니다.",
+      "제외 조건은 행사명·장소·분류·지역의 명시한 단어 일치로 검사했습니다."
+    ]
+  },
+  "live_status": 200,
+  "live_result": {
+    "status": "ready",
+    "mode": "live",
+    "source_checked_at": "2026-10-31T15:57:02+09:00",
+    "searched_count": 3,
+    "source_total": 3,
+    "candidates": [
+      {
+        "id": "seoul:159551",
+        "title": "리비툼 오케스트라 제5회 정기연주회 : 모차르트 바이올린 협주곡 4번 & 멘델스존 교향곡 4번 ",
+        "venue": "북서울꿈의숲아트센터 콘서트홀",
+        "lat": 37.6202544613023,
+        "event_start_date": "2026-11-01",
+        "event_end_date": "2026-11-01",
+        "district": "강북구",
+        "address": null,
+        "lng": 127.044324732036,
+        "distance_km": 4.42,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159551&menuNo=200008",
+        "fixed_start_at": null,
+        "genre": "클래식",
+        "opening_info": "17:00~19:00",
+        "price_info": null,
+        "fee_type": "무료",
+        "audience": "누구나",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인",
+          "요일·휴관·회차별 시간 확인"
+        ],
+        "source_checked_at": "2026-10-31T15:57:02+09:00",
+        "preference_reasons": [],
+        "matched_keywords": []
+      },
+      {
+        "id": "seoul:159689",
+        "title": "[국립박물관문화재단] 소리: 성덕대왕신종",
+        "venue": "국립중앙박물관 극장 용 ",
+        "lat": 37.5247022357875,
+        "event_start_date": "2026-10-31",
+        "event_end_date": "2026-11-01",
+        "district": "용산구",
+        "address": null,
+        "lng": 126.977740246542,
+        "distance_km": 8.79,
+        "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159689&menuNo=200008",
+        "fixed_start_at": "2026-11-01T15:00:00+09:00",
+        "genre": "국악",
+        "opening_info": "15:00",
+        "price_info": "VIP석 7만원 R석 6만원 S석 4만원 ",
+        "fee_type": "유료",
+        "audience": "초등학생 이상 ",
+        "status": "check",
+        "checks_required": [
+          "예약 가능 여부·실제 이동시간 확인",
+          "공연 종료시각 확인"
+        ],
+        "source_checked_at": "2026-10-31T15:57:02+09:00",
+        "preference_reasons": [],
+        "matched_keywords": []
+      }
+    ],
+    "applied_preferences": {
+      "music_followup": false,
+      "exclude_terms": [],
+      "free_only": false,
+      "walking_preference": "short",
+      "categories": [
+        "국악",
+        "클래식",
+        "콘서트"
+      ]
+    },
+    "queried_categories": [
+      "국악",
+      "클래식",
+      "콘서트"
+    ],
+    "coverage_note": "선택한 분류마다 공개 샘플 최대 5건을 조회했습니다. 전체 행사 검색 결과가 아니며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다.",
+    "excluded_count": 0,
+    "unknown_price_count": 0,
+    "preference_notes": [
+      "적게 걷기 선호: 직선으로 가까운 후보부터 표시했습니다. 실제 도보·계단 조건 충족은 미확인입니다."
+    ]
+  },
+  "status": "PASS"
+}

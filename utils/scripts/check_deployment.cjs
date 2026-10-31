@@ -49,7 +49,7 @@ async function main() {
     const voice=await page.request.post(base+"/preview/voice",{headers:{Origin:publicOrigin},data:{text:"검증"}});
     assert.equal(voice.status(),503);
     assert.equal((await page.request.get(base+"/.local/transit.env")).status(),404);
-    await page.goto(base);
+    await page.goto(base + '/checks');
     await page.getByRole("button",{name:"나들이 찾기",exact:true}).click();
     await page.locator('[name="mode"]').selectOption("recorded");
     await page.getByRole("button",{name:"추천받기",exact:true}).click();

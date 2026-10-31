@@ -1,0 +1,46 @@
+{
+  "base": "http://127.0.0.1:5175",
+  "mode": "mock speech/TTS and AI unless marked live",
+  "cases": [
+    {
+      "name": "two_turns_one_click_and_settings_restore",
+      "passed": true
+    },
+    {
+      "name": "no_speech_timeout_no_api_calls",
+      "passed": true
+    },
+    {
+      "name": "tts_excluded_from_silence_and_no_mic_overlap",
+      "passed": true
+    },
+    {
+      "name": "stop_rejects_late_recognition",
+      "passed": true
+    },
+    {
+      "name": "stop_rejects_late_api",
+      "passed": true
+    },
+    {
+      "name": "network_error_stops_without_retries",
+      "passed": true
+    },
+    {
+      "name": "api_failure_stops_and_preserves_input",
+      "passed": true
+    },
+    {
+      "name": "ready_stops_before_limit_no_auto_recommend",
+      "passed": true
+    },
+    {
+      "name": "navigation_and_manual_input_stop",
+      "passed": true
+    },
+    {
+      "name": "real_naito_one_turn_mock_audio",
+      "passed": true
+    }
+  ]
+}

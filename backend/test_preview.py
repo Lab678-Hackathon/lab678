@@ -32,6 +32,28 @@ class PreviewContractTests(unittest.TestCase):
         self.data = json.loads((EXAMPLES / "outing-request.json").read_bytes())
         self.data.update(start_at="2026-10-31T14:00:00+09:00", end_at="2026-10-31T15:00:00+09:00")
 
+    def test_chat_route_and_validation(self):
+        """새 대화 경로는 어댑터 응답을 전달하고 잘못된 입력은 필드 오류를 반환한다."""
+        with patch("preview.chat", return_value=(503, {"status": "unconfigured"})) as call:
+            status, body = self.request({"message": "국악", "revision": 0}, path="/preview/chat")
+        self.assertEqual((status, body["status"]), (503, "unconfigured"))
+        call.assert_called_once()
+        status, body = self.request({"message": "", "revision": 0}, path="/preview/chat")
+        self.assertEqual((status, body["field"]), (400, "message"))
+
+    def test_culture_source_routes_and_errors(self):
+        """문화시설 선택은 같은 추천 경로에서 전달하며 오류를 행사로 대체하지 않는다."""
+        for expected in (200, 502, 503):
+            with patch("preview.culture_places", return_value=(expected, {"status":"check"})) as tour, patch("preview.recommend") as seoul:
+                status, body = self.request(dict(self.data, culture_source="tour"))
+            self.assertEqual(status, expected)
+            tour.assert_called_once()
+            seoul.assert_not_called()
+        status, body = self.request(dict(self.data, culture_source="invalid"))
+        self.assertEqual((status, body["code"]), (400, "invalid_culture_source"))
+        status, body = self.request(dict(self.data, culture_source="tour", category="전체", mode="recorded"))
+        self.assertEqual((status, body["code"]), (400, "culture_mode"))
+
     def test_short_duration_response(self):
         """60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다."""
         self.data.update(request_kind="route", end_at="2026-10-31T14:59:00+09:00")
@@ -120,7 +142,7 @@ class PreviewContractTests(unittest.TestCase):
         """파일 음성이 꺼진 서버에서는 버튼을 숨기고 합성 요청도 실행하지 않는다."""
         from local_voice import render_wave
         handler=Preview.__new__(Preview)
-        handler.path="/"
+        handler.path="/checks"
         handler.reply=Mock()
         with patch.dict("os.environ",{"LAB678_FILE_VOICE":"off"}), patch("local_voice.subprocess.run") as synth:
             handler.do_GET()
@@ -128,6 +150,16 @@ class PreviewContractTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 render_wave("음성 검증")
             synth.assert_not_called()
+
+    def test_home_uses_same_origin_app_when_prepared(self):
+        """대화 복사본을 준비했으면 기본 주소는 단일 앱 홈으로 이동한다."""
+        handler = Preview.__new__(Preview)
+        handler.path = "/"
+        handler.send_response = Mock(); handler.send_header = Mock(); handler.end_headers = Mock()
+        with patch("preview.app_directory", return_value=True):
+            handler.do_GET()
+        handler.send_response.assert_called_once_with(302)
+        handler.send_header.assert_any_call("Location", "/app/?#/home")
 
     def test_place_search_contract(self):
         """새 검색 경로에도 입력400·허용origin·공급자 상태 전달을 동일 적용한다."""

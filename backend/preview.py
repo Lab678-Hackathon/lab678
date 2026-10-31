@@ -14,8 +14,11 @@ from walking import walk_between
 from transit import transit_between
 from map_config import map_config
 from places import search_places
+from naito_chat import chat
+from tour_places import culture_places
+from team_app import app_directory, app_asset
 
-POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit", "/preview/places"}
+POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit", "/preview/places", "/preview/chat", "/preview/culture-places"}
 
 
 def allowed_origins():
@@ -71,7 +74,7 @@ class Preview(BaseHTTPRequestHandler):
         if content_type == "application/json":
             body = json.dumps(body, ensure_ascii=False).encode()
         self.send_response(status)
-        self.send_header("Content-Type", content_type if content_type.startswith("audio/") else content_type + "; charset=utf-8")
+        self.send_header("Content-Type", content_type + "; charset=utf-8" if content_type.startswith("text/") or content_type == "application/json" else content_type)
         self.send_header("Content-Length", str(len(body)))
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
@@ -79,7 +82,28 @@ class Preview(BaseHTTPRequestHandler):
 
     def do_GET(self):
         """점검 폼과 저장소의 대표 요청만 제공한다."""
-        if self.path == "/":
+        path = urlsplit(self.path).path
+        if path == "/" and app_directory() is not None:
+            self.send_response(302)
+            self.send_header("Location", "/app/?#/home")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+        elif path == "/app-config":
+            self.reply(200, dict(available=app_directory() is not None))
+        elif path == "/app":
+            self.send_response(302)
+            self.send_header("Location", "/app/")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+        elif path.startswith("/app/"):
+            asset = app_asset(self.path)
+            if asset:
+                self.reply(200, asset[0], asset[1])
+            elif app_directory() is None:
+                self.reply(503, dict(status="unconfigured", message="자동 대화 화면 실행 파일을 준비해야 해요."))
+            else:
+                self.send_error(404)
+        elif self.path == "/" or path == "/checks":
             page = Path(__file__).with_name("preview.html").read_text(encoding="utf-8")
             if file_voice_available():
                 page = page.replace("data-file-voice hidden", "data-file-voice")
@@ -92,6 +116,9 @@ class Preview(BaseHTTPRequestHandler):
             self.reply(200, Path(__file__).with_name("map_view.js").read_bytes(), "text/javascript")
         elif self.path == "/location-view.js":
             self.reply(200, Path(__file__).with_name("location_view.js").read_bytes(), "text/javascript")
+        elif self.path in {"/microphone-meter.js", "/preview-meter.js"}:
+            filename = "microphone_meter.js" if self.path == "/microphone-meter.js" else "preview_meter.js"
+            self.reply(200, Path(__file__).with_name(filename).read_bytes(), "text/javascript")
         elif self.path == "/example":
             self.reply(200, json.loads((EXAMPLES / "outing-request.json").read_bytes()))
         else:
@@ -117,6 +144,14 @@ class Preview(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("요청 형식을 확인해 주세요.")
+            if self.path == "/preview/culture-places":
+                status, body = culture_places(data)
+                self.reply(status, body)
+                return
+            if self.path == "/preview/chat":
+                status, body = chat(data)
+                self.reply(status, body)
+                return
             if self.path == "/preview/places":
                 status, body = search_places(data)
                 self.reply(status, body)
@@ -146,6 +181,13 @@ class Preview(BaseHTTPRequestHandler):
                     self.reply(503, dict(message="이 PC에서 한국어 음성 파일을 만들지 못했습니다."))
                 else:
                     self.reply(200, audio, "audio/wav")
+                return
+            source = data.get("culture_source", "seoul")
+            if source not in ("seoul", "tour"):
+                raise InputError("invalid_culture_source", "culture_source", "전시·공연 또는 문화시설을 선택해 주세요.")
+            if source == "tour":
+                status, body = culture_places(data)
+                self.reply(status, body)
                 return
             result = recommend(data, data.get("mode", "live"))
             if data.get("request_kind") in ("course", "route"):

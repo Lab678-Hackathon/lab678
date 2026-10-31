@@ -1,0 +1,99 @@
+{
+  "checked_at": "2026-10-31T15:21:47+09:00",
+  "model": "claude-sonnet-4",
+  "mode": "live",
+  "results": [
+    {
+      "case": "category",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.46,
+      "result": {
+        "status": "draft",
+        "base_revision": 1,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "국악",
+          "request_kind": "place"
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "case": "location_time",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.86,
+      "result": {
+        "status": "draft",
+        "base_revision": 2,
+        "assistant_text": "어디에서 출발하세요? 장소 검색 결과에서 출발지를 선택해 주세요.",
+        "updated_condition_draft": {
+          "start_query": "청량리역",
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "request_kind": "place"
+        },
+        "missing_fields": [
+          "start_location"
+        ],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": false,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "case": "confirmed_time_change",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.77,
+      "result": {
+        "status": "needs_confirmation",
+        "base_revision": 3,
+        "assistant_text": "이미 확인한 조건과 달라요. 변경 전후를 확인하고 반영할 항목을 선택해 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "request_kind": "place"
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [
+          {
+            "field": "start_at",
+            "before": "2026-10-31T14:00:00+09:00",
+            "after": "2026-10-31T15:00:00+09:00"
+          }
+        ],
+        "ready_to_search": false,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    }
+  ],
+  "passed": true
+}

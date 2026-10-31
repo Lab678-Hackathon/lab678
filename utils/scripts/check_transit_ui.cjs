@@ -12,7 +12,7 @@ async function main() {
     const pageErrors = [];
     await page.route("**/map-config",route=>route.fulfill({json:{provider:"leaflet",javascript_key:""}}));
     page.on("pageerror", error => pageErrors.push(error.message));
-    await page.goto("http://127.0.0.1:8765");
+    await page.goto("http://127.0.0.1:8765/checks");
     await page.getByRole("button",{name:"나들이 찾기",exact:true}).click();
     await page.locator('[name="mode"]').selectOption("recorded");
     await page.getByRole("button",{name:"추천받기",exact:true}).click();

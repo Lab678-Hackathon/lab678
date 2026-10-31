@@ -1,0 +1,87 @@
+"""Naito 모의 응답/장애와 HTTP 연결 경계를 검사한다. 실제 서비스 성공을 뜻하지 않는다."""
+import io
+import json
+import unittest
+from unittest.mock import patch
+from urllib.error import HTTPError, URLError
+
+from naito_chat import chat, extract_conditions
+from outing import InputError
+
+
+class NaitoChatTests(unittest.TestCase):
+    """서비스 키 없이 실행되는 공급자 어댑터 회귀다."""
+
+    def setUp(self):
+        """최소 정상 대화 입력을 준비한다."""
+        self.data = dict(message="국악을 듣고 싶어", revision=0, condition_draft={})
+
+    def test_missing_key(self):
+        """미설정은 503이며 외부 호출을 하지 않는다."""
+        with patch("naito_chat.settings", return_value=("", "claude-sonnet-4")), patch("naito_chat.extract_conditions") as call:
+            self.assertEqual(chat(self.data)[0], 503)
+            call.assert_not_called()
+
+    def test_validate_before_provider(self):
+        """잘못된 요청은 공급자/키 조회 전에 거절한다."""
+        for change in [dict(message=""), dict(revision=True), dict(conversation_context=[{"role": "system", "content": "x"}])]:
+            with self.subTest(change=change), patch("naito_chat.settings") as config, self.assertRaises(InputError):
+                chat(dict(self.data, **change))
+            config.assert_not_called()
+
+    def test_provider_request_excludes_coordinates(self):
+        """키는 헤더에만, 좌표는 제외하며 공식 고정 주소로 한 번 요청한다."""
+        body = {"content": [{"type": "text", "text": '{"category":"국악"}'}], "stop_reason": "end_turn"}
+        draft = dict(date="2026-10-31", start_location=dict(label="청량리역", lat=37.5805961, lng=127.0482573))
+        with patch("naito_chat.urlopen", return_value=io.BytesIO(json.dumps(body).encode())) as call:
+            self.assertEqual(extract_conditions("국악", draft, [], "secret-test", "claude-sonnet-4"), {"category": "국악"})
+        request = call.call_args.args[0]
+        self.assertEqual(request.full_url, "https://copa.codyssey.kr/v1/messages")
+        self.assertEqual(request.get_header("X-api-key"), "secret-test")
+        self.assertEqual(request.get_header("Anthropic-version"), "2023-06-01")
+        self.assertEqual(json.loads(request.data)["max_tokens"], 1024)
+        context = json.loads(json.loads(request.data)["messages"][0]["content"])
+        self.assertEqual(context["condition_draft"]["date"], "2026-10-31")
+        self.assertNotIn(b"secret-test", request.data)
+        self.assertNotIn(b"37.5805961", request.data)
+        self.assertEqual(call.call_count, 1)
+
+    def test_success_and_no_recommendation(self):
+        """모의 국악 해석 뒤 출발지 질문으로 이어지며 추천은 실행하지 않는다."""
+        with patch("naito_chat.settings", return_value=("secret", "claude-sonnet-4")), \
+                patch("naito_chat.extract_conditions", return_value={"category": "국악"}):
+            status, result = chat(self.data)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["source"], "naito")
+        self.assertEqual(result["updated_condition_draft"]["category"], "국악")
+        self.assertFalse(result["ready_to_search"])
+
+    def test_errors_do_not_disclose_or_replace(self):
+        """공급자 오류/비JSON/사실 생성은 오류로 남기고 키·원문·가짜 초안을 노출하지 않는다."""
+        cases = [(TimeoutError("secret-test"), 504), (URLError("secret-test"), 502),
+                 (HTTPError("https://example.test", 429, "secret-test", {}, None), 429),
+                 (ValueError("secret-test"), 502)]
+        with patch("naito_chat.settings", return_value=("secret-test", "claude-sonnet-4")):
+            for error, expected in cases:
+                with self.subTest(expected=expected), patch("naito_chat.extract_conditions", side_effect=error):
+                    status, result = chat(self.data)
+                self.assertEqual(status, expected)
+                self.assertNotIn("secret-test", json.dumps(result))
+                self.assertNotIn("updated_condition_draft", result)
+            with patch("naito_chat.extract_conditions", return_value={"lat": 37.5}):
+                self.assertEqual(chat(self.data)[1]["code"], "ai_invalid_response")
+
+    def test_response_size_and_json_boundary(self):
+        """과대 응답/일반 텍스트/잘못된 응답 구조를 파싱 성공으로 취급하지 않는다."""
+        for raw in [b"x" * 65537, b"not-json", b"{}", b'{"content":[],"stop_reason":"max_tokens"}']:
+            with patch("naito_chat.urlopen", return_value=io.BytesIO(raw)), self.assertRaises((ValueError, KeyError)):
+                extract_conditions("국악", {}, [], "secret", "test")
+
+    def test_empty_interpretation_not_reported_as_applied(self):
+        """지원하지 않는 발화를 반영 완료로 안내하지 않는다."""
+        with patch("naito_chat.settings", return_value=("secret", "claude-sonnet-4")), \
+                patch("naito_chat.extract_conditions", return_value={}):
+            status, result = chat(self.data)
+        self.assertEqual(status, 200)
+        self.assertEqual(result["interpretation_status"], "no_supported_change")
+        self.assertFalse(result["ready_to_search"])

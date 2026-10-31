@@ -1,0 +1,36 @@
+{
+  "base": "http://127.0.0.1:5175",
+  "checked_at": "2026-10-31T08:15:11.634Z",
+  "checks": [
+    {
+      "name": "Tour live input/cards/map/detail/reload",
+      "passed": true,
+      "ids": [
+        "tour:3456336",
+        "tour:3429640",
+        "tour:3448679"
+      ]
+    },
+    {
+      "name": "Seoul live source switch",
+      "passed": true,
+      "ids": [
+        "seoul:159978",
+        "seoul:159664",
+        "seoul:159613",
+        "seoul:159268"
+      ]
+    },
+    {
+      "name": "Mock 502 preserves previous result, no fallback",
+      "passed": true
+    },
+    {
+      "name": "Mock zero results distinct from failure",
+      "passed": true
+    }
+  ],
+  "team_map_tiles_loaded": true,
+  "passed": false,
+  "error": "Expected values to be strictly equal:\n\n502 !== 200\n"
+}
