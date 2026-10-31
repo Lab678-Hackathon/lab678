@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **단일 서비스 배포 준비·상태 확인·음성 지원 구분**: [backend/preview.py](../../backend/preview.py), [backend/local_voice.py](../../backend/local_voice.py), [backend/test_preview.py](../../backend/test_preview.py), [utils/scripts/check_deployment.cjs](../../utils/scripts/check_deployment.cjs), [docs/development/render-demo-guide.md](../../docs/development/render-demo-guide.md)
 - **코스 제외 예정·취소·명시적 재생성**: [backend/preview.html](../../backend/preview.html), [utils/scripts/check_course_edit.cjs](../../utils/scripts/check_course_edit.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **추천 재요청·실패 복원·늦은 응답 방지**: [backend/preview.html](../../backend/preview.html), [utils/scripts/check_result_preservation.cjs](../../utils/scripts/check_result_preservation.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **별도 프론트 연결·CORS·상세 사실 필드**: [backend/preview.py](../../backend/preview.py), [backend/outing.py](../../backend/outing.py), [backend/test_preview.py](../../backend/test_preview.py), [backend/test_outing.py](../../backend/test_outing.py), [utils/scripts/check_frontend_connection.cjs](../../utils/scripts/check_frontend_connection.cjs), [docs/development/recommend-api.md](../../docs/development/recommend-api.md)
@@ -58,6 +59,7 @@
 | `expected` | [utils/scripts/context.py:42](../../utils/scripts/context.py#L42) | Read the configured public state file and generate the brief. |
 | `file_hash` | [utils/scripts/reuse.py:33](../../utils/scripts/reuse.py#L33) | Hash file contents in chunks without logging their values. |
 | `file_overview` | [utils/scripts/catalog.py:138](../../utils/scripts/catalog.py#L138) | Describe a file using only its static overview, heading, or file type. |
+| `file_voice_available` | [backend/local_voice.py:25](../../backend/local_voice.py#L25) | Windows 파일 합성 지원 여부만 반환한다. 음성 설치·합성 성공은 별도 검증한다. |
 | `generated_paths` | [utils/scripts/catalog.py:150](../../utils/scripts/catalog.py#L150) | Return the actual output paths, independent of optional configuration hints. |
 | `InputError` | [backend/outing.py:16](../../backend/outing.py#L16) | 추천 입력 오류의 공개 코드·필드·안내문을 담는다. 원본 입력값은 포함하지 않는다. |
 | `InputError.__init__` | [backend/outing.py:19](../../backend/outing.py#L19) | HTTP 오류 응답과 필드별 안내에 사용할 고정 메타데이터를 보관한다. |
@@ -85,19 +87,22 @@
 | `OutingTests.test_minimum_duration_before_source` | [backend/test_outing.py:50](../../backend/test_outing.py#L50) | 59분과 59분59초는 외부 조회 전에 거절하며 정확히 60분은 허용한다. |
 | `OutingTests.test_recording_scope` | [backend/test_outing.py:102](../../backend/test_outing.py#L102) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
-| `Preview` | [backend/preview.py:36](../../backend/preview.py#L36) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
-| `Preview.do_GET` | [backend/preview.py:76](../../backend/preview.py#L76) | 점검 폼과 저장소의 대표 요청만 제공한다. |
-| `Preview.do_OPTIONS` | [backend/preview.py:47](../../backend/preview.py#L47) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
-| `Preview.do_POST` | [backend/preview.py:85](../../backend/preview.py#L85) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
-| `Preview.end_headers` | [backend/preview.py:39](../../backend/preview.py#L39) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
-| `Preview.reply` | [backend/preview.py:65](../../backend/preview.py#L65) | UTF-8 본문을 길이와 함께 응답한다. |
+| `Preview` | [backend/preview.py:38](../../backend/preview.py#L38) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
+| `Preview.do_GET` | [backend/preview.py:78](../../backend/preview.py#L78) | 점검 폼과 저장소의 대표 요청만 제공한다. |
+| `Preview.do_OPTIONS` | [backend/preview.py:49](../../backend/preview.py#L49) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
+| `Preview.do_POST` | [backend/preview.py:92](../../backend/preview.py#L92) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.end_headers` | [backend/preview.py:41](../../backend/preview.py#L41) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
+| `Preview.reply` | [backend/preview.py:67](../../backend/preview.py#L67) | UTF-8 본문을 길이와 함께 응답한다. |
 | `PreviewContractTests` | [backend/test_preview.py:12](../../backend/test_preview.py#L12) | 실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다. |
 | `PreviewContractTests.request` | [backend/test_preview.py:15](../../backend/test_preview.py#L15) | JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다. |
 | `PreviewContractTests.setUp` | [backend/test_preview.py:30](../../backend/test_preview.py#L30) | 각 테스트가 사용할 독립적인 정상 요청을 읽는다. |
+| `PreviewContractTests.test_file_voice_disabled` | [backend/test_preview.py:119](../../backend/test_preview.py#L119) | 파일 음성이 꺼진 서버에서는 버튼을 숨기고 합성 요청도 실행하지 않는다. |
 | `PreviewContractTests.test_invalid_kind` | [backend/test_preview.py:63](../../backend/test_preview.py#L63) | 지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다. |
 | `PreviewContractTests.test_kind_compatibility` | [backend/test_preview.py:46](../../backend/test_preview.py#L46) | 정확히 60분인 route/course가 같은 코스 경로로, place는 후보만 반환한다. |
 | `PreviewContractTests.test_origin_configuration` | [backend/test_preview.py:68](../../backend/test_preview.py#L68) | 허용 주소의 정확한 일치만 사용하고 와일드카드·자격정보·잘못된 설정을 제외한다. |
 | `PreviewContractTests.test_preflight` | [backend/test_preview.py:77](../../backend/test_preview.py#L77) | 설정된 origin·POST·Content-Type만 사전 요청에서 허용한다. |
+| `PreviewContractTests.test_render_origin` | [backend/test_preview.py:99](../../backend/test_preview.py#L99) | 서버 설정의 공개 HTTPS 주소만 허용하고 비슷한 다른 주소는 거절한다. |
+| `PreviewContractTests.test_server_options` | [backend/test_preview.py:108](../../backend/test_preview.py#L108) | 배포 포트·주소를 지원하되 명시 옵션이 우선하고 잘못된 포트는 시작 전에 거절한다. |
 | `PreviewContractTests.test_short_duration_response` | [backend/test_preview.py:35](../../backend/test_preview.py#L35) | 60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다. |
 | `PreviewContractTests.test_source_error_is_not_input_error` | [backend/test_preview.py:56](../../backend/test_preview.py#L56) | 공급자 장애는 필드 오류 대신 502이며 공급자 예외 내용은 숨긴다. |
 | `provider_response` | [backend/test_transit.py:11](../../backend/test_transit.py#L11) | 공식 스키마를 따르는 가상 도보·지하철·도보 3구간을 만든다. 시연 데이터가 아니다. |
@@ -109,7 +114,7 @@
 | `render` | [utils/scripts/context.py:22](../../utils/scripts/context.py#L22) | Render bounded, human-curated lists while preserving their decision status. |
 | `render_repo` | [utils/scripts/catalog.py:156](../../utils/scripts/catalog.py#L156) | Index every eligible file plus code symbols, features and directory layout. |
 | `render_utils` | [utils/scripts/catalog.py:118](../../utils/scripts/catalog.py#L118) | Render stable forward and reverse indexes with repository-relative links. |
-| `render_wave` | [backend/local_voice.py:25](../../backend/local_voice.py#L25) | 문자열을 표준 입력으로 전달해 메모리에서 합성하고, 실패·과부하 때 예외를 반환한다. |
+| `render_wave` | [backend/local_voice.py:30](../../backend/local_voice.py#L30) | 문자열을 표준 입력으로 전달해 메모리에서 합성하고, 실패·과부하 때 예외를 반환한다. |
 | `repo_files` | [utils/scripts/catalog.py:46](../../utils/scripts/catalog.py#L46) | Inventory repository files, including untracked work, without reading secrets. |
 | `review_text` | [utils/scripts/read_pdf.py:18](../../utils/scripts/read_pdf.py#L18) | Mask credential-related lines and two following lines before console output. |
 | `route_path` | [backend/transit.py:48](../../backend/transit.py#L48) | 선택적 WGS84 [경도,위도] 경로를 Leaflet [위도,경도]로 변환한다. 손상 시 선만 생략한다. |
@@ -117,6 +122,7 @@
 | `safe_target` | [utils/scripts/reuse.py:18](../../utils/scripts/reuse.py#L18) | Resolve a relative destination without traversal, links or Git internals. |
 | `schedule_pair` | [backend/course.py:35](../../backend/course.py#L35) | 두 구간과 당일 시간표를 합산해 가능·미확인·충돌 및 방문별 예상시각을 반환한다. |
 | `seoul_page` | [backend/outing.py:68](../../backend/outing.py#L68) | 지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다. |
+| `server_options` | [backend/preview.py:151](../../backend/preview.py#L151) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
 | `short_text` | [backend/transit.py:41](../../backend/transit.py#L41) | 이동 안내 원문을 길이 제한된 텍스트로 받아 HTML 실행 없이 표시하도록 반환한다. |
 | `signature` | [utils/scripts/watch.py:18](../../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |

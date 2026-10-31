@@ -8,7 +8,7 @@ from urllib.error import URLError
 from urllib.parse import urlsplit
 
 from outing import EXAMPLES, InputError, recommend
-from local_voice import render_wave
+from local_voice import file_voice_available, render_wave
 from course import build_course
 from walking import walk_between
 from transit import transit_between
@@ -19,7 +19,9 @@ POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview
 def allowed_origins():
     """환경변수의 명시적 HTTP(S) origin만 허용한다. 와일드카드·경로·자격정보는 제외한다."""
     origins = set()
-    for value in os.environ.get("LAB678_ALLOWED_ORIGINS", "").split(","):
+    configured = os.environ.get("LAB678_ALLOWED_ORIGINS", "").split(",")
+    configured.append(os.environ.get("RENDER_EXTERNAL_URL", ""))
+    for value in configured:
         value = value.strip().rstrip("/")
         try:
             parsed = urlsplit(value)
@@ -76,7 +78,12 @@ class Preview(BaseHTTPRequestHandler):
     def do_GET(self):
         """점검 폼과 저장소의 대표 요청만 제공한다."""
         if self.path == "/":
-            self.reply(200, Path(__file__).with_name("preview.html").read_bytes(), "text/html")
+            page = Path(__file__).with_name("preview.html").read_text(encoding="utf-8")
+            if file_voice_available():
+                page = page.replace("data-file-voice hidden", "data-file-voice")
+            self.reply(200, page.encode("utf-8"), "text/html")
+        elif self.path == "/healthz":
+            self.reply(200, dict(status="ok"))
         elif self.path == "/example":
             self.reply(200, json.loads((EXAMPLES / "outing-request.json").read_bytes()))
         else:
@@ -141,10 +148,19 @@ class Preview(BaseHTTPRequestHandler):
             self.reply(200, result)
 
 
-if __name__ == "__main__":
+def server_options(argv=None):
+    """로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다."""
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--port", type=int, default=8765, help="로컬 점검 포트, 0은 빈 포트 자동 선택")
-    args = parser.parse_args()
-    server = ThreadingHTTPServer(("127.0.0.1", args.port), Preview)
-    print(f"http://127.0.0.1:{server.server_port}", flush=True)
+    parser.add_argument("--host", default=os.environ.get("LAB678_HOST", "127.0.0.1"), help="배포 시 0.0.0.0을 명시")
+    parser.add_argument("--port", type=int, default=os.environ.get("PORT", "8765"), help="실행 포트, 0은 빈 포트 자동 선택")
+    args = parser.parse_args(argv)
+    if not 0 <= args.port <= 65535:
+        parser.error("포트는 0~65535 범위여야 합니다.")
+    return args
+
+
+if __name__ == "__main__":
+    args = server_options()
+    server = ThreadingHTTPServer((args.host, args.port), Preview)
+    print(f"http://{args.host}:{server.server_port}", flush=True)
     server.serve_forever()

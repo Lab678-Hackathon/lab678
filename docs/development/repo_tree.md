@@ -60,6 +60,7 @@ lab678/
       mvp-plan.md
       outing-handoff.md
       recommend-api.md
+      render-demo-guide.md
       repo_index.md
       repo_reverse_index.md
       repo_tree.md
@@ -90,6 +91,7 @@ lab678/
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
+        2026-10-31-render-preparation.md
         2026-10-31-result-preservation.md
         2026-10-31-route-text.md
         2026-10-31-screen-spec-review.md
@@ -172,6 +174,7 @@ lab678/
       catalog.py
       check_course_alternatives.cjs
       check_course_edit.cjs
+      check_deployment.cjs
       check_frontend_connection.cjs
       check_input_contract.cjs
       check_outing_ui.cjs

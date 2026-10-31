@@ -6,7 +6,7 @@ from email.message import Message
 from unittest.mock import Mock, patch
 
 from outing import EXAMPLES
-from preview import Preview, allowed_origins
+from preview import Preview, allowed_origins, server_options
 
 
 class PreviewContractTests(unittest.TestCase):
@@ -95,3 +95,36 @@ class PreviewContractTests(unittest.TestCase):
                 handler.send_header.assert_any_call("Access-Control-Allow-Methods","POST")
             else:
                 self.assertEqual(handler.reply.call_args.args[0],expected)
+
+    def test_render_origin(self):
+        """서버 설정의 공개 HTTPS 주소만 허용하고 비슷한 다른 주소는 거절한다."""
+        with patch.dict("os.environ", {"LAB678_ALLOWED_ORIGINS":"", "RENDER_EXTERNAL_URL":"https://demo.onrender.com"}):
+            with patch("outing.seoul_page", return_value=([],"test",0)):
+                self.assertEqual(self.request(self.data,"https://demo.onrender.com")[0],200)
+            with patch("outing.seoul_page") as source:
+                self.assertEqual(self.request(self.data,"https://demo.onrender.com.evil.example")[0],403)
+            source.assert_not_called()
+
+    def test_server_options(self):
+        """배포 포트·주소를 지원하되 명시 옵션이 우선하고 잘못된 포트는 시작 전에 거절한다."""
+        with patch.dict("os.environ", {"LAB678_HOST":"0.0.0.0", "PORT":"10000"}):
+            args=server_options([])
+            self.assertEqual((args.host,args.port),("0.0.0.0",10000))
+            args=server_options(["--host","127.0.0.1","--port","0"])
+            self.assertEqual((args.host,args.port),("127.0.0.1",0))
+        for port in ["abc","-1","65536"]:
+            with self.subTest(port=port), patch.dict("os.environ",{"PORT":port}), patch("sys.stderr",io.StringIO()), self.assertRaises(SystemExit):
+                server_options([])
+
+    def test_file_voice_disabled(self):
+        """파일 음성이 꺼진 서버에서는 버튼을 숨기고 합성 요청도 실행하지 않는다."""
+        from local_voice import render_wave
+        handler=Preview.__new__(Preview)
+        handler.path="/"
+        handler.reply=Mock()
+        with patch.dict("os.environ",{"LAB678_FILE_VOICE":"off"}), patch("local_voice.subprocess.run") as synth:
+            handler.do_GET()
+            self.assertIn(b"data-file-voice hidden",handler.reply.call_args.args[1])
+            with self.assertRaises(RuntimeError):
+                render_wave("음성 검증")
+            synth.assert_not_called()
