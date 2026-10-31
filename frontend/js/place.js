@@ -4,13 +4,12 @@
  * 도보 시간은 경로 계산이 성공했을 때만 보여요 (직선 거리를 걷는 시간처럼 쓰지 않아요).
  */
 import { state, candidateById } from './state.js';
-import { walkRoute } from './api.js';
+import { walkRoute, transitRoute, mapConfig } from './api.js';
 import { isSignedIn, isSaved, savePlace, startDemo, savedPlaces } from './saved.js';
 import { $, el, formatDate, formatTime, checkedAt, isDebug } from './util.js';
 
-let map = null;
-let mapLayers = [];
 let walkTicket = 0;
+let route = null; // 지금 S08 의 출발·도착·도보·대중교통 결과
 let pendingSave = null; // 체험 시작 전 저장 요청 1회 보관
 
 /** 대화 후보 또는 저장한 장소에서 찾기 */
@@ -113,9 +112,77 @@ function doSave(id) {
 function openSheet() { $('#sheet-save').hidden = false; $('#sheet-save .sheet__panel').focus(); }
 function closeSheet() { $('#sheet-save').hidden = true; }
 
-/* ---------------- 지도 (S08) ---------------- */
+/* ---------------- 지도 (S08) ----------------
+ * 카카오 지도를 먼저 쓰고(도메인 등록 필요), 불러오지 못하면 OpenStreetMap 지도로 바꿔요.
+ * 지도가 바뀌어도 경로 계산 결과(도보 Valhalla, 대중교통 카카오)는 같아요.
+ */
+const COLORS = { WALKING: '#55584F', BUS: '#2E7D32', SUBWAY: '#1565C0', walk: '#1E5B43' };
+let engine = null; // { kind: 'kakao'|'osm', map, layers: [] }
+let kakaoReady = null;
 
-function clearMap() { mapLayers.forEach((l) => l.remove()); mapLayers = []; }
+/** 카카오 지도 SDK 불러오기 (한 번). 6초 안에 안 되면 실패로 봐요 */
+function loadKakao() {
+  if (kakaoReady) return kakaoReady;
+  kakaoReady = (async () => {
+    const cfg = await mapConfig();
+    if (cfg?.provider !== 'kakao' || !cfg.javascript_key) throw new Error('no key');
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = `https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=${encodeURIComponent(cfg.javascript_key)}`;
+      const timer = setTimeout(() => reject(new Error('timeout')), 6000);
+      s.onload = () => { try { window.kakao.maps.load(() => { clearTimeout(timer); resolve(); }); } catch (e) { clearTimeout(timer); reject(e); } };
+      s.onerror = () => { clearTimeout(timer); reject(new Error('blocked')); };
+      document.head.append(s);
+    });
+  })();
+  return kakaoReady;
+}
+
+/** 지도 준비: 카카오 → 실패하면 OpenStreetMap */
+async function getEngine() {
+  if (engine) return engine;
+  const box = $('#s08-mapbox');
+  try {
+    await loadKakao();
+    const k = window.kakao.maps;
+    engine = { kind: 'kakao', map: new k.Map(box, { center: new k.LatLng(37.5665, 126.978), level: 6 }), layers: [] };
+  } catch {
+    if (!window.L) throw new Error('no map');
+    const map = L.map(box, { zoomControl: false });
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
+    engine = { kind: 'osm', map, layers: [] };
+  }
+  return engine;
+}
+
+/** 지도에 출발·도착과 선들을 그려요. lines: [{ path:[[lat,lng]], color, dashed }] */
+function draw(from, to, lines = []) {
+  if (!engine) return;
+  engine.layers.forEach((l) => (engine.kind === 'kakao' ? l.setMap(null) : l.remove()));
+  engine.layers = [];
+  const pts = [[to.lat, to.lng], ...(from ? [[from.lat, from.lng]] : []), ...lines.flatMap((l) => l.path)];
+  if (engine.kind === 'kakao') {
+    const k = window.kakao.maps;
+    const pin = (p, label, cls) => new k.CustomOverlay({ position: new k.LatLng(p.lat, p.lng), content: `<div class="kpin ${cls}">${label}</div>`, yAnchor: 1.2, map: engine.map });
+    engine.layers.push(pin(to, '도착', 'kpin--to'));
+    if (from) engine.layers.push(pin(from, '출발', 'kpin--from'));
+    lines.forEach((l) => engine.layers.push(new k.Polyline({ map: engine.map, path: l.path.map(([a, b]) => new k.LatLng(a, b)),
+      strokeWeight: 6, strokeColor: l.color, strokeOpacity: 0.9, strokeStyle: l.dashed ? 'shortdash' : 'solid' })));
+    const bounds = new k.LatLngBounds();
+    pts.forEach(([a, b]) => bounds.extend(new k.LatLng(a, b)));
+    setTimeout(() => { engine.map.relayout(); engine.map.setBounds(bounds, 40, 40, 40, 40); }, 60);
+    $('#s08-credit').dataset.map = '지도 © Kakao';
+  } else {
+    const icon = (label, cls) => L.divIcon({ className: `pin ${cls}`, html: `<span>${label}</span>`, iconSize: [56, 32], iconAnchor: [28, 16] });
+    engine.layers.push(L.marker([to.lat, to.lng], { icon: icon('도착', 'pin--to') }).addTo(engine.map));
+    if (from) engine.layers.push(L.marker([from.lat, from.lng], { icon: icon('출발', 'pin--from') }).addTo(engine.map));
+    lines.forEach((l) => engine.layers.push(L.polyline(l.path, { color: l.color, weight: 6, opacity: 0.85, dashArray: l.dashed ? '6 8' : null }).addTo(engine.map)));
+    setTimeout(() => { engine.map.invalidateSize(); engine.map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 }); }, 60);
+    $('#s08-credit').dataset.map = '지도 © OpenStreetMap';
+  }
+}
+
+function credit(text) { $('#s08-credit').textContent = [text, $('#s08-credit').dataset.map].filter(Boolean).join(' · '); }
 
 /** S08 */
 export async function renderMap(id) {
@@ -123,67 +190,115 @@ export async function renderMap(id) {
   const from = state.lastRequest?.start_location || null;
   $('#s08-title').textContent = c ? `${from?.label || '출발지'} → ${c.venue || c.title}` : '장소를 찾을 수 없어요';
   $('#s08-back').dataset.go = c ? `/place/${encodeURIComponent(c.id)}` : '/chat';
+  $('#s08-error').hidden = true;
+  $('#s08-result').textContent = '';
+  $('#s08-sub').textContent = '';
+  $('#s08-routes').replaceChildren();
+  $('#s08-tnote').textContent = '';
+  if (!c) return;
+  $('#s08-kakao').href = `https://map.kakao.com/link/to/${encodeURIComponent(c.venue || c.title)},${c.lat},${c.lng}`;
+  route = { id: c.id, from, to: { lat: c.lat, lng: c.lng }, walk: null, transit: null, pick: 0 };
+  setMode('walk');
+  try { await getEngine(); $('#s08-maperr').hidden = true; draw(from, route.to); } catch { $('#s08-maperr').hidden = false; }
+  if (!from) { $('#s08-sub').textContent = '출발지가 없어서 경로를 찾을 수 없어요. 대화에서 출발지를 정해 주세요.'; return; }
+  loadWalk(c);
+}
+
+async function loadWalk(c) {
+  const r0 = route;
+  const mine = ++walkTicket;
   const result = $('#s08-result');
   const sub = $('#s08-sub');
-  const err = $('#s08-error');
-  err.hidden = true;
-  result.textContent = '';
-  sub.textContent = '';
-  if (!c) return;
-  const kakaoWalk = `https://map.kakao.com/link/to/${encodeURIComponent(c.venue || c.title)},${c.lat},${c.lng}`;
-  const kakao = kakaoWalk;
-  $('#s08-kakao').href = kakao;
-
-  // 지도
-  try {
-    if (!window.L) throw new Error('map');
-    if (!map) {
-      map = L.map($('#s08-mapbox'), { zoomControl: false });
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
-    }
-    clearMap();
-    const pts = [[c.lat, c.lng]];
-    mapLayers.push(L.marker([c.lat, c.lng], { icon: L.divIcon({ className: 'pin pin--to', html: '<span>도착</span>', iconSize: [56, 32], iconAnchor: [28, 16] }) }).addTo(map));
-    if (from) {
-      pts.push([from.lat, from.lng]);
-      mapLayers.push(L.marker([from.lat, from.lng], { icon: L.divIcon({ className: 'pin pin--from', html: '<span>출발</span>', iconSize: [56, 32], iconAnchor: [28, 16] }) }).addTo(map));
-    }
-    map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 });
-    setTimeout(() => map.invalidateSize(), 60);
-  } catch {
-    $('#s08-maperr').hidden = false;
-  }
-
-  if (!from) { sub.textContent = '출발지가 없어서 경로를 찾을 수 없어요. 대화에서 출발지를 정해 주세요.'; return; }
-  setMode('walk');
-  const mine = ++walkTicket;
   result.textContent = '도보 경로를 찾고 있어요…';
-  const r = await walkRoute({ lat: from.lat, lng: from.lng }, { lat: c.lat, lng: c.lng });
-  if (mine !== walkTicket) return;
+  const r = await walkRoute({ lat: r0.from.lat, lng: r0.from.lng }, r0.to);
+  if (mine !== walkTicket || route !== r0) return;
   if (r.kind !== 'ready') {
     result.textContent = '도보 경로를 확인하지 못했어요';
-    err.hidden = false;
+    $('#s08-error').hidden = false;
     $('#s08-errmsg').textContent = `${r.message} 걷는 시간은 경로를 확인했을 때만 알려 드려요.`;
     sub.textContent = c.distance_km != null ? `직선 거리 약 ${c.distance_km}km (걷는 시간 아님)` : '';
     return;
   }
+  r0.walk = r;
   const min = Math.round(r.duration_s / 60);
-  const km = (r.distance_m / 1000).toFixed(1);
   result.textContent = `도보 약 ${min}분`;
-  sub.textContent = `약 ${km}km${min > 40 ? ' · 걷는 시간이 긴 경로예요. 대중교통도 확인해 보세요.' : ''}`;
-  $('#s08-credit').textContent = `도보 경로 ${r.provider || 'Valhalla / FOSSGIS'} · 지도 © OpenStreetMap`;
-  if (map && Array.isArray(r.path) && r.path.length > 1) {
-    const line = L.polyline(r.path, { color: '#1E5B43', weight: 6, opacity: 0.85 }).addTo(map);
-    mapLayers.push(line);
-    map.fitBounds(line.getBounds(), { padding: [40, 40] });
-  }
+  sub.textContent = `약 ${(r.distance_m / 1000).toFixed(1)}km${min > 30 ? ' · 걷는 시간이 긴 경로예요. 위 "대중교통"도 확인해 보세요.' : ''}`;
+  if (currentMode === 'walk') showWalk();
 }
 
+function showWalk() {
+  const r = route?.walk;
+  draw(route.from, route.to, r?.path?.length > 1 ? [{ path: r.path, color: COLORS.walk }] : []);
+  credit(r ? `도보 경로 ${r.provider || 'Valhalla / FOSSGIS'}` : '');
+}
+
+const fmtMin = (s) => `${Math.round(s / 60)}분`;
+const modeName = { WALKING: '걷기', BUS: '버스', SUBWAY: '지하철' };
+
+/** 대중교통 경로 카드 */
+function routeCard(rt, i) {
+  const card = el('button', 'route-card');
+  card.type = 'button';
+  card.setAttribute('aria-pressed', String(i === route.pick));
+  const head = el('div', 'route-card__head');
+  head.append(el('strong', null, `약 ${fmtMin(rt.duration_s)}`),
+    el('span', 'muted', [`환승 ${rt.transfers}회`, rt.fare_won != null ? `${rt.fare_won.toLocaleString()}원` : '요금 확인 필요'].join(' · ')));
+  const steps = el('ol', 'route-steps');
+  rt.steps.forEach((st) => {
+    const li = el('li', `route-step route-step--${st.mode.toLowerCase()}`);
+    const name = st.mode === 'WALKING' ? `걷기 ${fmtMin(st.duration_s)}` : `${modeName[st.mode]} ${(st.vehicles || []).map((v) => v.name).slice(0, 2).join(', ') || ''} · ${fmtMin(st.duration_s)}`;
+    li.append(el('span', 'route-step__name', name.trim()));
+    if (st.instruction && st.mode !== 'WALKING') li.append(el('span', 'route-step__how muted', st.instruction));
+    steps.append(li);
+  });
+  card.append(head, steps);
+  card.addEventListener('click', () => { route.pick = i; showTransit(); });
+  return card;
+}
+
+async function loadTransit() {
+  const r0 = route;
+  if (!r0?.from) return;
+  if (!r0.transit) {
+    $('#s08-tstate').textContent = '대중교통 경로를 찾고 있어요…';
+    $('#s08-tstate').hidden = false;
+    r0.transit = await transitRoute({ lat: r0.from.lat, lng: r0.from.lng }, r0.to);
+    if (route !== r0) return;
+  }
+  showTransit();
+}
+
+function showTransit() {
+  const t = route?.transit;
+  if (!t) return;
+  const box = $('#s08-routes');
+  const st = $('#s08-tstate');
+  if (t.kind !== 'ready') {
+    st.hidden = false;
+    st.textContent = `${t.message} 아래 카카오맵 앱에서 확인할 수 있어요.`;
+    box.replaceChildren();
+    draw(route.from, route.to);
+    credit('');
+    return;
+  }
+  st.hidden = true;
+  box.replaceChildren(...t.routes.map(routeCard));
+  $('#s08-tnote').textContent = t.time_basis || '조회 시점 경로예요. 배차·막차는 따로 확인해 주세요.';
+  const rt = t.routes[route.pick] || t.routes[0];
+  draw(route.from, route.to, rt.steps.filter((s) => s.path?.length > 1).map((s) => ({ path: s.path, color: COLORS[s.mode], dashed: s.mode === 'WALKING' })));
+  credit(`대중교통 경로 ${t.provider || '카카오맵'}`);
+}
+
+let currentMode = 'walk';
 function setMode(mode) {
+  currentMode = mode;
   document.querySelectorAll('#s08 [data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
   $('#s08-kakao').textContent = mode === 'transit' ? '카카오맵 앱으로 대중교통 길찾기 ↗' : '카카오맵 앱으로 도보 길찾기 ↗';
   $('#s08-walk').hidden = mode !== 'walk';
   $('#s08-transit').hidden = mode !== 'transit';
+  if (!route) return;
+  if (mode === 'walk') showWalk();
+  else loadTransit();
 }
 
 /** 이벤트 연결 (한 번) */
