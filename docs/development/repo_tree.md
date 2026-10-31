@@ -36,6 +36,7 @@ lab678/
     README.md
     development/
       README.md
+      course-alternatives-progress.md
       current-state.md
       demo-login-server-progress.md
       demo-profile-design.md
@@ -60,6 +61,7 @@ lab678/
         2026-10-31-audible-card.md
         2026-10-31-chrome-gugak.md
         2026-10-31-chrome-speech.md
+        2026-10-31-course-alternatives.md
         2026-10-31-course-demo-check.md
         2026-10-31-demo-server-reuse.md
         2026-10-31-develop-sync.md
@@ -134,6 +136,7 @@ lab678/
     reverse_index.md
     scripts/
       catalog.py
+      check_course_alternatives.cjs
       check_outing_ui.cjs
       commit_report.py
       context.py

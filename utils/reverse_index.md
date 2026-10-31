@@ -7,16 +7,19 @@
 | 심볼 | 정의 위치 | 개요 |
 |---|---|---|
 | `broken_links` | [utils/scripts/harness.py:49](../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
-| `build_course` | [backend/course.py:68](../backend/course.py#L68) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
+| `build_course` | [backend/course.py:102](../backend/course.py#L102) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
 | `check` | [utils/scripts/catalog.py:225](../utils/scripts/catalog.py#L225) | Return missing or stale generated indexes; tolerate Git line endings. |
 | `code_checks` | [utils/scripts/harness.py:20](../utils/scripts/harness.py#L20) | Parse Python statically and require module/function/class docstrings. |
 | `compact` | [utils/scripts/catalog.py:63](../utils/scripts/catalog.py#L63) | Return one short Markdown-safe line from a docstring. |
 | `config` | [utils/scripts/catalog.py:21](../utils/scripts/catalog.py#L21) | Read only the public harness configuration, never environment values. |
 | `contents` | [utils/scripts/verify_watch.py:24](../utils/scripts/verify_watch.py#L24) | Read generated text, tolerating a brief replacement window. |
 | `coordinate` | [backend/outing.py:15](../backend/outing.py#L15) | 유한한 위경도 숫자를 검증하고 잘못된 입력은 ValueError로 알린다. |
+| `course_alternatives` | [backend/course.py:69](../backend/course.py#L69) | 동의 요청에만 같은 시간 한 곳·최대 두 시간 이른 두 곳의 검증된 대안을 반환한다. |
 | `CourseTests` | [backend/test_course.py:9](../backend/test_course.py#L9) | 전시와 고정 공연이 있는 당일 요청을 독립적으로 검증한다. |
 | `CourseTests.setUp` | [backend/test_course.py:12](../backend/test_course.py#L12) | 한국 시각 한 시간과 20분씩 관람할 수 있는 두 전시를 준비한다. |
+| `CourseTests.test_alternative_unknown_missing_and_day_boundary` | [backend/test_course.py:67](../backend/test_course.py#L67) | 미확인 시간·누락 구간을 가능으로 만들지 않고 이전 날짜로 옮기지 않는다. |
 | `CourseTests.test_boundary` | [backend/test_course.py:21](../backend/test_course.py#L21) | 도보 두 구간과 관람이 마감에 딱 맞으면 허용하고 1초 초과하면 제외한다. |
+| `CourseTests.test_consent_and_alternatives` | [backend/test_course.py:47](../backend/test_course.py#L47) | 동의 없이는 대안을 만들지 않고 종료·체류를 보존한 한 곳/이른 출발을 계산한다. |
 | `CourseTests.test_order_and_missing_routes` | [backend/test_course.py:36](../backend/test_course.py#L36) | 순서를 바꿔 가능한 일정만 선택하고 누락된 구간은 이동 0초로 쓰지 않는다. |
 | `CourseTests.test_unknown_and_wait` | [backend/test_course.py:26](../backend/test_course.py#L26) | 공연 시작 전 대기는 포함하고 종료 미상 또는 휴관 조건 미상은 확정하지 않는다. |
 | `decode_shape` | [backend/walking.py:50](../backend/walking.py#L50) | Valhalla polyline6를 위도·경도 배열로 변환한다. 손상·범위 초과는 ValueError다. |

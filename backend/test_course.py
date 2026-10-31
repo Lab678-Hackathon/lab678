@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import patch
 from datetime import datetime
 
-from course import build_course, schedule_pair
+from course import build_course, schedule_pair, course_alternatives
 
 
 class CourseTests(unittest.TestCase):
@@ -43,3 +43,37 @@ class CourseTests(unittest.TestCase):
             matrix.pop()
             self.assertEqual(build_course(self.data,self.events)["status"], "unavailable")
             self.assertEqual(build_course(dict(self.data,exclude_ids=["2"]),self.events)["status"], "insufficient")
+
+    def test_consent_and_alternatives(self):
+        """동의 없이는 대안을 만들지 않고 종료·체류를 보존한 한 곳/이른 출발을 계산한다."""
+        for event in self.events:
+            event["opening_info"] = "09:00~18:00"
+        matrix = [[1800,1800],[0,1800],[1800,0]]
+        with patch("course.query_walking", return_value=(200, {"sources_to_targets":{"durations":matrix}})):
+            original = build_course(self.data, self.events)
+            self.assertEqual(original["status"], "conflict")
+            self.assertNotIn("alternatives", original)
+            result = build_course(dict(self.data, alternatives=True), self.events)
+            choices = result["alternatives"]
+            self.assertEqual(len(choices), 2)
+            self.assertEqual(len(choices[0]["course"]["ids"]), 1)
+            self.assertEqual(choices[0]["start_at"], self.data["start_at"])
+            self.assertEqual(choices[1]["start_at"], "2026-10-31T13:00:00+09:00")
+            self.assertTrue(all(c["end_at"] == self.data["end_at"] for c in choices))
+            self.assertEqual(self.data["start_at"], self.start.isoformat())
+            with self.assertRaises(ValueError):
+                build_course(dict(self.data, alternatives="true"), self.events)
+
+    def test_alternative_unknown_missing_and_day_boundary(self):
+        """미확인 시간·누락 구간을 가능으로 만들지 않고 이전 날짜로 옮기지 않는다."""
+        matrix = [[600,None],[0,None],[None,0]]
+        choices = course_alternatives(self.events,matrix,(37,127),self.start,self.end,20)
+        self.assertEqual(len(choices), 1)
+        self.events[0]["opening_info"] = "요일별 확인 필요"
+        self.assertEqual(course_alternatives(self.events,matrix,(37,127),self.start,self.end,20), [])
+        start = self.start.replace(hour=0, minute=15)
+        end = start.replace(hour=1)
+        for event in self.events:
+            event["opening_info"] = "00:00~02:00"
+        choices = course_alternatives(self.events,[[600,600],[0,1800],[1800,0]],(37,127),start,end,20)
+        self.assertEqual(len(choices), 1)

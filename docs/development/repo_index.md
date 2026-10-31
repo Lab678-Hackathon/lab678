@@ -18,12 +18,12 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [TEAM_WORKFLOW.md](../../TEAM_WORKFLOW.md) | 678 Lab · TEAM_WORKFLOW | `bbe50fd59065` |
 | [backend/AGENTS.md](../../backend/AGENTS.md) | backend 작업 | `15ed2f76becf` |
 | [backend/README.md](../../backend/README.md) | backend | `d6bc4099c8c5` |
-| [backend/course.py](../../backend/course.py) | 서울시 후보 최대 다섯 곳의 방문 순서를 비교해 두 곳 도보 일정 하나를 제시한다. | `c3086ab83390` |
+| [backend/course.py](../../backend/course.py) | 서울시 후보 최대 다섯 곳의 방문 순서를 비교해 두 곳 도보 일정 하나를 제시한다. | `fc42683c7b44` |
 | [backend/local_voice.py](../../backend/local_voice.py) | Windows 개인 시연용. 카드 텍스트를 설치된 한국어 음성으로 WAV 합성한다. | `9b8aca108c6c` |
 | [backend/outing.py](../../backend/outing.py) | 서울시 행사 다섯 건에서 날짜·시간·분류를 확인하고 직선거리 순으로 반환한다. | `5004101951ed` |
-| [backend/preview.html](../../backend/preview.html) | 설정·자료 파일; 필요할 때 원문 확인 | `9948a8092c9a` |
+| [backend/preview.html](../../backend/preview.html) | 설정·자료 파일; 필요할 때 원문 확인 | `6344ba4e0899` |
 | [backend/preview.py](../../backend/preview.py) | 동조 개인용 로컬 추천 점검 화면. python backend/preview.py로 시작한다. | `e3ed259561d7` |
-| [backend/test_course.py](../../backend/test_course.py) | 두 곳 도보 일정의 마감 경계·휴관 원문·결측·방문 순서를 검사한다. | `22e2f54c0643` |
+| [backend/test_course.py](../../backend/test_course.py) | 두 곳 도보 일정의 마감 경계·휴관 원문·결측·방문 순서를 검사한다. | `94dbe388fa2a` |
 | [backend/test_outing.py](../../backend/test_outing.py) | 서울시 공개 응답 재생으로 입력·선별·결측·실패를 검사한다. | `2ad5c0f55de8` |
 | [backend/test_walking.py](../../backend/test_walking.py) | 한국어 경로 단계와 지도 좌표가 같은 응답을 사용하는지 검증한다. | `24220eb5c118` |
 | [backend/walking.py](../../backend/walking.py) | 개인 점검 화면에서 선택한 행사장 두 곳의 Valhalla 보행 경로를 조회한다. | `fedc1567e347` |
@@ -32,10 +32,11 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/AGENTS.md](../../docs/AGENTS.md) | 문서 작업 | `6943f61f8205` |
 | [docs/README.md](../../docs/README.md) | docs | `57dbb44fc25e` |
 | [docs/development/README.md](../../docs/development/README.md) | LAB678 · 김동조 개발 작업 맥락 | `862d1eacbed0` |
-| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `92e4255bb133` |
+| [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md) | 시간 부족 → 동의 → 대안 선택 진행표 | `65a6e0edc8ad` |
+| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `45111408967d` |
 | [docs/development/demo-login-server-progress.md](../../docs/development/demo-login-server-progress.md) | 데모 로그인·해커톤 서버 검토 진행표 | `ca878f31c5f8` |
 | [docs/development/demo-profile-design.md](../../docs/development/demo-profile-design.md) | 인증 없는 이용·체험 프로필·로컬 저장 설계안 | `87e1d5b21681` |
-| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `f76365804e5f` |
+| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `f8f86654edb3` |
 | [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md) | 개발 도구·반복 검증·컨텍스트 운영 | `ce0d9492072b` |
 | [docs/development/examples/demo-users.sample.json](../../docs/development/examples/demo-users.sample.json) | 구조화 설정·상태 데이터 | `f148990a7ff7` |
 | [docs/development/examples/outing-request.json](../../docs/development/examples/outing-request.json) | 구조화 설정·상태 데이터 | `3fc7504a23dd` |
@@ -45,14 +46,15 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/konnect-reuse-reading-guide.md](../../docs/development/konnect-reuse-reading-guide.md) | KONNECT 재사용 전 읽기·경량화 가이드 | `ec75964b0824` |
 | [docs/development/loops/tooling-index.json](../../docs/development/loops/tooling-index.json) | 구조화 설정·상태 데이터 | `21338df780cb` |
 | [docs/development/mobility-routing-review.md](../../docs/development/mobility-routing-review.md) | LAB678 · 도보·대중교통 이동 안내 기술검토 | `f11387073107` |
-| [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md) | 김동조의 문화외출 MVP 개발 계획 | `2c497ef686da` |
-| [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `504a96dacf51` |
+| [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md) | 김동조의 문화외출 MVP 개발 계획 | `426f4bc24490` |
+| [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `ace563bee6a2` |
 | [docs/development/repo_index.md](../../docs/development/repo_index.md) | 자동 생성 색인 | `generated` |
 | [docs/development/repo_reverse_index.md](../../docs/development/repo_reverse_index.md) | 자동 생성 색인 | `generated` |
 | [docs/development/repo_tree.md](../../docs/development/repo_tree.md) | 자동 생성 색인 | `generated` |
 | [docs/development/reports/2026-10-31-audible-card.md](../../docs/development/reports/2026-10-31-audible-card.md) | 읽기 기능은 구현돼 있었지만, 기존에는 브라우저의 읽기 종료 신호만 확인해서 실제로 소리가 났는지 알 수 없었습니다. **소리가 안 들릴 때 쓸 수 있는 ‘음성 파일로 듣기’를 추가했습니다.** | `78df591fa5f7` |
 | [docs/development/reports/2026-10-31-chrome-gugak.md](../../docs/development/reports/2026-10-31-chrome-gugak.md) | **일반 Chrome에서 “국악을 듣고 싶어”라고 말하면 국악 행사 2건이 지도와 카드에 표시되는 흐름을 실기기 확인 완료로 기록했습니다.** 화면의 1번은 서울돈화문국악당의 ‘코공’, 2번은 국립박물관문화재단의 ‘소리: 성덕대왕신종’입니다. | `55128c14b8a4` |
 | [docs/development/reports/2026-10-31-chrome-speech.md](../../docs/development/reports/2026-10-31-chrome-speech.md) | **동조님 PC의 일반 Chrome에서 한국어 음성 입력을 확인했습니다.** 버튼을 누른 뒤 1.52초에 발화를 감지했고, 3.51초에 13자를 전사한 뒤 정상 종료했습니다. 시연은 일반 Chrome으로 진행하면 됩니다. | `7eae2e2fcfee` |
+| [docs/development/reports/2026-10-31-course-alternatives.md](../../docs/development/reports/2026-10-31-course-alternatives.md) | 시간 부족 안내 뒤에 **동의 → 대안 1·2 → 선택 적용**을 추가했습니다. | `4523efd230a2` |
 | [docs/development/reports/2026-10-31-course-demo-check.md](../../docs/development/reports/2026-10-31-course-demo-check.md) | 보내주신 화면에서 **시간 부족 안내**는 확인됐습니다. 당시 적용된 출발·종료 시각은 화면에 없어 정확한 원인까지 확인하기 어려웠습니다. 이제 결과 상단에 적용한 조건을 표시합니다. | `c308afeadab9` |
 | [docs/development/reports/2026-10-31-demo-server-reuse.md](../../docs/development/reports/2026-10-31-demo-server-reuse.md) | 인증·DB 간소화안, 두 브랜치 재사용 순서, 해커톤 서버 활용안을 기록하고 커밋했습니다. | `64c2078b9f0a` |
 | [docs/development/reports/2026-10-31-develop-sync.md](../../docs/development/reports/2026-10-31-develop-sync.md) | 최신 develop을 받아 dj/develop에 동기화했습니다. | `bc28332f9977` |
@@ -75,8 +77,8 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/2026-10-31-two-stop-course.md](../../docs/development/reports/2026-10-31-two-stop-course.md) | **두 곳 문화코스**를 구현했습니다. 출발지부터 첫 행사장까지의 도보, 두 행사 사이 이동, 관람시간을 합쳐 방문 순서와 예상 시각을 보여줍니다. | `27a95f3ce6f9` |
 | [docs/development/reports/2026-10-31-walk-demo.md](../../docs/development/reports/2026-10-31-walk-demo.md) | 동조님 시연 PC에서 **국악 추천 → 행사 선택 → 도보 시간 확인**까지 정상 동작한 것으로 기록했습니다. | `a933333d6e14` |
 | [docs/development/reports/2026-10-31-walk.md](../../docs/development/reports/2026-10-31-walk.md) | 두 행사 사이 도보 시간을 추천 화면에서 확인할 수 있습니다. | `ca0e5a18f78b` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `58b4d590cdb1` |
-| [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `7d0fb25cc308` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `2f538139fed5` |
+| [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `85cd0546dd1e` |
 | [docs/development/tooling-progress.md](../../docs/development/tooling-progress.md) | 재사용 도구·자동 색인·컨텍스트 구축 진행 체크표 | `b72aa1e78379` |
 | [docs/meetings/2026-10-28.md](../../docs/meetings/2026-10-28.md) | 10/28 팀 회의 | `4423b5dec6ce` |
 | [docs/planning/AGENTS.md](../../docs/planning/AGENTS.md) | 첨부 기획 원본 | `참고 원본 / 966218f93a04` |
@@ -108,10 +110,11 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [frontend/README.md](../../frontend/README.md) | frontend | `8f3bc2455014` |
 | [utils/AGENTS.md](../../utils/AGENTS.md) | utils 작업 | `606b01a12f06` |
 | [utils/README.md](../../utils/README.md) | 재사용 개발 도구 | `e1df914a2f02` |
-| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `b41bbdcbb590` |
+| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `0f248857bb40` |
 | [utils/index.md](../../utils/index.md) | 자동 생성 색인 | `generated` |
 | [utils/reverse_index.md](../../utils/reverse_index.md) | 자동 생성 색인 | `generated` |
 | [utils/scripts/catalog.py](../../utils/scripts/catalog.py) | Build deterministic code indexes without importing source modules. | `ecb99cd9ca5b` |
+| [utils/scripts/check_course_alternatives.cjs](../../utils/scripts/check_course_alternatives.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `2d9ef28f2129` |
 | [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `3597ff86d164` |
 | [utils/scripts/commit_report.py](../../utils/scripts/commit_report.py) | Commit an approved task with its complete UTF-8 report as the exact message. | `71ec658dfada` |
 | [utils/scripts/context.py](../../utils/scripts/context.py) | Render a compact restart brief from explicit state, without guessing decisions. | `fd76e9b14c3b` |
