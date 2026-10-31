@@ -51,11 +51,12 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/README.md](../../docs/development/README.md) | LAB678 · 김동조 개발 작업 맥락 | `ee8c06558346` |
 | [docs/development/chat-conditions.md](../../docs/development/chat-conditions.md) | 대화 조건 처리 코어와 연결 제안 | `f30ae0e21e88` |
 | [docs/development/chat-ui-handoff.md](../../docs/development/chat-ui-handoff.md) | 팀 화면 채팅 연결 · 로컬 검증과 인계 | `822ac31fd51a` |
+| [docs/development/conversation-validation.md](../../docs/development/conversation-validation.md) | 자연어 대화·추천 추가 구간 검증 | `1a9c1234e83c` |
 | [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md) | 시간 부족 → 동의 → 대안 선택 진행표 | `a662e7da1bee` |
-| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `bbf7a5edae09` |
+| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `cbbd7282a18a` |
 | [docs/development/demo-login-server-progress.md](../../docs/development/demo-login-server-progress.md) | 데모 로그인·해커톤 서버 검토 진행표 | `ca878f31c5f8` |
 | [docs/development/demo-profile-design.md](../../docs/development/demo-profile-design.md) | 인증 없는 이용·체험 프로필·로컬 저장 설계안 | `87e1d5b21681` |
-| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `a3c9d9aeee5e` |
+| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `227a5bb109d5` |
 | [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md) | 개발 도구·반복 검증·컨텍스트 운영 | `ce0d9492072b` |
 | [docs/development/examples/course-selected-place.live.json](../../docs/development/examples/course-selected-place.live.json) | 구조화 설정·상태 데이터 | `447d8ceff61e` |
 | [docs/development/examples/demo-users.sample.json](../../docs/development/examples/demo-users.sample.json) | 구조화 설정·상태 데이터 | `f148990a7ff7` |
@@ -83,6 +84,8 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/qa-chat/chat-conflict.png](../../docs/development/qa-chat/chat-conflict.png) | 설정·자료 파일; 필요할 때 원문 확인 | `4ebd31bbf62d` |
 | [docs/development/qa-chat/chat-to-detail.png](../../docs/development/qa-chat/chat-to-detail.png) | 설정·자료 파일; 필요할 때 원문 확인 | `721da4d00e8d` |
 | [docs/development/qa-chat/result.json](../../docs/development/qa-chat/result.json) | 구조화 설정·상태 데이터 | `754e3d188f9f` |
+| [docs/development/qa-conversation/edges.json](../../docs/development/qa-conversation/edges.json) | 구조화 설정·상태 데이터 | `d34edb3a6733` |
+| [docs/development/qa-conversation/recovery.json](../../docs/development/qa-conversation/recovery.json) | 구조화 설정·상태 데이터 | `f62c5e95a0fc` |
 | [docs/development/qa-natural/confirmation.png](../../docs/development/qa-natural/confirmation.png) | 설정·자료 파일; 필요할 때 원문 확인 | `960cb0c107d1` |
 | [docs/development/qa-natural/result.json](../../docs/development/qa-natural/result.json) | 구조화 설정·상태 데이터 | `64e83cad2497` |
 | [docs/development/qa-natural/results.png](../../docs/development/qa-natural/results.png) | 설정·자료 파일; 필요할 때 원문 확인 | `6c3b486a2a8c` |
@@ -157,9 +160,10 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/20261031-team-chat-connected.md](../../docs/development/reports/20261031-team-chat-connected.md) | 팀 화면 복사본에 실제 AI 채팅을 연결했습니다. | `ceeb913acde4` |
 | [docs/development/reports/20261031-team-flow-connected.md](../../docs/development/reports/20261031-team-flow-connected.md) | 희영님 프론트와 백엔드의 첫 연결을 확인했습니다. | `fdcdc066550b` |
 | [docs/development/reports/20261031-user-preferences-kakao-review.md](../../docs/development/reports/20261031-user-preferences-kakao-review.md) | 사용자 선호 저장과 카카오 로그인 활용 범위를 확인했습니다. | `18a5bbe4b8e7` |
+| [docs/development/reports/conversation-validation.md](../../docs/development/reports/conversation-validation.md) | 추가 테스트를 완료했습니다. **이번 검사에서 새 오류는 발견되지 않았습니다.** | `376b64756d83` |
 | [docs/development/reports/natural-language-recommendation.md](../../docs/development/reports/natural-language-recommendation.md) | 자연어 대화 → 자동 설정 → 추천 연결을 구현했습니다. | `180d6a898461` |
 | [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `6be14b542825` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `c8e66054b662` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `8089bc687d5e` |
 | [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `ecc6ea2576d6` |
 | [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md) | LAB678 · 동료와 LLM을 위한 개발 참조·실행 안내 | `a8cfdbe6a06b` |
 | [docs/development/team-integration-checklist.md](../../docs/development/team-integration-checklist.md) | 팀 의견 대조 · 최종 UI 연결 우선 체크표 | `a9c94afd0cf6` |
@@ -198,13 +202,14 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [frontend/README.md](../../frontend/README.md) | frontend | `8f3bc2455014` |
 | [utils/AGENTS.md](../../utils/AGENTS.md) | utils 작업 | `606b01a12f06` |
 | [utils/README.md](../../utils/README.md) | 재사용 개발 도구 | `e1df914a2f02` |
-| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `430b898f5b33` |
+| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `bdf6f6ca068f` |
 | [utils/index.md](../../utils/index.md) | 자동 생성 색인 | `generated` |
 | [utils/reverse_index.md](../../utils/reverse_index.md) | 자동 생성 색인 | `generated` |
 | [utils/scripts/catalog.py](../../utils/scripts/catalog.py) | Build deterministic code indexes without importing source modules. | `ecb99cd9ca5b` |
 | [utils/scripts/check_chat_api.py](../../utils/scripts/check_chat_api.py) | 임시 로컬 서버에서 대화 API 정상·입력·미설정·CORS를 검사한다. 외부 AI 호출은 모의다. | `5f716576a3a5` |
 | [utils/scripts/check_chat_live.py](../../utils/scripts/check_chat_live.py) | 명시 실행 시 Naito 실제 호출 3회로 공개 예문을 검증한다. 키/공급자 원문은 출력하지 않는다. | `004272e5ae96` |
 | [utils/scripts/check_chat_ui.cjs](../../utils/scripts/check_chat_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `8623d8d210c3` |
+| [utils/scripts/check_conversation_edges.py](../../utils/scripts/check_conversation_edges.py) | 실제 Naito로 대화 수정·취소·시간 경계를 검사한다. 고정 시험 발화만 사용하고 키는 출력하지 않는다. | `741e0fbbb071` |
 | [utils/scripts/check_course_alternatives.cjs](../../utils/scripts/check_course_alternatives.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `aeaa2c41fe61` |
 | [utils/scripts/check_course_edit.cjs](../../utils/scripts/check_course_edit.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `5cd28eadc59c` |
 | [utils/scripts/check_deployment.cjs](../../utils/scripts/check_deployment.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `e260cdd6322d` |
@@ -215,6 +220,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [utils/scripts/check_natural_flow.cjs](../../utils/scripts/check_natural_flow.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `b9706788a4da` |
 | [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `431b112db40c` |
 | [utils/scripts/check_place_search.cjs](../../utils/scripts/check_place_search.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `fa354bb75fad` |
+| [utils/scripts/check_preference_recovery.cjs](../../utils/scripts/check_preference_recovery.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `94c21be4bf15` |
 | [utils/scripts/check_result_preservation.cjs](../../utils/scripts/check_result_preservation.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `a65aea175729` |
 | [utils/scripts/check_team_flow.cjs](../../utils/scripts/check_team_flow.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `82c79b99ad8c` |
 | [utils/scripts/check_transit_ui.cjs](../../utils/scripts/check_transit_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `a1f5a4ac7b53` |

@@ -471,3 +471,9 @@ Naito 실제 연결을 확인했습니다.
 실제 Naito 다회차→최종확인→기록4후보→상세 ID, 서울시 live 미래날짜 음악3분류/2후보 PASS. 백엔드70개, UI5구간, 로컬HTTP4검사 PASS. 초기 UI 확인값 보호 실패를 확정 함수 내 스냅샷으로 수정 후 재검증했다. 첫 HTTP 검사는 로컬 소켓 권한 제한으로 실행되지 않아 허용된 실행에서 재검사했다. 키 값 미출력/미커밋. 지도 타일/실기기 음성/공개 배포는 미검증.
 
 최신 계약·인계·검증 근거: [자연어 자동 설정 인계](natural-language-handoff.md). 전체 완료 보고문: [자연어 추천 보고](reports/natural-language-recommendation.md). 작업 체크표는 무시된 plan_dj/natural-language-implementation.md, Push/PR/병합은 미실행.
+
+## 2026-10-31 · 대화 수정·취소·추천 회복 추가 검증
+
+사용자 “계속 테스트하자”에 따라 실제 Naito 조건 해석10건과 UI회복4구간을 추가했다. 총 실제AI11회, 고정 공개 장소/시험문장만 사용. 예산 해제·제외 누적/해제·필수제약 보존/명시 해제·모호시간·59/60분·부정관심사 모두PASS. UI는 초기선호 fixture, 실제AI로 확정값3항목 변경 동의, recorded0건→5건 복구/새로고침/상세ID, 모의추천502 보존까지PASS.
+
+이번 검사에서 서비스 결함은 발견하지 않아 서비스 코드는 수정하지 않았다. 재사용 검사 스크립트·정규화 결과JSON·인계 기록만 추가. 실제모바일/마이크/지도타일/배포는 미실시. 기존70개 테스트 결과를 이번 재실행으로 보고하지 않는다. 상세 [추가 검증](conversation-validation.md), 전체보고문 [완료보고](reports/conversation-validation.md). 개인 체크표 plan_dj/conversation-test-progress.md. Push 미실행.

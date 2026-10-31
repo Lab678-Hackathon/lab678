@@ -7,6 +7,7 @@
   "state_file": "docs/development/state.json",
   "repo_indexes": ["docs/development/repo_index.md", "docs/development/repo_reverse_index.md", "docs/development/repo_tree.md"],
   "features": {
+    "자연어 수정·조건 해제·추천 회복 검증": ["utils/scripts/check_conversation_edges.py", "utils/scripts/check_preference_recovery.cjs", "docs/development/conversation-validation.md", "docs/development/qa-conversation/edges.json", "docs/development/qa-conversation/recovery.json"],
     "자연어 선호 탐색·자동 설정·실제 후보 선별": ["backend/preferences.py", "backend/test_preferences.py", "backend/team_preferences.js", "utils/scripts/check_natural_flow.cjs", "docs/development/natural-language-handoff.md", "docs/development/qa-natural/result.json"],
     "자연어 중심 추천·이전 구현 비교": ["docs/development/natural-language-recommendation-review.md"],
     "팀 화면 AI 채팅·조건 동기화·동의 UI": ["backend/team_chat.js", "utils/scripts/team_chat_preview.py", "utils/scripts/check_chat_ui.cjs", "docs/development/chat-ui-handoff.md", "docs/development/qa-chat/result.json"],

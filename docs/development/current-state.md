@@ -26,7 +26,6 @@
 
 ## 완료·검증
 
-- PR #15로 develop 병합06c0443: 최소60분/CORS/사실필드·결과보존·코스변경·Render준비·카카오지도/위치·장소검색. 백엔드42개 PASS. 후속 팀프론트d7dee71 실제5173프록시로 recorded/live 카드·상세ID, 입력경계·모의예외7검사PASS. 공개배포/기획최종QA/실기기는 미검증.
 - 팀 화면 QA-01 로컬 커밋6c6ece8: recorded/live 선택·상세 ID 일치 및 오류7구간PASS. feature/front 최신 원격164cd40은 아직 develop 병합 미확인.
 - 대화 조건 코어·Naito 어댑터·POST /preview/chat 구현. 확인값 변경 동의/거절, revision 보호, 좌표 생성 금지, 기존60분 검증. 백엔드60개·실제 로컬HTTP4구간PASS(공급자 응답은 모의).
 - 사용자 제공 Naito 주소/프로토콜/모델표/설정 예제 저장. 앱 모델claude-sonnet-4, 로컬 .local/naito.env 생성(키 미출력·Git 제외).
@@ -36,6 +35,7 @@
 - 이전 완성본932032b의 study/실제 코드 비교: 복수관심사·예산·제외·분위기·걷기→후보수집/판정/정렬/대화재추천 존재. 현재는 기본조건추출과 서울시첫5건조회 중심. 비교문서 natural-language-recommendation-review.md.
 - 자연어 추천 확장: 복수 분류/음악 후속 질문, 무료·1인 관람료·제외, 관심어/직선 근접 정렬. 팀 복사본 S02a 선호 확인→실제 요청→S03/S04 연결. 백엔드70개 PASS.
 - 실제 Naito3회 음악→골고루→무료전시/제외/시간 자동 설정→recorded4건→상세ID PASS. 서울시 미래날짜 음악3분류 live HTTP200 후보2건. UI 회귀5구간 PASS(예외/STT 모의).
+- 추가검증: 실제 Naito 해석10건(예산/제외 취소·필수제약/해제·모호시간·59/60·부정관심사) PASS. 브라우저4구간(0건→동의→재추천/새로고침/상세·모의502) PASS. AI총11호출, 행사recorded. 서비스 수정 결함 없음.
 
 ## 진행 중
 
@@ -59,6 +59,7 @@
 
 ## 필요할 때 읽을 자료
 
+- [추가 대화·회복 검증](conversation-validation.md): 실제AI10건/브라우저4구간 및 모의·기록 구분.
 - [자연어 자동 설정·추천 인계](natural-language-handoff.md): 최신 추가 필드/연결/실제·모의 검사/한계.
 - [자연어 중심 추천 비교](natural-language-recommendation-review.md): 이전 구현의 실제 기능·현재 차이·선별재사용/정책 주의.
 - [팀 화면 채팅 인계](chat-ui-handoff.md): 로컬5174·담당확인·검증5구간·실제/모의 구분.

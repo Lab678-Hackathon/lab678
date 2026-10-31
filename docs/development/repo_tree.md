@@ -55,6 +55,7 @@ lab678/
       README.md
       chat-conditions.md
       chat-ui-handoff.md
+      conversation-validation.md
       course-alternatives-progress.md
       current-state.md
       demo-login-server-progress.md
@@ -90,6 +91,9 @@ lab678/
         chat-conflict.png
         chat-to-detail.png
         result.json
+      qa-conversation/
+        edges.json
+        recovery.json
       qa-natural/
         confirmation.png
         result.json
@@ -167,6 +171,7 @@ lab678/
         20261031-team-chat-connected.md
         20261031-team-flow-connected.md
         20261031-user-preferences-kakao-review.md
+        conversation-validation.md
         natural-language-recommendation.md
       screen-spec-review.md
       state.json
@@ -232,6 +237,7 @@ lab678/
       check_chat_api.py
       check_chat_live.py
       check_chat_ui.cjs
+      check_conversation_edges.py
       check_course_alternatives.cjs
       check_course_edit.cjs
       check_deployment.cjs
@@ -242,6 +248,7 @@ lab678/
       check_natural_flow.cjs
       check_outing_ui.cjs
       check_place_search.cjs
+      check_preference_recovery.cjs
       check_result_preservation.cjs
       check_team_flow.cjs
       check_transit_ui.cjs

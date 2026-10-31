@@ -69,6 +69,7 @@
 | `main` | [utils/scripts/catalog.py:232](../utils/scripts/catalog.py#L232) | Write, validate, or search the catalog with bounded console output. |
 | `main` | [utils/scripts/check_chat_api.py:35](../utils/scripts/check_chat_api.py#L35) | 외부 키 사용 없이 4개 HTTP 구간을 검사하고 임시 서버를 반드시 종료한다. |
 | `main` | [utils/scripts/check_chat_live.py:18](../utils/scripts/check_chat_live.py#L18) | 국악·장소/시간·확정 시간 변경을 1회씩 호출하고 사실 경계와 충돌 보존을 검사한다. |
+| `main` | [utils/scripts/check_conversation_edges.py:19](../utils/scripts/check_conversation_edges.py#L19) | 독립 예산·제외·제약·시간 시나리오를 실행하고 조건 유지/해제를 명시적으로 검사한다. |
 | `main` | [utils/scripts/commit_report.py:52](../utils/scripts/commit_report.py#L52) | Check by default; stage and commit only when --commit is explicitly given. |
 | `main` | [utils/scripts/context.py:48](../utils/scripts/context.py#L48) | Write, check, or print only the short restart brief. |
 | `main` | [utils/scripts/harness.py:88](../utils/scripts/harness.py#L88) | Run the harness once; fixing failures requires a separately scoped change. |
@@ -80,6 +81,7 @@
 | `main` | [utils/scripts/watch.py:39](../utils/scripts/watch.py#L39) | Watch in a cooperative single-process loop; retain errors in local status. |
 | `main.Handler` | [utils/scripts/team_chat_preview.py:45](../utils/scripts/team_chat_preview.py#L45) | 팀 프록시/정적 서빙을 유지하고 index와 채팅 모듈 두 경로만 추가한다. |
 | `main.Handler.do_GET` | [utils/scripts/team_chat_preview.py:48](../utils/scripts/team_chat_preview.py#L48) | 원본 HTML을 디스크에 수정하지 않고 모듈 script를 응답에만 추가한다. |
+| `main.run` | [utils/scripts/check_conversation_edges.py:31](../utils/scripts/check_conversation_edges.py#L31) | 변경된 초안과 결과를 기록한다. 실패 원문은 정규화된 시험 응답만 남긴다. |
 | `map_config` | [backend/map_config.py:9](../backend/map_config.py#L9) | 환경변수 우선으로 JS 키를 반환한다. 미설정은 기존 지도를 유지하며 값은 로그하지 않는다. |
 | `MapConfigTests` | [backend/test_map_config.py:8](../backend/test_map_config.py#L8) | 실제 로컬 키를 읽지 않고 환경·파일 우선순위와 공개 범위를 점검한다. |
 | `MapConfigTests.test_file_or_missing_key` | [backend/test_map_config.py:18](../backend/test_map_config.py#L18) | BOM 허용 파일의 정확한 변수만 읽고 미설정·부적절한 값은 기본 지도로 남긴다. |
