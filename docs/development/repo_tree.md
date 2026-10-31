@@ -4,6 +4,7 @@
 
 ```text
 lab678/
+  .DS_Store
   .env.example
   .github/
     ISSUE_TEMPLATE/
@@ -71,6 +72,7 @@ lab678/
       mvp-plan.md
       outing-handoff.md
       place-search-api.md
+      planning-doc-refresh-progress.md
       recommend-api.md
       render-demo-guide.md
       repo_index.md

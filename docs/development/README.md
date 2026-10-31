@@ -2,13 +2,13 @@
 
 동료와 LLM은 [개발 참조·실행 안내](team-backend-guide.md)에서 읽는 순서·브랜치·실행·API 연결·협업 절차를 확인한다.
 
-> 10/31 갱신: 현재 기획 기준은 [기획 안내](../planning/README.md)의 PRD v0.6·화면명세 v0.2다. 아래 구버전 기준 검토는 당시 이력이며 최신 상세 대조는 별도 진행한다.
+> 10/31 갱신: 현재 기획 기준은 [기획 안내](../planning/README.md)의 PRD v0.7.0·화면명세 v0.3.0이다. 아래 구버전 기준 검토는 당시 이력이며 최신 상세 대조는 별도 진행한다.
 
 최종 기록일: 2026-10-31 (Asia/Seoul)
 
 이 문서는 개인 개발 대화의 재개를 위한 요약이다. 팀 전체 합의나 PRD를 대신하지 않는다. 공통 작업 기준은 저장소 루트의 [TEAM_WORKFLOW.md](../../TEAM_WORKFLOW.md)이며, 상세 경위는 [대화·작업 기록](discussion-log.md)을 확인한다.
 
-작업 재개는 더 짧은 [현재 상태와 다음 할 일](current-state.md)부터 시작한다. 편집 원본은 `state.json`이다. 파일 위치는 [저장소 색인](repo_index.md)·[역색인](repo_reverse_index.md)·[구조](repo_tree.md)로 찾는다. [도구·루프 운영](engineering-loop.md), [진행 체크표](tooling-progress.md), [utils 사용법](../../utils/README.md)을 필요한 범위에서 확인한다.
+작업 재개는 더 짧은 [현재 상태와 다음 할 일](current-state.md)부터 시작한다. 편집 원본은 `state.json`이다. 파일 위치는 [저장소 색인](repo_index.md)·[역색인](repo_reverse_index.md)·[구조](repo_tree.md)로 찾는다. [도구·루프 운영](engineering-loop.md), [도구 진행 체크표](tooling-progress.md), [기획 정본 갱신 체크표](planning-doc-refresh-progress.md), [utils 사용법](../../utils/README.md)을 필요한 범위에서 확인한다.
 
 ## 사용자와 현재 작업 방식 [사용자 확인]
 
