@@ -416,3 +416,19 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 .route-step__how { font-size: var(--fs-caption); }
 .kpin { padding: 4px 10px; border-radius: 12px; background: #fff; border: 2px solid var(--brand-primary); color: var(--brand-primary); font: 700 14px var(--font); white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
 .kpin--to { background: var(--brand-primary); color: #fff; }
+
+/* S08 지도 크게 보기: 상단바는 남기고 그 아래를 지도로 채워요 */
+.mapwrap { position: relative; }
+.map-big { position: absolute; right: 10px; top: 10px; z-index: 3; padding: 8px 12px; border-radius: 12px; border: 1px solid var(--border-default); background: #fff; font: 700 var(--fs-caption) var(--font); color: var(--text-primary); box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+.map-fullbar { display: none; }
+.mapwrap.is-full {
+  position: fixed; z-index: 40; top: 60px; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; background: var(--bg-canvas); display: flex; flex-direction: column;
+}
+.mapwrap.is-full .map--route { flex: 1; height: auto; border-radius: 0; }
+.mapwrap.is-full .map-big { display: none; }
+.mapwrap.is-full .map-fullbar { display: flex; align-items: center; gap: 10px; padding: 10px 16px max(12px, env(safe-area-inset-bottom)); background: var(--bg-surface); border-top: 1px solid var(--border-default); }
+.map-fullbar__info { flex: 1; margin: 0; font-size: var(--fs-label); font-weight: 700; line-height: 1.4; }
+.map-fullbar .btn { width: auto; padding: 0 16px; flex: none; }
+body.map-full-open #s08 .bottombar { display: none; }
+body.map-full-open #s08 .topbar { z-index: 41; }

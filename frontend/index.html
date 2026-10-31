@@ -145,7 +145,14 @@
         <p class="muted" id="s08-tstate" hidden></p>
         <div class="route-list" id="s08-routes"></div>
       </div>
-      <div class="map map--route" id="s08-mapbox"></div>
+      <div class="mapwrap" id="s08-mapwrap">
+        <div class="map map--route" id="s08-mapbox"></div>
+        <button class="map-big" type="button" id="s08-big">⤢ 지도 크게 보기</button>
+        <div class="map-fullbar" id="s08-fullbar">
+          <p class="map-fullbar__info" id="s08-fullinfo"></p>
+          <button class="btn btn--primary btn--small" type="button" id="s08-small">작게 보기</button>
+        </div>
+      </div>
       <p class="map-error" id="s08-maperr" hidden>지도를 불러오지 못했어요.</p>
       <p class="caption muted" id="s08-credit"></p>
       <p class="caption muted" id="s08-tnote"></p>
