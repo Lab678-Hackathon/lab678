@@ -50,6 +50,7 @@ lab678/
         outing-response.json
         seoul-events.capture.json
       hackathon-server-usage-review.md
+      keyless-routing-review.md
       konnect-reuse-reading-guide.md
       loops/
         tooling-index.json
@@ -69,6 +70,7 @@ lab678/
         2026-10-31-develop-sync.md
         2026-10-31-directions.md
         2026-10-31-events.md
+        2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md
         2026-10-31-mobility-review.md
         2026-10-31-mvp-plan.md
