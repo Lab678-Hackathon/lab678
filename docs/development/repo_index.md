@@ -62,10 +62,10 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/conversation-validation.md](../../docs/development/conversation-validation.md) | 자연어 대화·추천 추가 구간 검증 | `1a9c1234e83c` |
 | [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md) | 시간 부족 → 동의 → 대안 선택 진행표 | `a662e7da1bee` |
 | [docs/development/culture-sources.md](../../docs/development/culture-sources.md) | 서울시 조회 확대와 국문 문화시설 연결 | `6db9e42de60b` |
-| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `34dd8bc991e1` |
+| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `587d6dcfb0db` |
 | [docs/development/demo-login-server-progress.md](../../docs/development/demo-login-server-progress.md) | 데모 로그인·해커톤 서버 검토 진행표 | `ca878f31c5f8` |
 | [docs/development/demo-profile-design.md](../../docs/development/demo-profile-design.md) | 인증 없는 이용·체험 프로필·로컬 저장 설계안 | `87e1d5b21681` |
-| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `811023746587` |
+| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `a3bb5d3568cb` |
 | [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md) | 개발 도구·반복 검증·컨텍스트 운영 | `ce0d9492072b` |
 | [docs/development/examples/course-selected-place.live.json](../../docs/development/examples/course-selected-place.live.json) | 구조화 설정·상태 데이터 | `447d8ceff61e` |
 | [docs/development/examples/demo-users.sample.json](../../docs/development/examples/demo-users.sample.json) | 구조화 설정·상태 데이터 | `f148990a7ff7` |
@@ -126,7 +126,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/qa01/recorded-s04.png](../../docs/development/qa01/recorded-s04.png) | 설정·자료 파일; 필요할 때 원문 확인 | `55cf50dc3a7a` |
 | [docs/development/qa01/result.json](../../docs/development/qa01/result.json) | 구조화 설정·상태 데이터 | `25365577307a` |
 | [docs/development/recommend-api.md](../../docs/development/recommend-api.md) | 추천 API 연결 안내 | `a55eee23d745` |
-| [docs/development/render-demo-guide.md](../../docs/development/render-demo-guide.md) | Render 단일 서비스 시연 준비 | `85efffadf892` |
+| [docs/development/render-demo-guide.md](../../docs/development/render-demo-guide.md) | Render 단일 서비스 시연 준비 | `0ed5bf7f7584` |
 | [docs/development/repo_index.md](../../docs/development/repo_index.md) | 자동 생성 색인 | `generated` |
 | [docs/development/repo_reverse_index.md](../../docs/development/repo_reverse_index.md) | 자동 생성 색인 | `generated` |
 | [docs/development/repo_tree.md](../../docs/development/repo_tree.md) | 자동 생성 색인 | `generated` |
@@ -194,6 +194,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/common-automatic-dialogue.md](../../docs/development/reports/common-automatic-dialogue.md) | 자동 대화와 화면 이동을 로컬 통합 화면에 연결했습니다. | `961e7ba93bbf` |
 | [docs/development/reports/conversation-validation.md](../../docs/development/reports/conversation-validation.md) | 추가 테스트를 완료했습니다. **이번 검사에서 새 오류는 발견되지 않았습니다.** | `376b64756d83` |
 | [docs/development/reports/culture-source-preparation.md](../../docs/development/reports/culture-source-preparation.md) | 서울시 키를 연결할 준비를 마쳤습니다. | `fe865031ddc7` |
+| [docs/development/reports/deployment-status-correction.md](../../docs/development/reports/deployment-status-correction.md) | 희영님 설명이 맞습니다. **기존 Render 서비스를 계속 사용하면 됩니다.** 공개 저장소 URL로 가져오는 서비스는 GitHub 앱 승인 없이 수동 배포할 수 있습니다. 제가 승인을 배포의 필수조건으로 안내한 부분은 정정합니다. [Render 공 | `7de1660ba62f` |
 | [docs/development/reports/frontend-chat-package.md](../../docs/development/reports/frontend-chat-package.md) | 팀 프론트에 연결할 **적용 패키지**를 준비했습니다. | `789db5f49899` |
 | [docs/development/reports/microphone-toggle.md](../../docs/development/reports/microphone-toggle.md) | 마이크 버튼을 켜기·끄기 방식으로 정리했습니다. | `6fe6097c0784` |
 | [docs/development/reports/natural-language-recommendation.md](../../docs/development/reports/natural-language-recommendation.md) | 자연어 대화 → 자동 설정 → 추천 연결을 구현했습니다. | `180d6a898461` |
@@ -204,7 +205,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/transit-mobile-cards.md](../../docs/development/reports/transit-mobile-cards.md) | 대중교통 노선과 모바일 표시를 수정했습니다. | `50cf33b453f0` |
 | [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `6be14b542825` |
 | [docs/development/service-key-status.md](../../docs/development/service-key-status.md) | 키별 실제 동작·앱 반영 점검 | `447866c5a4a0` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `ffb2ddd95616` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `79403673d020` |
 | [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `ecc6ea2576d6` |
 | [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md) | LAB678 · 동료와 LLM을 위한 개발 참조·실행 안내 | `a8cfdbe6a06b` |
 | [docs/development/team-integration-checklist.md](../../docs/development/team-integration-checklist.md) | 팀 의견 대조 · 최종 UI 연결 우선 체크표 | `a9c94afd0cf6` |

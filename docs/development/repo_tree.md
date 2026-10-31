@@ -212,6 +212,7 @@ lab678/
         common-automatic-dialogue.md
         conversation-validation.md
         culture-source-preparation.md
+        deployment-status-correction.md
         frontend-chat-package.md
         microphone-toggle.md
         natural-language-recommendation.md
