@@ -323,7 +323,7 @@ let currentMode = 'walk';
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('#s08 [data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
-  $('#s08-kakao').textContent = mode === 'transit' ? '카카오맵 앱으로 대중교통 길찾기 ↗' : '카카오맵 앱으로 도보 길찾기 ↗';
+  $('#s08-kakao').title = mode === 'transit' ? '카카오맵 앱에서 대중교통 실시간 경로 보기' : '카카오맵 앱에서 도보 실시간 경로 보기';
   $('#s08-walk').hidden = mode !== 'walk';
   $('#s08-transit').hidden = mode !== 'transit';
   if (!route) return;
