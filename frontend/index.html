@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F6F3EC">
+  <title>오늘 나들이</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- S00 시작 화면 -->
+  <section class="screen" id="s00" aria-label="시작 화면">
+    <div class="landing">
+      <div class="landing__art">
+        <img src="assets/landing-autumn.jpg" alt="궁궐과 남산, 한강이 보이는 서울 풍경 그림">
+        <div class="leaves" aria-hidden="true"></div>
+        <div class="landing__title">
+          <span class="landing__small">오늘</span>
+          <span class="landing__big">나들이</span>
+          <p>가까운 문화 나들이, 말로 찾아요</p>
+        </div>
+      </div>
+      <div class="landing__panel">
+        <h2>오늘 다녀올 만한 곳,<br>함께 찾아볼까요?</h2>
+        <p class="muted">시간과 거리에 맞춰 골라드려요</p>
+        <div class="landing__slot">
+          <span class="loading" role="status"><span class="loading__dots" aria-hidden="true"><i></i><i></i><i></i></span>준비하고 있어요</span>
+          <button class="btn btn--primary" type="button" data-start data-go="/home" hidden>시작하기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S01 홈 -->
+  <section class="screen" id="s01" aria-label="홈">
+    <div class="home">
+      <div class="home__header">
+        <div class="home__brand">
+          <span class="logo"><span class="logo__small">오늘</span><span class="logo__big">나들이</span></span>
+          <span class="badge badge--ok" data-signed-in hidden>체험 중</span>
+        </div>
+        <button class="chip" type="button" data-text-size aria-pressed="false">가A&nbsp; 글자 크게</button>
+      </div>
+      <div>
+        <h1>오늘은 어디로<br>나들이 갈까요?</h1>
+        <p class="muted">말로 물어보면 가까운 나들이를 찾아드려요</p>
+      </div>
+      <img class="home__hero" src="assets/home-hero.jpg" alt="궁궐 연못과 정자가 있는 풍경">
+      <button class="btn btn--primary" type="button" data-go="/search">나들이 찾기</button>
+
+      <div data-saved hidden>
+        <h2 class="home__section-title">저장한 나들이</h2>
+        <div data-list style="display:flex;flex-direction:column;gap:8px;margin-top:10px"></div>
+      </div>
+      <div class="tip" data-tip>
+        <strong>이렇게 말해 보세요</strong>
+        "토요일 오후에 종로에서 그림 보고 싶어요"
+      </div>
+    </div>
+  </section>
+
+  <!-- S02 나들이 찾기 (다음 단계에서 채워요) -->
+  <section class="screen" id="s02" aria-label="나들이 찾기">
+    <div class="stub">
+      <h1>나들이 찾기</h1>
+      <p class="muted">입력 칸과 대화 화면은 다음 단계에서 연결해요.</p>
+      <button class="btn btn--outline" type="button" data-go="/home">홈으로</button>
+    </div>
+  </section>
+
+  <!-- S07 내 정보 (정민규 화면 기준으로 연결 예정) -->
+  <section class="screen" id="s07" aria-label="내 정보">
+    <div class="stub">
+      <h1>내 정보</h1>
+      <p class="muted">저장한 장소·코스와 관심사는 여기에 모여요.</p>
+    </div>
+  </section>
+
+  <nav class="tabbar" aria-label="아래 메뉴">
+    <button class="tab" type="button" data-go="/home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈
+    </button>
+    <button class="tab" type="button" data-go="/search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>찾기
+    </button>
+    <button class="tab" type="button" data-go="/me">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>내 정보
+    </button>
+  </nav>
+</div>
+</body>
+</html>
