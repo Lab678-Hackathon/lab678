@@ -111,6 +111,7 @@ lab678/
         2026-10-31-spoken-category.md
         2026-10-31-team-backend-guide.md
         2026-10-31-team-feedback-review.md
+        2026-10-31-team-requests-record.md
         2026-10-31-tooling-setup.md
         2026-10-31-transit-guide.md
         2026-10-31-transit-live.md
