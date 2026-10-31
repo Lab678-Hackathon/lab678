@@ -11,7 +11,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [.github/ISSUE_TEMPLATE/task.md](../../.github/ISSUE_TEMPLATE/task.md) | --- | `1ee33bbd2c25` |
 | [.github/pull_request_template.md](../../.github/pull_request_template.md) | ## 무엇을 했나요 | `ec68f1c48e6b` |
 | [.gitignore](../../.gitignore) | 설정·자료 파일; 필요할 때 원문 확인 | `77b6eb2fdbf9` |
-| [AGENTS.md](../../AGENTS.md) | Lab678 · AI 작업 안내 | `715958e7efff` |
+| [AGENTS.md](../../AGENTS.md) | Lab678 · AI 작업 안내 | `cd515950e32a` |
 | [CLAUDE.md](../../CLAUDE.md) | @AGENTS.md | `a853633c4e5c` |
 | [GEMINI.md](../../GEMINI.md) | @AGENTS.md | `a853633c4e5c` |
 | [README.md](../../README.md) | Lab678 · Codyssey AI 해커톤 2026 | `2b7d237cc973` |
@@ -22,6 +22,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [backend/course.py](../../backend/course.py) | 서울시 후보 최대 다섯 곳의 방문 순서를 비교해 두 곳 도보 일정 하나를 제시한다. | `fc42683c7b44` |
 | [backend/culture.env.example](../../backend/culture.env.example) | 설정·자료 파일; 필요할 때 원문 확인 | `2097a30e2c5d` |
 | [backend/culture_config.py](../../backend/culture_config.py) | 문화정보 키를 서버 환경/무시된 로컬 파일에서 읽는다. 비밀값을 응답·로그에 내보내지 않는다. | `6325232c6419` |
+| [backend/deploy.env.example](../../backend/deploy.env.example) | 설정·자료 파일; 필요할 때 원문 확인 | `fe2f4b546930` |
 | [backend/local_voice.py](../../backend/local_voice.py) | Windows 개인 시연용. 카드 텍스트를 설치된 한국어 음성으로 WAV 합성한다. | `a36d41d07b14` |
 | [backend/location_view.js](../../backend/location_view.js) | 지도 위 내 위치 표시·갱신·중지를 제공한다. 사용자 클릭 후에만 위치 권한을 요청한다. | `545dfc010fc2` |
 | [backend/map_config.py](../../backend/map_config.py) | 지도 표시용 공개 JavaScript 키만 읽는다. 서버 REST 키와 설정 파일은 공개하지 않는다. | `2fdb9049ff08` |
@@ -42,6 +43,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [backend/test_chat_conditions.py](../../backend/test_chat_conditions.py) | 실제 AI를 호출하지 않는 조건 병합 테스트. 동의·최신 입력·사실 경계를 검증한다. | `60320d646d8d` |
 | [backend/test_course.py](../../backend/test_course.py) | 두 곳 도보 일정의 마감 경계·휴관 원문·결측·방문 순서를 검사한다. | `94dbe388fa2a` |
 | [backend/test_culture_sources.py](../../backend/test_culture_sources.py) | 문화정보 키/조회 범위와 국문 장소의 사실·오류 경계를 모의 응답으로 검사한다. | `289aa98498f3` |
+| [backend/test_deployment_keys.py](../../backend/test_deployment_keys.py) | 배포 환경변수가 개인 로컬 키 파일보다 우선하는지 가짜 키로 검사한다. 외부 호출/실제 키 조회 없음. | `4826e08b6382` |
 | [backend/test_map_config.py](../../backend/test_map_config.py) | 지도 공개 설정이 JS 키만 노출하고 서버 키·잘못된 입력을 배제하는지 검증한다. | `d8a32938f98b` |
 | [backend/test_naito_chat.py](../../backend/test_naito_chat.py) | Naito 모의 응답/장애와 HTTP 연결 경계를 검사한다. 실제 서비스 성공을 뜻하지 않는다. | `927ae139d270` |
 | [backend/test_outing.py](../../backend/test_outing.py) | 서울시 공개 응답 재생으로 입력·선별·결측·실패를 검사한다. | `4f76676a4a52` |
@@ -59,17 +61,18 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [design/README.md](../../design/README.md) | design | `e8cd21971ef0` |
 | [docs/AGENTS.md](../../docs/AGENTS.md) | 문서 작업 | `6943f61f8205` |
 | [docs/README.md](../../docs/README.md) | docs | `6f5e3f0160f6` |
-| [docs/development/README.md](../../docs/development/README.md) | LAB678 · 김동조 개발 작업 맥락 | `ee8c06558346` |
+| [docs/development/README.md](../../docs/development/README.md) | LAB678 · 김동조 개발 작업 맥락 | `fefb130a8df0` |
 | [docs/development/automatic-voice.md](../../docs/development/automatic-voice.md) | 자동 음성 대화·종료 설정 | `85f7fbe2e004` |
 | [docs/development/chat-conditions.md](../../docs/development/chat-conditions.md) | 대화 조건 처리 코어와 연결 제안 | `f30ae0e21e88` |
 | [docs/development/chat-ui-handoff.md](../../docs/development/chat-ui-handoff.md) | 팀 화면 채팅 연결 · 로컬 검증과 인계 | `822ac31fd51a` |
 | [docs/development/conversation-validation.md](../../docs/development/conversation-validation.md) | 자연어 대화·추천 추가 구간 검증 | `1a9c1234e83c` |
 | [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md) | 시간 부족 → 동의 → 대안 선택 진행표 | `a662e7da1bee` |
 | [docs/development/culture-sources.md](../../docs/development/culture-sources.md) | 서울시 조회 확대와 국문 문화시설 연결 | `6db9e42de60b` |
-| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `c351b23fa389` |
+| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `accc1788c66f` |
 | [docs/development/demo-login-server-progress.md](../../docs/development/demo-login-server-progress.md) | 데모 로그인·해커톤 서버 검토 진행표 | `ca878f31c5f8` |
 | [docs/development/demo-profile-design.md](../../docs/development/demo-profile-design.md) | 인증 없는 이용·체험 프로필·로컬 저장 설계안 | `87e1d5b21681` |
-| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `2e308a9e3136` |
+| [docs/development/deployment-keys.md](../../docs/development/deployment-keys.md) | 공공데이터·Naito 배포 키 처리 | `058e7c494ecb` |
+| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `38ee90813ec3` |
 | [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md) | 개발 도구·반복 검증·컨텍스트 운영 | `ce0d9492072b` |
 | [docs/development/examples/course-selected-place.live.json](../../docs/development/examples/course-selected-place.live.json) | 구조화 설정·상태 데이터 | `447d8ceff61e` |
 | [docs/development/examples/demo-users.sample.json](../../docs/development/examples/demo-users.sample.json) | 구조화 설정·상태 데이터 | `f148990a7ff7` |
@@ -93,9 +96,10 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/naito-usage.md](../../docs/development/naito-usage.md) | Naito 사용 안내 · 사용자 제공 자료 보관 | `1cbeeb232f66` |
 | [docs/development/natural-language-handoff.md](../../docs/development/natural-language-handoff.md) | 자연어 자동 설정·추천 연결 | `a85f3d9a5b84` |
 | [docs/development/natural-language-recommendation-review.md](../../docs/development/natural-language-recommendation-review.md) | 자연어 중심 추천 · 이전 구현과 현재 구현 비교 | `0790684e7610` |
-| [docs/development/next-chat-handoff.md](../../docs/development/next-chat-handoff.md) | 새 채팅 인계 · 2026-10-31 | `0e26091ac540` |
+| [docs/development/next-chat-handoff.md](../../docs/development/next-chat-handoff.md) | 새 채팅 인계 · 2026-10-31 | `5f91da2ff3de` |
 | [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `031fed5c6ca0` |
 | [docs/development/place-search-api.md](../../docs/development/place-search-api.md) | 출발지 검색과 첫 프론트 연결 안내 | `4510f9c7c9d2` |
+| [docs/development/planning-doc-refresh-progress.md](../../docs/development/planning-doc-refresh-progress.md) | 기획 정본 v0.7.0·화면명세 v0.3.0 갱신 체크표 | `2e1a7d682bcf` |
 | [docs/development/qa-chat/chat-conflict.png](../../docs/development/qa-chat/chat-conflict.png) | 설정·자료 파일; 필요할 때 원문 확인 | `4ebd31bbf62d` |
 | [docs/development/qa-chat/chat-to-detail.png](../../docs/development/qa-chat/chat-to-detail.png) | 설정·자료 파일; 필요할 때 원문 확인 | `721da4d00e8d` |
 | [docs/development/qa-chat/result.json](../../docs/development/qa-chat/result.json) | 구조화 설정·상태 데이터 | `754e3d188f9f` |
@@ -147,6 +151,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/qa01/recorded-s04.png](../../docs/development/qa01/recorded-s04.png) | 설정·자료 파일; 필요할 때 원문 확인 | `55cf50dc3a7a` |
 | [docs/development/qa01/result.json](../../docs/development/qa01/result.json) | 구조화 설정·상태 데이터 | `25365577307a` |
 | [docs/development/recommend-api.md](../../docs/development/recommend-api.md) | 추천 API 연결 안내 | `a55eee23d745` |
+| [docs/development/release-checklist.md](../../docs/development/release-checklist.md) | 진행 점검·남은 일·공유 체크표 · 2026-10-31 | `ab1e28f27f87` |
 | [docs/development/render-demo-guide.md](../../docs/development/render-demo-guide.md) | Render 단일 서비스 시연 준비 | `0ed5bf7f7584` |
 | [docs/development/repo_index.md](../../docs/development/repo_index.md) | 자동 생성 색인 | `generated` |
 | [docs/development/repo_reverse_index.md](../../docs/development/repo_reverse_index.md) | 자동 생성 색인 | `generated` |
@@ -177,9 +182,11 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/2026-10-31-mvp-plan.md](../../docs/development/reports/2026-10-31-mvp-plan.md) | 동조님 MVP 실행계획을 보완해 `dj/develop`에 커밋했습니다. [MVP 실행계획과 단계별 체크표](D:/git/lab678/docs/development/mvp-plan.md) | `666b99ec023e` |
 | [docs/development/reports/2026-10-31-personal-attachment-copy.md](../../docs/development/reports/2026-10-31-personal-attachment-copy.md) | 답변 반영했습니다. **첨부 원본의 개인 사본은 `plan_dj`에 보관**합니다. | `4d0637d24a1d` |
 | [docs/development/reports/2026-10-31-personal-notes-scope.md](../../docs/development/reports/2026-10-31-personal-notes-scope.md) | `plan_dj`를 **동조님이 저에게 특별히 요청한 개인 사항만 보관하는 폴더**로 정리했습니다. | `5993598693c0` |
+| [docs/development/reports/2026-10-31-planning-doc-refresh.md](../../docs/development/reports/2026-10-31-planning-doc-refresh.md) | Lab 678 기획 정본 갱신 완료 보고 | `ae7ccd21a542` |
 | [docs/development/reports/2026-10-31-preview-map.md](../../docs/development/reports/2026-10-31-preview-map.md) | **청량리역에서 나들이를 찾아 지도와 카드로 선택하는 첫 흐름이 동작합니다.** 개인 점검 서버를 실행해 두었습니다. [내 PC에서 나들이 찾기 열기](http://127.0.0.1:8765/) | `4a9257d9b522` |
 | [docs/development/reports/2026-10-31-preview-speech.md](../../docs/development/reports/2026-10-31-preview-speech.md) | 민규님 대화 덕분에 **v0.5 문서가 아직 보이지 않는 경위**를 파악했습니다. 10월 31일 오전 원격 저장소를 확인했을 때 브랜치는 기존 6개였고, PR은 협업 규칙 관련 #1·#2뿐이었습니다. PRD 문서 5종과 UI·API 최종 합의는 확인  | `2b2e617a1f5e` |
 | [docs/development/reports/2026-10-31-preview.md](../../docs/development/reports/2026-10-31-preview.md) | 실데이터 확보에 이어 개인 점검 화면에서 **출발 조건 → 실시간 추천 → 선택 → 조건 변경·재조회**를 연결했습니다. [내 PC에서 나들이 찾기 열기](http://127.0.0.1:8765/) | `80fa1c370c23` |
+| [docs/development/reports/2026-10-31-release-ready.md](../../docs/development/reports/2026-10-31-release-ready.md) | 최신 develop을 개인 브랜치에 반영하고 공유 준비를 마쳤습니다. | `70fd4ce4e989` |
 | [docs/development/reports/2026-10-31-render-preparation.md](../../docs/development/reports/2026-10-31-render-preparation.md) | Render에 화면과 서버를 함께 올릴 준비를 마쳤습니다. | `8ac2409d4621` |
 | [docs/development/reports/2026-10-31-result-preservation.md](../../docs/development/reports/2026-10-31-result-preservation.md) | 연결 준비에 이어 추천 결과가 사라지지 않도록 보완했습니다. | `c5153966e537` |
 | [docs/development/reports/2026-10-31-route-text.md](../../docs/development/reports/2026-10-31-route-text.md) | **경로안내를 앱 안에서 텍스트로 먼저 보도록 바꿨습니다.** | `2509c7caa514` |
@@ -231,7 +238,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/voice-wave-and-compatibility.md](../../docs/development/reports/voice-wave-and-compatibility.md) | 화면은 모바일 폭에서 검사했지만, **맥북·휴대폰의 자동 음성 대화는 실제 기기 확인이 필요합니다.** 브라우저 음성 인식에는 지원 차이가 있습니다. [MDN 공식 호환성 안내](https://developer.mozilla.org/en-US/docs | `3f0d7a1220ce` |
 | [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `6be14b542825` |
 | [docs/development/service-key-status.md](../../docs/development/service-key-status.md) | 키별 실제 동작·앱 반영 점검 | `447866c5a4a0` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `36e1582676b9` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `2fb6986bb086` |
 | [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `fc1efd355b89` |
 | [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md) | LAB678 · 동료와 LLM을 위한 개발 참조·실행 안내 | `a8cfdbe6a06b` |
 | [docs/development/team-integration-checklist.md](../../docs/development/team-integration-checklist.md) | 팀 의견 대조 · 최종 UI 연결 우선 체크표 | `a9c94afd0cf6` |
@@ -243,9 +250,9 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/voice-start-latency.md](../../docs/development/voice-start-latency.md) | 자동 대화 시작 지연 · 사용자 로그 분석 | `4c36e747b9ba` |
 | [docs/meetings/2026-10-28.md](../../docs/meetings/2026-10-28.md) | 10/28 팀 회의 | `4423b5dec6ce` |
 | [docs/planning/AGENTS.md](../../docs/planning/AGENTS.md) | 첨부 기획 원본 | `참고 원본 / 966218f93a04` |
-| [docs/planning/Lab_678_MVP_화면명세서.md](../../docs/planning/Lab_678_MVP_화면명세서.md) | Lab 678 \| 오늘 나들이 — MVP 화면명세서 v0.2.1 | `참고 원본 / a5387432ff22` |
-| [docs/planning/PRD.md](../../docs/planning/PRD.md) | Lab 678 \| 오늘 나들이 — 제품 요구사항 정의서(PRD) v0.6.1 | `참고 원본 / 8a965596ce5e` |
-| [docs/planning/README.md](../../docs/planning/README.md) | Lab 678 \| 오늘 나들이 — 기획 문서 안내 및 AI 협업 읽기 기준 | `참고 원본 / bf4bba59f8a3` |
+| [docs/planning/Lab_678_MVP_화면명세서.md](../../docs/planning/Lab_678_MVP_화면명세서.md) | Lab 678 \| 오늘 나들이 — MVP 화면명세서 v0.3.0 | `참고 원본 / 2b163732bf13` |
+| [docs/planning/PRD.md](../../docs/planning/PRD.md) | Lab 678 \| 오늘 나들이 — 제품 요구사항 정의서(PRD) v0.7.0 | `참고 원본 / 4e50419c2295` |
+| [docs/planning/README.md](../../docs/planning/README.md) | Lab 678 \| 오늘 나들이 — 기획 문서 안내 및 AI 협업 읽기 기준 | `참고 원본 / 8fe9b716a44e` |
 | [docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md](../../docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.1_20261030.md) | Lab 678 \| PRD v0.1 | `참고 원본 / 12da2334b1ca` |
 | [docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md](../../docs/planning/archive/Lab_678_시니어_문화외출_독립형_PRD_v0.4_20261030.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 서비스 PRD v0.4 | `참고 원본 / d04427254a8f` |
 | [docs/planning/archive/Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md](../../docs/planning/archive/Lab_678_시니어_문화외출_음성추천_PRD_v0.3_20261030.md) | Lab 678 \| 시니어 AI 음성 문화외출 추천 서비스 — 통합 PRD v0.3 | `참고 원본 / d1b478326627` |
@@ -274,7 +281,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [frontend/README.md](../../frontend/README.md) | frontend | `8f3bc2455014` |
 | [utils/AGENTS.md](../../utils/AGENTS.md) | utils 작업 | `606b01a12f06` |
 | [utils/README.md](../../utils/README.md) | 재사용 개발 도구 | `e1df914a2f02` |
-| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `567f5c7218cb` |
+| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `89acc31a02da` |
 | [utils/index.md](../../utils/index.md) | 자동 생성 색인 | `generated` |
 | [utils/reverse_index.md](../../utils/reverse_index.md) | 자동 생성 색인 | `generated` |
 | [utils/scripts/catalog.py](../../utils/scripts/catalog.py) | Build deterministic code indexes without importing source modules. | `ecb99cd9ca5b` |

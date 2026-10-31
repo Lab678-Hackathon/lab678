@@ -78,6 +78,11 @@
 | `currentCandidate` | [backend/team_voice_actions.js:47](../backend/team_voice_actions.js#L47) | JS/TS 정규식 후보; AST 검증 아님 |
 | `decide` | [backend/team_chat.js:346](../backend/team_chat.js#L346) | JS/TS 정규식 후보; AST 검증 아님 |
 | `decode_shape` | [backend/walking.py:50](../backend/walking.py#L50) | Valhalla polyline6를 위도·경도 배열로 변환한다. 손상·범위 초과는 ValueError다. |
+| `DeploymentKeyTests` | [backend/test_deployment_keys.py:10](../backend/test_deployment_keys.py#L10) | 환경변수 기반 배포와 로컬 개발의 설정 경계를 확인한다. |
+| `DeploymentKeyTests.test_culture_environment_precedence` | [backend/test_deployment_keys.py:13](../backend/test_deployment_keys.py#L13) | 서울시/공공데이터 표준명과 호환명을 환경에서 읽으면 로컬 파일을 열지 않는다. |
+| `DeploymentKeyTests.test_explicit_empty_naito_and_culture_disable_local_keys` | [backend/test_deployment_keys.py:28](../backend/test_deployment_keys.py#L28) | 서버에서 명시적으로 비운 공공데이터/Naito 키를 개인 파일로 몰래 대체하지 않는다. |
+| `DeploymentKeyTests.test_naito_environment_precedence` | [backend/test_deployment_keys.py:21](../backend/test_deployment_keys.py#L21) | 로컬 파일이 존재해도 서버 환경의 Naito 키/모델이 우선한다. |
+| `DeploymentKeyTests.test_rest_environment_precedence` | [backend/test_deployment_keys.py:36](../backend/test_deployment_keys.py#L36) | 서버 REST 키가 있으면 개인 파일을 읽지 않는다. 공개 지도 설정과 혼동하지 않는다. |
 | `describe` | [utils/scripts/catalog.py:69](../utils/scripts/catalog.py#L69) | Extract file overview, fingerprint, imports and symbol locations statically. |
 | `describe.visit` | [utils/scripts/catalog.py:79](../utils/scripts/catalog.py#L79) | Walk definitions and keep qualified names for nested functions. |
 | `distance_km` | [backend/outing.py:113](../backend/outing.py#L113) | 두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다. |

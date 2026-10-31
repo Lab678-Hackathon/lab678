@@ -23,6 +23,7 @@ lab678/
     course.py
     culture.env.example
     culture_config.py
+    deploy.env.example
     local_voice.py
     location_view.js
     map_config.py
@@ -43,6 +44,7 @@ lab678/
     test_chat_conditions.py
     test_course.py
     test_culture_sources.py
+    test_deployment_keys.py
     test_map_config.py
     test_naito_chat.py
     test_outing.py
@@ -73,6 +75,7 @@ lab678/
       current-state.md
       demo-login-server-progress.md
       demo-profile-design.md
+      deployment-keys.md
       discussion-log.md
       engineering-loop.md
       examples/
@@ -102,6 +105,7 @@ lab678/
       next-chat-handoff.md
       outing-handoff.md
       place-search-api.md
+      planning-doc-refresh-progress.md
       qa-chat/
         chat-conflict.png
         chat-to-detail.png
@@ -168,6 +172,7 @@ lab678/
         recorded-s04.png
         result.json
       recommend-api.md
+      release-checklist.md
       render-demo-guide.md
       repo_index.md
       repo_reverse_index.md
@@ -199,9 +204,11 @@ lab678/
         2026-10-31-mvp-plan.md
         2026-10-31-personal-attachment-copy.md
         2026-10-31-personal-notes-scope.md
+        2026-10-31-planning-doc-refresh.md
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
+        2026-10-31-release-ready.md
         2026-10-31-render-preparation.md
         2026-10-31-result-preservation.md
         2026-10-31-route-text.md

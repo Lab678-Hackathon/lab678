@@ -51,6 +51,8 @@
 - **대중교통 노선·모바일 경로 카드**: [backend/transit.py](../../backend/transit.py), [backend/preview.html](../../backend/preview.html), [backend/test_transit.py](../../backend/test_transit.py), [utils/scripts/check_transit_details.py](../../utils/scripts/check_transit_details.py), [utils/scripts/check_transit_mobile.cjs](../../utils/scripts/check_transit_mobile.cjs), [docs/development/transit-mobile.md](../../docs/development/transit-mobile.md)
 - **음성 진단·실시간 중간 글자·새 채팅 인계**: [backend/team_chat.js](../../backend/team_chat.js), [backend/voice_session.js](../../backend/voice_session.js), [utils/scripts/check_voice_diagnostics.cjs](../../utils/scripts/check_voice_diagnostics.cjs), [docs/development/next-chat-handoff.md](../../docs/development/next-chat-handoff.md)
 - **사진 지정 초기 설정 폼 복원·휴대폰 화면**: [backend/team_chat.js](../../backend/team_chat.js), [backend/team_culture.js](../../backend/team_culture.js), [utils/scripts/check_voice_navigation.cjs](../../utils/scripts/check_voice_navigation.cjs), [docs/development/qa-simple-settings](../../docs/development/qa-simple-settings)
+- **진행 점검·공유·충돌 통합**: [docs/development/release-checklist.md](../../docs/development/release-checklist.md)
+- **배포 키 환경변수·공공데이터·Naito**: [backend/deploy.env.example](../../backend/deploy.env.example), [backend/test_deployment_keys.py](../../backend/test_deployment_keys.py), [docs/development/deployment-keys.md](../../docs/development/deployment-keys.md)
 
 ## 심볼 → 정의 파일
 
@@ -128,6 +130,11 @@
 | `currentCandidate` | [backend/team_voice_actions.js:47](../../backend/team_voice_actions.js#L47) | JS/TS 정규식 후보; AST 검증 아님 |
 | `decide` | [backend/team_chat.js:346](../../backend/team_chat.js#L346) | JS/TS 정규식 후보; AST 검증 아님 |
 | `decode_shape` | [backend/walking.py:50](../../backend/walking.py#L50) | Valhalla polyline6를 위도·경도 배열로 변환한다. 손상·범위 초과는 ValueError다. |
+| `DeploymentKeyTests` | [backend/test_deployment_keys.py:10](../../backend/test_deployment_keys.py#L10) | 환경변수 기반 배포와 로컬 개발의 설정 경계를 확인한다. |
+| `DeploymentKeyTests.test_culture_environment_precedence` | [backend/test_deployment_keys.py:13](../../backend/test_deployment_keys.py#L13) | 서울시/공공데이터 표준명과 호환명을 환경에서 읽으면 로컬 파일을 열지 않는다. |
+| `DeploymentKeyTests.test_explicit_empty_naito_and_culture_disable_local_keys` | [backend/test_deployment_keys.py:28](../../backend/test_deployment_keys.py#L28) | 서버에서 명시적으로 비운 공공데이터/Naito 키를 개인 파일로 몰래 대체하지 않는다. |
+| `DeploymentKeyTests.test_naito_environment_precedence` | [backend/test_deployment_keys.py:21](../../backend/test_deployment_keys.py#L21) | 로컬 파일이 존재해도 서버 환경의 Naito 키/모델이 우선한다. |
+| `DeploymentKeyTests.test_rest_environment_precedence` | [backend/test_deployment_keys.py:36](../../backend/test_deployment_keys.py#L36) | 서버 REST 키가 있으면 개인 파일을 읽지 않는다. 공개 지도 설정과 혼동하지 않는다. |
 | `describe` | [utils/scripts/catalog.py:69](../../utils/scripts/catalog.py#L69) | Extract file overview, fingerprint, imports and symbol locations statically. |
 | `describe.visit` | [utils/scripts/catalog.py:79](../../utils/scripts/catalog.py#L79) | Walk definitions and keep qualified names for nested functions. |
 | `distance_km` | [backend/outing.py:113](../../backend/outing.py#L113) | 두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다. |

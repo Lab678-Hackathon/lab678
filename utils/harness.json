@@ -323,6 +323,14 @@
       "backend/team_culture.js",
       "utils/scripts/check_voice_navigation.cjs",
       "docs/development/qa-simple-settings"
+    ],
+    "진행 점검·공유·충돌 통합": [
+      "docs/development/release-checklist.md"
+    ],
+    "배포 키 환경변수·공공데이터·Naito": [
+      "backend/deploy.env.example",
+      "backend/test_deployment_keys.py",
+      "docs/development/deployment-keys.md"
     ]
   }
 }
