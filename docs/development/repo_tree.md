@@ -58,6 +58,7 @@ lab678/
         outing-response.json
         place-search.address.live.json
         place-search.keyword.live.json
+        qa01-request.recorded.json
         recommend-response.recorded.json
         recommend-selected-place.live.json
         seoul-events.capture.json
@@ -71,6 +72,13 @@ lab678/
       mvp-plan.md
       outing-handoff.md
       place-search-api.md
+      qa01-team-connection.md
+      qa01/
+        live-s03.png
+        live-s04.png
+        recorded-s03.png
+        recorded-s04.png
+        result.json
       recommend-api.md
       render-demo-guide.md
       repo_index.md
@@ -130,6 +138,7 @@ lab678/
         20261031-place-search-integration.md
         20261031-push-pr-issue.md
         20261031-qa01-received.md
+        20261031-team-flow-connected.md
       screen-spec-review.md
       state.json
       tasks.md
@@ -201,6 +210,7 @@ lab678/
       check_outing_ui.cjs
       check_place_search.cjs
       check_result_preservation.cjs
+      check_team_flow.cjs
       check_transit_ui.cjs
       commit_report.py
       context.py

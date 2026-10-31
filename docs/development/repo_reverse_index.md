@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **QA-01 실제 팀 화면·추천·상세 ID 검증**: [utils/scripts/check_team_flow.cjs](../../utils/scripts/check_team_flow.cjs), [docs/development/qa01-team-connection.md](../../docs/development/qa01-team-connection.md), [docs/development/examples/qa01-request.recorded.json](../../docs/development/examples/qa01-request.recorded.json)
 - **출발지 장소·주소 검색과 프론트 연결**: [backend/places.py](../../backend/places.py), [backend/test_places.py](../../backend/test_places.py), [backend/preview.py](../../backend/preview.py), [utils/scripts/check_place_search.cjs](../../utils/scripts/check_place_search.cjs), [docs/development/place-search-api.md](../../docs/development/place-search-api.md)
 - **내 위치 표시·정확도·갱신·수집 중지**: [backend/location_view.js](../../backend/location_view.js), [backend/map_view.js](../../backend/map_view.js), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_location_ui.cjs](../../utils/scripts/check_location_ui.cjs), [docs/development/kakao-map-location.md](../../docs/development/kakao-map-location.md)
 - **카카오 지도 전환·번호핀·경로 표시**: [backend/map_config.py](../../backend/map_config.py), [backend/map_view.js](../../backend/map_view.js), [backend/test_map_config.py](../../backend/test_map_config.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_kakao_map.cjs](../../utils/scripts/check_kakao_map.cjs), [docs/development/kakao-map-location.md](../../docs/development/kakao-map-location.md)
