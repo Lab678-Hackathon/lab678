@@ -1,0 +1,172 @@
+{
+  "source": "서울특별시 서울문화포털 / 서울 열린데이터광장",
+  "dataset": "https://data.seoul.go.kr/dataList/OA-15486/A/1/datasetView.do",
+  "captures": [
+    {
+      "category": "전시",
+      "date": "2026-10-31",
+      "checked_at": "2026-10-31T06:27:57+09:00",
+      "total": 8,
+      "rows": [
+        {
+          "CODENAME": "전시/미술",
+          "GUNAME": "마포구",
+          "TITLE": "전시 [IMPRINTS OF TIME]",
+          "PLACE": "갤러리 지하",
+          "STRTDATE": "2026-10-28 00:00:00.0",
+          "END_DATE": "2026-10-31 00:00:00.0",
+          "USE_TRGT": "누구나",
+          "USE_FEE": "",
+          "IS_FREE": "무료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159829&menuNo=200009",
+          "LAT": "37.5534782220949",
+          "LOT": "126.93267709449",
+          "PRO_TIME": "12:00~19:00"
+        },
+        {
+          "CODENAME": "전시/미술",
+          "GUNAME": "송파구",
+          "TITLE": "[송파 청년아티스트센터] 3기 릴레이 개인전 [dot to dot] - 권봉균",
+          "PLACE": "송파 청년아티스트센터 지하1층 아트 스페이스",
+          "STRTDATE": "2026-10-20 00:00:00.0",
+          "END_DATE": "2026-10-31 00:00:00.0",
+          "USE_TRGT": "누구나",
+          "USE_FEE": "",
+          "IS_FREE": "무료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159859&menuNo=200009",
+          "LAT": "37.5340686405498",
+          "LOT": "127.115954729217",
+          "PRO_TIME": "10:00~18:00, 일요일 및 공휴일 휴관"
+        },
+        {
+          "CODENAME": "전시/미술",
+          "GUNAME": "은평구",
+          "TITLE": "[구립증산도서관] 10월 미니멀 북큐레이션 [달마다, 나를 아끼는 습관] 책과 가까워지는 시간",
+          "PLACE": "2층 종합자료실",
+          "STRTDATE": "2026-10-06 00:00:00.0",
+          "END_DATE": "2026-10-31 00:00:00.0",
+          "USE_TRGT": "누구나",
+          "USE_FEE": "",
+          "IS_FREE": "무료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159723&menuNo=200009",
+          "LAT": "37.5828094398328",
+          "LOT": "126.907671330325",
+          "PRO_TIME": "주중 9:00~22:00 / 주말 09:00~18:00"
+        },
+        {
+          "CODENAME": "전시/미술",
+          "GUNAME": "영등포구",
+          "TITLE": "김영재 개인전 [Ashes to Bones]",
+          "PLACE": "아케이드 서울",
+          "STRTDATE": "2026-10-04 00:00:00.0",
+          "END_DATE": "2026-10-31 00:00:00.0",
+          "USE_TRGT": "누구나",
+          "USE_FEE": "0원",
+          "IS_FREE": "무료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159808&menuNo=200009",
+          "LAT": "37.5155167575219",
+          "LOT": "126.894539872062",
+          "PRO_TIME": "월-일요일 12:00~19:00"
+        },
+        {
+          "CODENAME": "전시/미술",
+          "GUNAME": "종로구",
+          "TITLE": "예고를 빛낸 사람 수상작가전: 첫 장면 Award-Winning Alumni Exhibition: The First Scene",
+          "PLACE": "서울아트센터 도암 3층 도암갤러리",
+          "STRTDATE": "2026-10-01 00:00:00.0",
+          "END_DATE": "2026-10-31 00:00:00.0",
+          "USE_TRGT": "누구나",
+          "USE_FEE": "",
+          "IS_FREE": "무료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159578&menuNo=200009",
+          "LAT": "37.60603328383823",
+          "LOT": "126.96904312496109",
+          "PRO_TIME": "화-토, 오전10:00~18:00 (일, 월, 공휴일 휴관)"
+        }
+      ]
+    },
+    {
+      "category": "전체",
+      "date": "2026-10-31",
+      "checked_at": "2026-10-31T06:27:57+09:00",
+      "total": 41,
+      "rows": [
+        {
+          "CODENAME": "교육/체험",
+          "GUNAME": "서대문구",
+          "TITLE": "외국인과 함께하는 서대문역사 및 영천시장 미식 투어",
+          "PLACE": "독립문영천시장 및 서대문형무소 일대",
+          "STRTDATE": "2026-10-31 00:00:00.0",
+          "END_DATE": "2026-11-08 00:00:00.0",
+          "USE_TRGT": "외국인 누구나 사전 신청자에 한해 1회당 60명 한정",
+          "USE_FEE": "",
+          "IS_FREE": "무료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=160009&menuNo=200011",
+          "LAT": "37.5714446588535",
+          "LOT": "126.960661131545",
+          "PRO_TIME": "10월31일, 11월1, 7, 8일, 20일 12:00~16:00"
+        },
+        {
+          "CODENAME": "교육/체험",
+          "GUNAME": "강북구",
+          "TITLE": "[꿈의숲아트센터] 통합예술교육 프로그램 [별난 극장 놀이터]",
+          "PLACE": "꿈의숲아트센터 라운지스튜디오(B1)",
+          "STRTDATE": "2026-10-31 00:00:00.0",
+          "END_DATE": "2026-11-08 00:00:00.0",
+          "USE_TRGT": "6~9세 어린이(2020년 이후 출생자)",
+          "USE_FEE": "15,000원",
+          "IS_FREE": "유료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159786&menuNo=200011",
+          "LAT": "37.6202544613023",
+          "LOT": "127.044324732036",
+          "PRO_TIME": "매주 토,일 10:30~12:00 / 14:00~15:30"
+        },
+        {
+          "CODENAME": "국악",
+          "GUNAME": "용산구",
+          "TITLE": "[국립박물관문화재단] 소리: 성덕대왕신종",
+          "PLACE": "국립중앙박물관 극장 용 ",
+          "STRTDATE": "2026-10-31 00:00:00.0",
+          "END_DATE": "2026-11-01 00:00:00.0",
+          "USE_TRGT": "초등학생 이상 ",
+          "USE_FEE": "VIP석 7만원 R석 6만원 S석 4만원 ",
+          "IS_FREE": "유료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159689&menuNo=200008",
+          "LAT": "37.5247022357875",
+          "LOT": "126.977740246542",
+          "PRO_TIME": "15:00"
+        },
+        {
+          "CODENAME": "축제-문화/예술",
+          "GUNAME": "영등포구",
+          "TITLE": "2026 한강 물빛 재즈 크루즈",
+          "PLACE": "여의도 한강공원 물빛무대 수변광장 일원",
+          "STRTDATE": "2026-10-31 00:00:00.0",
+          "END_DATE": "2026-10-31 00:00:00.0",
+          "USE_TRGT": "재즈를 사랑하는 시민 누구나 ",
+          "USE_FEE": "",
+          "IS_FREE": "무료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159926&menuNo=200010",
+          "LAT": "37.5328789407919",
+          "LOT": "126.929129692926",
+          "PRO_TIME": "13:00~21:00"
+        },
+        {
+          "CODENAME": "클래식",
+          "GUNAME": "서초구",
+          "TITLE": "앙상블 어우름의 Adagio Knitting",
+          "PLACE": "라율아트홀",
+          "STRTDATE": "2026-10-31 00:00:00.0",
+          "END_DATE": "2026-10-31 00:00:00.0",
+          "USE_TRGT": "누구나",
+          "USE_FEE": "전석 30,000원",
+          "IS_FREE": "유료",
+          "HMPG_ADDR": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159681&menuNo=200008",
+          "LAT": "37.4824452369632",
+          "LOT": "127.012614908746",
+          "PRO_TIME": "17:00~18:00"
+        }
+      ]
+    }
+  ]
+}

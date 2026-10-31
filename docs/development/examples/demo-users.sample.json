@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "fixture": true,
+  "description": "체험 프로필 형태 예시. 실제 인증·사용자 계정·공통 API 계약이 아닙니다.",
+  "users": [
+    {
+      "id": "test1",
+      "displayName": "체험 사용자 1",
+      "profileType": "demo",
+      "storageScope": "browser",
+      "preferences": {"interests": ["전시"], "preferShorterWalks": true},
+      "savedPlaceRefs": [],
+      "savedRouteRefs": []
+    },
+    {
+      "id": "test2",
+      "displayName": "체험 사용자 2",
+      "profileType": "demo",
+      "storageScope": "browser",
+      "preferences": {"interests": ["공연", "체험"], "preferShorterWalks": null},
+      "savedPlaceRefs": [],
+      "savedRouteRefs": []
+    }
+  ]
+}

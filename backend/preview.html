@@ -1,0 +1,1106 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>LAB678 나들이 찾기 · 개발 점검</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="anonymous">
+<style>
+:root {--teal:#007385; --ink:#17363b; --sub:#4e666a; --line:#d2e0df; --wash:#e3f1f3}
+* {box-sizing:border-box}
+body {margin:0; color:var(--ink); background:#f4f6f7; font:17px/1.55 system-ui,"Malgun Gothic",sans-serif}
+body {word-break:keep-all; overflow-wrap:anywhere}
+main {width:min(100%,780px); margin:auto; padding:0 clamp(14px,4vw,34px) 32px}
+header {display:flex; justify-content:space-between; align-items:center; padding:18px 0; border-bottom:1px solid var(--line)}
+.brand {font-weight:800; letter-spacing:.08em}.brand b {color:var(--teal)}
+header small,.muted {color:var(--sub)}
+h1,h2,h3,p {margin:0 0 .65em} h1,h2,h3 {line-height:1.3; text-wrap:balance}
+h1 {font-size:clamp(30px,5vw,44px)} h2 {font-size:26px} h3 {font-size:21px}
+.panel,#list li {background:white; border:1px solid var(--line); border-radius:18px; padding:clamp(16px,3vw,26px)}
+.panel,#results {margin-top:18px}
+#home {overflow:hidden; background:linear-gradient(150deg,#fff 40%,#dcefee); padding:clamp(24px,6vw,50px)}
+.kicker {font-size:15px; font-weight:700; color:#216673; letter-spacing:.04em}
+#home svg {display:block; width:100%; height:115px; margin:18px 0}
+button,input,select {font:inherit; min-height:46px; border-radius:12px; max-width:100%}
+button,summary {cursor:pointer} button {padding:8px 16px; background:white; border:1px solid #88a7a9; color:var(--ink); font-weight:650}
+button:disabled {opacity:.55; cursor:default}.primary {background:var(--teal); color:white; border:0; width:100%}
+.route-link {display:inline-block; padding:10px 16px; border:1px solid #88a7a9; border-radius:12px; font-weight:650; text-decoration:none}
+dialog {width:min(94vw,760px); max-height:90vh; border:1px solid var(--line); border-radius:18px; padding:20px; color:var(--ink)}
+dialog::backdrop {background:#17363b88}
+#route-dialog > .actions:first-child {position:sticky; top:-20px; background:white; z-index:1001; padding-block:10px; margin-top:0}
+#transit-choices[hidden] {display:none}
+#route-summary {font-size:24px; font-weight:750}
+#route-steps {padding-left:30px; margin:12px 0}
+#route-steps li {border-bottom:1px solid var(--line); padding:12px 4px}
+#route-steps li::marker {color:var(--teal); font-weight:750}
+#route-steps button {display:block; width:100%; text-align:left; border:0; padding:8px; font-weight:500}
+#route-steps button span {display:block; color:var(--sub); font-size:15px}
+#route-map {height:clamp(260px,52vh,460px); border-radius:12px}
+[aria-pressed=true] {background:var(--teal); color:white}
+:focus-visible {outline:3px solid #aa5100; outline-offset:2px}
+fieldset {border:0; margin:0; padding:0; min-width:0}
+.group {margin:20px 0; padding-top:16px; border-top:1px solid var(--line)}
+label {display:block; font-weight:650} input,select {display:block; width:100%; margin-top:3px; padding:8px; min-width:0; border:1px solid #849d9f; background:white; color:var(--ink)}
+.grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr)); gap:12px}
+.actions {display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-block:10px}
+summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:16px}
+[role=status]:empty {display:none}
+#status:not(:empty),#voice-status:not(:empty) {padding:10px 14px; margin-top:12px; background:var(--wash); border-radius:10px}
+#map {height:clamp(220px,35vh,340px); border-radius:16px}
+#list {display:flex; gap:12px; padding:5px 5px 15px; overflow-x:auto; scroll-snap-type:x mandatory; margin:0; list-style:none}
+#list li {flex:0 0 min(88%,365px); scroll-snap-align:start; overflow-wrap:anywhere}
+#list li[aria-current=true] {outline:3px solid var(--teal); outline-offset:-3px}
+.badge {display:inline-block; font-size:15px; font-weight:700; color:#47525c; background:#f1f3f5; padding:4px 10px; border-radius:14px; margin-bottom:12px}
+#list strong {display:block; font-size:20px; line-height:1.4}
+.facts {white-space:pre-line; margin:10px 0}
+.event-pin {background:white; border:2px solid var(--teal); border-radius:50%; text-align:center; color:var(--ink); font:bold 16px/24px sans-serif}
+.event-pin.active {background:var(--teal); color:white}
+</style>
+<main>
+<header><span class="brand">LAB<b>678</b></span><small>서울 문화나들이</small></header>
+<section id="home" class="panel">
+<p class="kicker">문화 · 서울</p><h1>오늘은 어디로<br>나들이 갈까요?</h1>
+<p>출발할 곳과 가능한 시간을 알려주세요.<br>지도에서 전시와 공연을 함께 살펴볼 수 있어요.</p>
+<svg viewBox="0 0 540 110" aria-hidden="true"><g fill="none" stroke="#b5d8d4" stroke-width="2"><path d="M0 24h540M0 82h540M72 0v110M205 0v110M335 0v110M468 0v110"/></g><path d="M60 82h110q28 0 28-25t28-25h104q30 0 30 23t28 23h80" fill="none" stroke="#007385" stroke-width="5" stroke-linecap="round" stroke-dasharray="9 8"/><g fill="#007385" stroke="white" stroke-width="4"><circle cx="60" cy="82" r="10"/><circle cx="270" cy="32" r="12"/><circle cx="468" cy="78" r="14"/></g></svg>
+<button class="primary" id="begin">나들이 찾기</button>
+<button id="course-example" disabled>전시 코스 예시 확인</button>
+<small>청량리역 · 10월 31일 10:00~19:00 · 전시당 30분</small></section>
+<form id="form" class="panel" hidden>
+<p class="kicker">01 · 나들이 조건</p><h2 id="input-title" tabindex="-1">언제, 어디서 출발하세요?</h2>
+<fieldset id="fields" disabled aria-labelledby="input-title">
+<label>무엇을 추천받을까요? <select name="kind"><option value="place">행사 찾기</option><option value="course">두 곳 문화코스</option></select></label>
+<div class="group" id="course-fields" hidden><label>전시 한 곳에서 머물 시간(분)
+<input name="stay" type="number" min="1" max="240" step="1" value="30" required disabled></label>
+<small>공연은 공개된 회차 시간을 사용해요. 코스를 추천받으면 출발지와 행사장의 좌표를 Valhalla 도보 서비스로 보내요.</small></div>
+<div class="group"><label>출발지 <input name="label" required></label>
+<div class="actions"><button type="button" id="locate">현재 위치 사용</button><span id="location-status" role="status"></span></div>
+<details id="coords"><summary>출발 좌표 확인·수정</summary><div class="grid">
+<label>위도 <input name="lat" type="number" step="any" min="-90" max="90" required></label>
+<label>경도 <input name="lng" type="number" step="any" min="-180" max="180" required></label></div>
+<small>기본 위치 <a href="https://www.openstreetmap.org/node/3436803670">청량리역 · © OpenStreetMap contributors</a></small></details></div>
+<div class="grid"><label>출발 시각 <input name="start" type="datetime-local" required></label>
+<label>종료 시각 <input name="end" type="datetime-local" required></label></div><small>한국 시각 기준</small>
+<div class="group"><label>어떤 활동을 찾으세요? <select name="category" required><option value="" disabled>분류를 선택해 주세요</option><option selected>전시</option><option>전체</option><option>국악</option><option>클래식</option><option>콘서트</option><option>연극</option></select></label></div>
+<div class="group"><label>더 원하는 게 있으세요? <input name="note" placeholder="예: 전시를 보고 싶어요" aria-describedby="voice-help"></label>
+<div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
+<p class="muted" id="voice-help">“국악을 듣고 싶어”, “전시 두 곳 코스로”처럼 말하거나 적어 보세요. 추천 전에 분류와 코스 조건을 바꿀 수 있어요.</p>
+<p id="voice-status" role="status"></p>
+<details id="voice-debug" hidden><summary>음성 인식 진단</summary>
+<textarea id="voice-log" aria-label="음성 진단 기록" readonly rows="10" style="width:100%;box-sizing:border-box"></textarea>
+<button type="button" id="copy-voice">진단 복사</button><span id="copy-status" role="status"></span>
+</details></div>
+<div class="group"><label>문화정보 조회 방식 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label></div>
+<button class="primary">추천받기</button></fieldset></form>
+<p id="status" role="status"></p>
+<section id="results" hidden><p class="kicker">02 · 나들이 후보</p><h2 id="result-title" tabindex="-1">지도에서 살펴보세요</h2>
+<div class="actions"><button id="back">조건 바꾸기</button></div>
+<section class="panel" id="course-result" hidden><h3>두 곳 문화코스</h3><p id="course-conditions"></p><p id="course-text" class="facts"></p>
+<div id="course-directions"></div>
+<section id="alternatives" hidden aria-label="문화코스 대안">
+<p>시간이 부족해요. 한 곳만 관람하거나 출발을 최대 두 시간 앞당기는 대안을 찾아드릴까요? 종료 시각과 관람시간은 유지해요.</p>
+<button id="find-alternatives" type="button">네, 대안 찾아주세요</button>
+<button id="keep-course" type="button">현재 조건 유지</button>
+<p id="alternatives-status" role="status"></p><div id="alternative-list"></div></section>
+<small>도보 예상 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · 예약 가능 여부는 각 행사 상세에서 확인해 주세요.</small></section>
+<p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
+<div class="actions"><h3>추천 행사</h3><button id="prev" aria-label="이전 행사">이전</button><button id="next" aria-label="다음 행사">다음</button></div>
+<ol id="list" aria-label="추천 행사 카드"></ol><p id="selection" role="status"></p>
+<section class="panel" id="directions" hidden aria-labelledby="directions-title">
+<h3 id="directions-title" tabindex="-1">선택한 행사로 경로안내</h3>
+<div id="event-directions"></div>
+<p class="muted">도보·대중교통 안내를 선택할 수 있어요. 대중교통의 배차·막차는 별도 확인해 주세요.</p></section>
+<button type="button" id="read" disabled>선택한 행사 읽기</button>
+<button type="button" id="file-read" disabled>음성 파일로 듣기</button>
+<audio id="player" controls hidden aria-label="선택한 행사의 한국어 음성" style="width:100%;margin-top:10px"></audio>
+<p id="read-status" role="status"></p>
+<section id="walk-panel" class="panel" hidden><h3>두 행사 사이 도보 확인</h3>
+<div class="grid"><label>먼저 갈 행사 <select id="walk-from"></select></label>
+<label>다음 행사 <select id="walk-to"></select></label></div>
+<p>선택한 두 행사장의 공개 좌표로 보행 경로를 조회해요.</p>
+<button id="walk-check">도보 시간 확인</button><p id="walk-note" role="status"></p>
+<div id="walk-directions"></div>
+<small>도보 경로 제공 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a></small></section></section>
+<footer><small>문화정보 제공 · 서울특별시 서울문화포털</small></footer></main>
+<dialog id="route-dialog" aria-labelledby="route-title">
+<div class="actions"><h2 id="route-title">도보 경로안내</h2><button id="route-close" type="button">닫기</button></div>
+<div class="actions" aria-label="이동 수단"><button id="route-mode-walk" type="button">도보</button><button id="route-mode-transit" type="button">대중교통</button></div>
+<p id="route-endpoints"></p><p id="route-status" role="status"></p>
+<div id="transit-choices" class="actions" aria-label="대중교통 경로 선택" hidden></div>
+<p id="transit-note" hidden></p>
+<details id="transit-map" hidden><summary>외부 지도도 확인하기</summary><a id="transit-map-link" target="_blank" rel="noopener noreferrer">카카오맵에서 지도 보기 (새 탭)</a></details>
+<button id="route-retry" type="button" hidden>다시 조회</button>
+<div id="route-content" hidden>
+<p id="route-summary"></p>
+<div class="actions"><button id="route-text" type="button" aria-pressed="true">텍스트 안내</button>
+<button id="route-show-map" type="button" aria-pressed="false">지도 보기</button></div>
+<ol id="route-steps" aria-label="도보 이동 순서"></ol>
+<div id="route-map" hidden aria-label="도보 경로 지도"></div>
+<p id="route-map-status" role="status"></p>
+<small id="walk-credit">예상 도보 경로 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></small>
+</div></dialog>
+<script>
+const form = document.querySelector("#form");
+const fields = form.elements;
+fields.kind.onchange = () => {
+  const course = fields.kind.value === "course";
+  document.querySelector("#course-fields").hidden = !course;
+  fields.stay.disabled = !course;
+};
+let previousCourse = "";
+let excludedIds = [];
+let resultOrigin = null;
+const routeDialog = document.querySelector("#route-dialog");
+const routeStatus = document.querySelector("#route-status");
+const routeSteps = document.querySelector("#route-steps");
+const routeMapBox = document.querySelector("#route-map");
+let routeRequest = null;
+let routeVersion = 0;
+let routeData = null;
+let routeMap = null;
+let routeHighlight = null;
+let routeEndpoints = null;
+
+/** 이전 경로 조회와 지도 인스턴스를 정리해 늦게 온 응답이 새 선택을 덮지 못하게 한다. */
+function clearRoute() {
+  routeVersion++;
+  routeRequest?.abort();
+  routeRequest = null;
+  routeData = null;
+  routeEndpoints = null;
+  routeMap?.remove();
+  routeMap = routeHighlight = null;
+  routeMapBox.hidden = true;
+  routeSteps.replaceChildren();
+  document.querySelector("#route-content").hidden = true;
+  document.querySelector("#route-retry").hidden = true;
+  document.querySelector("#route-map-status").textContent = "";
+  document.querySelector("#transit-choices").replaceChildren();
+  for (const id of ["transit-choices", "transit-note", "transit-map"]) document.getElementById(id).hidden = true;
+}
+document.querySelector("#route-close").onclick = () => routeDialog.close();
+routeDialog.onclose = clearRoute;
+
+/** 같은 조회의 경로선으로 지도를 그리고 선택한 안내 단계만 강조한다. */
+function showRouteMap(step = null) {
+  if (!routeData) return;
+  if (routeData.mode === "transit") return showTransitMap(step);
+  if (!window.L) {
+    document.querySelector("#route-map-status").textContent = "지도를 불러오지 못했어요. 텍스트 안내로 확인해 주세요.";
+    return;
+  }
+  routeSteps.hidden = true;
+  routeMapBox.hidden = false;
+  document.querySelector("#route-text").setAttribute("aria-pressed", "false");
+  document.querySelector("#route-show-map").setAttribute("aria-pressed", "true");
+  if (!routeMap) {
+    routeMap = L.map(routeMapBox);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', maxZoom:19
+    }).on("tileerror", () => {
+      document.querySelector("#route-map-status").textContent = "지도 배경을 불러오지 못했어요. 텍스트 안내를 이용해 주세요.";
+    }).addTo(routeMap);
+    L.polyline(routeData.path, {color:"#007385", weight:5}).addTo(routeMap);
+    L.marker(routeData.path[0], {title:"경로 출발"}).addTo(routeMap);
+    L.marker(routeData.path.at(-1), {title:"경로 도착"}).addTo(routeMap);
+  }
+  routeMap.invalidateSize();
+  routeHighlight?.remove();
+  routeHighlight = null;
+  if (step) {
+    routeHighlight = L.circleMarker(routeData.path[step.begin], {color:"#aa5100",radius:10}).addTo(routeMap);
+    routeMap.fitBounds(L.latLngBounds(routeData.path.slice(step.begin, step.end+1)), {padding:[24,24],maxZoom:17});
+  } else {
+    routeMap.fitBounds(L.latLngBounds(routeData.path), {padding:[24,24]});
+  }
+}
+
+/** 같은 조회의 대중교통 구간만 그린다. 누락 구간은 연결하지 않고 출발·도착 위치를 별도로 표시한다. */
+function showTransitMap(step = null) {
+  if (!window.L) {
+    document.querySelector("#route-map-status").textContent = "지도를 불러오지 못했어요. 텍스트 안내로 확인해 주세요.";
+    return;
+  }
+  routeSteps.hidden = true;
+  routeMapBox.hidden = false;
+  document.querySelector("#route-text").setAttribute("aria-pressed", "false");
+  document.querySelector("#route-show-map").setAttribute("aria-pressed", "true");
+  const segments = routeData.steps.filter(item => item.path?.length >= 2);
+  const bounds = [...routeData.endpoints, ...segments.flatMap(item => item.path)];
+  if (!routeMap) {
+    routeMap = L.map(routeMapBox);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', maxZoom:19
+    }).on("tileerror", () => {
+      document.querySelector("#route-map-status").textContent = "지도 배경을 불러오지 못했어요. 텍스트 안내를 이용해 주세요.";
+    }).addTo(routeMap);
+    const colors = {WALKING:"#606970", BUS:"#007385", SUBWAY:"#6741a5"};
+    for (const [index, item] of routeData.steps.entries()) {
+      if (!item.path?.length) continue;
+      L.polyline(item.path, {color:colors[item.mode], weight:5,
+        dashArray:item.mode === "WALKING" ? "7 7" : null}).addTo(routeMap);
+      for (const [point, label] of [[item.path[0],"시작"],[item.path.at(-1),"끝"]]) {
+        const description = document.createElement("span");
+        description.textContent = (index+1) + "번 구간 " + label + " · " + item.instruction;
+        L.circleMarker(point, {radius:6,color:colors[item.mode]}).bindPopup(description).addTo(routeMap);
+      }
+    }
+    L.marker(routeData.endpoints[0], {title:"나들이 출발지"}).bindTooltip("출발지").addTo(routeMap);
+    L.marker(routeData.endpoints[1], {title:"행사 목적지"}).bindTooltip("목적지").addTo(routeMap);
+    document.querySelector("#route-map-status").textContent = segments.length ?
+      "버스는 청록색, 지하철은 보라색, 도보는 회색 점선이에요. 좌표가 없는 구간은 표시하지 않아요. 출발·도착 주변의 도보 연결을 확인해 주세요." :
+      "이 경로의 노선 좌표가 없어 출발지와 목적지만 표시했어요. 이동 방법은 텍스트 안내를 확인해 주세요.";
+  }
+  routeMap.invalidateSize();
+  routeHighlight?.remove();
+  routeHighlight = null;
+  if (step?.path?.length) {
+    routeHighlight = L.polyline(step.path, {color:"#aa5100",weight:8}).addTo(routeMap);
+    routeMap.fitBounds(L.latLngBounds(step.path), {padding:[24,24],maxZoom:17});
+  } else {
+    routeMap.fitBounds(L.latLngBounds(bounds), {padding:[24,24],maxZoom:17});
+  }
+}
+document.querySelector("#route-show-map").onclick = () => showRouteMap();
+document.querySelector("#route-text").onclick = () => {
+  routeMapBox.hidden = true;
+  routeSteps.hidden = false;
+  document.querySelector("#route-text").setAttribute("aria-pressed", "true");
+  document.querySelector("#route-show-map").setAttribute("aria-pressed", "false");
+};
+
+/** 한국어 이동 순서와 그 좌표를 한 응답으로 받아 텍스트를 먼저 표시한다. */
+async function openWalking(origin, destination) {
+  clearRoute();
+  configureRouteMode(origin, destination, "walk");
+  const version = routeVersion;
+  const controller = new AbortController();
+  routeRequest = controller;
+  document.querySelector("#route-endpoints").textContent =
+    (origin.label || origin.venue).trim() + " → " + destination.venue.trim();
+  routeStatus.textContent = "도보 경로를 확인하고 있어요.";
+  if (!routeDialog.open) routeDialog.showModal();
+  document.querySelector("#route-retry").onclick = () => openWalking(origin, destination);
+  try {
+    const response = await fetch("/preview/walk", {method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({points:[origin,destination].map(({lat,lng}) => ({lat,lng})), details:true}),
+      signal:controller.signal});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.message);
+    if (version !== routeVersion || !routeDialog.open) return;
+    routeData = body;
+    document.querySelector("#route-summary").textContent = "약 " + Math.ceil(body.duration_s / 60) +
+      "분 · " + (body.distance_m / 1000).toFixed(2) + " km";
+    for (const [index, step] of body.steps.entries()) {
+      const li = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = step.instruction;
+      const detail = document.createElement("span");
+      detail.textContent = (step.distance_m ? step.distance_m + "m 이동 · " : "") + "지도에서 위치 보기";
+      button.append(detail);
+      button.setAttribute("aria-label", (index+1) + "번 " + step.instruction + " · 지도에서 위치 보기");
+      button.onclick = () => showRouteMap(step);
+      li.append(button);
+      routeSteps.append(li);
+    }
+    routeSteps.hidden = false;
+    document.querySelector("#route-text").setAttribute("aria-pressed", "true");
+    document.querySelector("#route-show-map").setAttribute("aria-pressed", "false");
+    document.querySelector("#route-content").hidden = false;
+    routeStatus.textContent = "단계를 누르면 해당 위치를 지도에서 볼 수 있어요.";
+  } catch (error) {
+    if (version !== routeVersion || error.name === "AbortError") return;
+    routeStatus.textContent = error.message || "경로 조회에 실패했어요.";
+    document.querySelector("#route-retry").hidden = false;
+  }
+}
+
+/** 출발·도착 이름과 좌표로 공식 링크를 만들고 공급자 응답의 임의 URL은 사용하지 않는다. */
+function transitMapLink(origin, destination) {
+  return "https://map.kakao.com/link/by/traffic/" + [origin, destination].map(point =>
+    encodeURIComponent((point.label || point.venue || "위치").trim().replace(/[,/]/g," ")) + "," + point.lat + "," + point.lng).join("/");
+}
+
+/** 같은 출발·도착을 유지하며 도보/대중교통 보기와 출처를 전환한다. */
+function configureRouteMode(origin, destination, mode) {
+  const walking = mode === "walk";
+  document.querySelector("#route-title").textContent = walking ? "도보 경로안내" : "대중교통 경로안내";
+  document.querySelector("#route-mode-walk").setAttribute("aria-pressed", String(walking));
+  document.querySelector("#route-mode-transit").setAttribute("aria-pressed", String(!walking));
+  document.querySelector("#route-mode-walk").onclick = () => openWalking(origin, destination);
+  document.querySelector("#route-mode-transit").onclick = () => openTransit(origin, destination);
+  document.querySelector("#route-text").hidden = false;
+  document.querySelector("#route-show-map").hidden = false;
+  routeMapBox.setAttribute("aria-label", walking ? "도보 경로 지도" : "대중교통 경로 지도");
+  routeSteps.setAttribute("aria-label", walking ? "도보 이동 순서" : "대중교통 이동 순서");
+  routeEndpoints = [origin, destination].map(point => [point.lat, point.lng]);
+  document.querySelector("#walk-credit").hidden = !walking;
+  document.querySelector("#transit-map").hidden = walking;
+  document.querySelector("#transit-map-link").href = transitMapLink(origin, destination);
+}
+
+/** 선택한 대중교통 경로의 실제 응답값만 요약하고 도보·승차·환승 안내를 순서대로 표시한다. */
+function displayTransitRoute(route, index) {
+  const keepMap = !routeMapBox.hidden;
+  routeMap?.remove();
+  routeMap = routeHighlight = null;
+  routeMapBox.hidden = true;
+  document.querySelector("#route-map-status").textContent = "";
+  routeData = {...route, mode:"transit", endpoints:routeEndpoints};
+  document.querySelector("#route-summary").textContent = "경로 " + (index+1) + " · 약 " + Math.ceil(route.duration_s / 60) +
+    "분 · 환승 " + route.transfers + "회 · 총 도보 확인 필요";
+  const fare = route.fare_won === null ? "요금 미확인" : "안내 요금 " + route.fare_won.toLocaleString("ko-KR") + "원 · 우대 적용 여부 별도 확인";
+  const listedWalk = route.listed_walk_duration_s == null ? "" : " 안내에 포함된 도보 약 " +
+    Math.ceil(route.listed_walk_duration_s / 60) + "분 (" + Math.round(route.listed_walk_distance_m) + "m).";
+  routeStatus.textContent = fare + "." + listedWalk + " " + route.walk_note;
+  routeSteps.replaceChildren();
+  const labels = {WALKING:"도보",BUS:"버스",SUBWAY:"지하철"};
+  for (const step of route.steps) {
+    const li = document.createElement("li");
+    const description = labels[step.mode] + " · " + step.instruction + " · 약 " + Math.ceil(step.duration_s / 60) + "분 / " + Math.round(step.distance_m) + "m";
+    if (step.path?.length >= 2) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = description + " · 지도에서 구간 보기";
+      button.onclick = () => showRouteMap(step);
+      li.append(button);
+    } else {
+      li.textContent = description + " · 이 구간의 지도 좌표는 없어요.";
+    }
+    routeSteps.append(li);
+  }
+  document.querySelectorAll("#transit-choices button").forEach((button,i) => button.setAttribute("aria-pressed",String(i === index)));
+  routeSteps.hidden = false;
+  document.querySelector("#route-content").hidden = false;
+  document.querySelector("#route-text").setAttribute("aria-pressed", "true");
+  document.querySelector("#route-show-map").setAttribute("aria-pressed", "false");
+  if (keepMap) showRouteMap();
+}
+
+/** 서버의 대중교통 조회 결과를 받되 미연결·0건·실패를 성공 경로로 대체하지 않는다. */
+async function openTransit(origin, destination) {
+  clearRoute();
+  configureRouteMode(origin, destination, "transit");
+  const version = routeVersion;
+  const controller = new AbortController();
+  routeRequest = controller;
+  document.querySelector("#route-endpoints").textContent = (origin.label || origin.venue).trim() + " → " + destination.venue.trim();
+  routeStatus.textContent = "대중교통 경로를 확인하고 있어요.";
+  if (!routeDialog.open) routeDialog.showModal();
+  document.querySelector("#route-retry").onclick = () => openTransit(origin,destination);
+  try {
+    const response = await fetch("/preview/transit", {method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({points:[origin,destination].map(({lat,lng}) => ({lat,lng}))}),signal:controller.signal});
+    const body = await response.json();
+    if (version !== routeVersion || !routeDialog.open) return;
+    if (!response.ok) {
+      routeStatus.textContent = body.message;
+      document.querySelector("#route-retry").hidden = ["unconfigured","unauthorized"].includes(body.status);
+      return;
+    }
+    if (body.status === "no_results") { routeStatus.textContent = body.message; return; }
+    const note = document.querySelector("#transit-note");
+    note.textContent = "대중교통 정보 제공 · 카카오맵 · " + new Date(body.checked_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"}) + " 조회. " + body.time_basis;
+    note.hidden = false;
+    const choices = document.querySelector("#transit-choices");
+    body.routes.forEach((route,index) => {
+      const button = document.createElement("button"); button.type = "button";
+      button.textContent = "경로 " + (index+1) + " · " + Math.ceil(route.duration_s / 60) + "분 · 환승 " + route.transfers + "회";
+      button.onclick = () => displayTransitRoute(route,index);
+      choices.append(button);
+    });
+    choices.hidden = false;
+    displayTransitRoute(body.routes[0],0);
+  } catch (error) {
+    if (version !== routeVersion || error.name === "AbortError") return;
+    routeStatus.textContent = "대중교통 경로를 확인하지 못했어요. 다시 조회하거나 카카오맵에서 확인해 주세요.";
+    document.querySelector("#route-retry").hidden = false;
+  }
+}
+
+/** 확인한 두 좌표와 순서로 카카오맵 도보·대중교통 링크를 만든다. 클릭할 때 새 탭으로 이동한다. */
+function directionLinks(origin, destination) {
+  const group = document.createElement("div");
+  group.className = "group";
+  const title = document.createElement("p");
+  title.textContent = (origin?.label || origin?.venue || "출발지").trim() + " → " +
+    (destination?.venue || "도착지").trim();
+  group.append(title);
+  if (![origin, destination].every(point => point && Number.isFinite(point.lat) &&
+    Math.abs(point.lat) <= 90 && Number.isFinite(point.lng) && Math.abs(point.lng) <= 180)) {
+    const message = document.createElement("p");
+    message.textContent = "출발지와 행사장의 좌표를 확인해야 경로안내를 열 수 있어요.";
+    group.append(message);
+    return group;
+  }
+  const points = [origin, destination].map(point => {
+    const name = (point.label || point.venue || "위치").trim().replace(/[,/]/g, " ");
+    return encodeURIComponent(name) + "," + point.lat + "," + point.lng;
+  }).join("/");
+  const inside = document.createElement("button");
+  inside.type = "button";
+  inside.textContent = "도보 안내 보기";
+  inside.onclick = () => openWalking(origin, destination);
+  group.append(inside);
+  const transit = document.createElement("button");
+  transit.type = "button";
+  transit.textContent = "대중교통 안내 보기";
+  transit.onclick = () => openTransit(origin, destination);
+  group.append(transit);
+  const external = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = "외부 지도에서 열기";
+  external.append(summary);
+  const links = document.createElement("div");
+  links.className = "actions";
+  for (const [mode, label] of [["walk","도보 길찾기"], ["traffic","대중교통 길찾기"]]) {
+    const link = document.createElement("a");
+    link.className = "route-link";
+    link.textContent = label;
+    link.href = "https://map.kakao.com/link/by/" + mode + "/" + points;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", title.textContent + " · 카카오맵 " + label + " (새 탭)");
+    links.append(link);
+  }
+  external.append(links);
+  group.append(external);
+  return group;
+}
+
+/** 현재 응답의 방문 순서로 출발지와 행사 간 길찾기를 연결하고 오래된 링크는 비운다. */
+function displayCourseDirections(course) {
+  const target = document.querySelector("#course-directions");
+  target.replaceChildren();
+  if (!course?.ids || !latestCandidates.length) return;
+  const heading = document.createElement("h3");
+  heading.textContent = "구간별 경로안내";
+  const note = document.createElement("p");
+  note.className = "muted";
+  note.textContent = "도보 이동 순서를 먼저 보고, 필요할 때 경로 지도로 전환할 수 있어요.";
+  target.append(heading, directionLinks(resultOrigin, latestCandidates[0]));
+  if (latestCandidates.length === 2) target.append(directionLinks(latestCandidates[0], latestCandidates[1]));
+  target.append(note);
+}
+
+/** 가능한 일정과 확인이 필요한 조합을 구분하고 재계산 실패 때 이전 유효 일정을 보존한다. */
+function displayCourse(course, data) {
+  const panel = document.querySelector("#course-result");
+  panel.hidden = !course;
+  if (!course) return;
+  panel.querySelector("h3").textContent = course.ids?.length === 1 ? "한 곳 문화나들이" : "두 곳 문화코스";
+  document.querySelector("#course-conditions").textContent = "적용한 조건 · " + data.label + " · " +
+    data.start.replace("T"," ") + "~" + data.end.slice(11) + " (한국 시각) · " + data.category + " · 전시당 " + data.stay + "분";
+  const lines = [course.message];
+  if (course.venues) lines.push([data.label, ...course.venues.map(v => v.trim())].join(" → "),
+    "출발지부터 도보 약 " + course.walk_minutes[0] + "분" +
+    (course.walk_minutes.length === 2 ? " · 행사 사이 약 " + course.walk_minutes[1] + "분" : ""));
+  if (course.status === "ready") {
+    for (const [i, stop] of course.stops.entries())
+      lines.push((i+1) + ". " + stop.title + " · " + stop.arrive + " 도착 · " + stop.begin + "–" + stop.finish + " 관람");
+    previousCourse = data.start + " ~ " + data.end.slice(11) + " · 전시당 " + data.stay + "분\n" + lines.slice(1).join("\n");
+  } else if (previousCourse) lines.push("\n이전 조건에서 가능했던 일정", previousCourse);
+  document.querySelector("#course-text").textContent = lines.join("\n");
+}
+const statusText = document.querySelector("#status");
+const results = document.querySelector("#results");
+const list = document.querySelector("#list");
+const selection = document.querySelector("#selection");
+const prev = document.querySelector("#prev");
+const next = document.querySelector("#next");
+document.querySelector("#begin").onclick = () => {
+  document.querySelector("#home").hidden = true;
+  form.hidden = false;
+  document.querySelector("#input-title").focus();
+};
+
+/** 현재 선택을 기준으로 이웃한 카드와 번호 핀을 함께 이동한다. */
+function stepCard(direction) {
+  const current = latestCandidates.findIndex(item => item.id === selection.dataset.id);
+  const item = latestCandidates[Math.max(0, current) + direction];
+  if (item) selectEvent(item);
+}
+prev.onclick = () => stepCard(-1);
+next.onclick = () => stepCard(1);
+
+/** 저장된 대표 입력으로 폼을 초기화한다. */
+async function init() {
+  const request = await (await fetch("/example")).json();
+  for (const name of ["label","lat","lng"]) fields.namedItem(name).value = request.start_location[name];
+  fields.start.value = request.start_at.slice(0,16);
+  fields.end.value = request.end_at.slice(0,16);
+  fields.category.value = request.category;
+  fields.fields.disabled = false;
+  const example = document.querySelector("#course-example");
+  example.disabled = false;
+  example.onclick = () => {
+    document.querySelector("#begin").click();
+    fields.kind.value = "course";
+    fields.kind.onchange();
+    fields.start.value = "2026-10-31T10:00";
+    fields.end.value = "2026-10-31T19:00";
+    fields.stay.value = "30";
+    fields.category.value = "전시";
+    fields.mode.value = "live";
+    form.requestSubmit();
+  };
+}
+
+let map;
+let markerGroup;
+let latestCandidates = [];
+const walkFrom = document.querySelector("#walk-from");
+const walkTo = document.querySelector("#walk-to");
+const walkButton = document.querySelector("#walk-check");
+const walkNote = document.querySelector("#walk-note");
+let walkVersion = 0;
+
+/** 날짜와 추천 결과가 바뀌면 행사 좌표가 있는 후보로 선택기를 새로 채운다. */
+function resetWalk() {
+  const places = latestCandidates.filter(item => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+  document.querySelector("#walk-panel").hidden = places.length < 2;
+  for (const select of [walkFrom, walkTo]) {
+    select.replaceChildren(...places.map(item => new Option(item.title, item.id)));
+  }
+  walkTo.selectedIndex = places.length >= 2 ? 1 : -1;
+  changeWalk();
+}
+
+/** 선택 변경 전 요청이 나중에 도착해도 이전 결과를 표시하지 않는다. */
+function changeWalk() {
+  walkVersion++;
+  walkButton.disabled = walkFrom.value === walkTo.value;
+  walkNote.textContent = walkButton.disabled ? "서로 다른 두 행사를 선택해 주세요." : "";
+  const target = document.querySelector("#walk-directions");
+  target.replaceChildren();
+  if (!walkButton.disabled) {
+    const pair = [walkFrom, walkTo].map(select => latestCandidates.find(item => item.id === select.value));
+    target.append(directionLinks(...pair));
+  }
+}
+walkFrom.onchange = walkTo.onchange = changeWalk;
+
+/** 행사장 사이 예상 보행시간을 출발 가능 시각과 다음 행사 마감까지의 초 단위 여유와 비교한다. */
+walkButton.onclick = async () => {
+  const version = ++walkVersion;
+  const [first, second] = [walkFrom, walkTo].map(s => latestCandidates.find(item => item.id === s.value));
+  walkButton.disabled = true;
+  walkNote.textContent = "도보 경로를 확인하고 있어요.";
+  try {
+    const response = await fetch("/preview/walk", {method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({points:[first, second].map(({lat,lng}) => ({lat,lng}))})});
+    const route = await response.json();
+    if (!response.ok) throw new Error(route.message);
+    const start = Date.parse(fields.start.value + ":00+09:00");
+    const end = Date.parse(fields.end.value + ":00+09:00");
+    const earliest = Math.max(start, first.fixed_start_at ? Date.parse(first.fixed_start_at) : start);
+    const deadline = second.fixed_start_at ? Date.parse(second.fixed_start_at) : end;
+    const conflict = route.duration_s >= (deadline - earliest) / 1000;
+    if (version === walkVersion) walkNote.textContent = first.venue.trim() + " → " + second.venue.trim() +
+      " · 도보 약 " + Math.ceil(route.duration_s / 60) + "분 (" + (route.distance_m / 1000).toFixed(2) + " km). " +
+      (second.fixed_start_at ? "다음 공연은 " + second.fixed_start_at.slice(11,16) + " 시작이에요. " : "") +
+      (conflict ? "이 순서로 두 행사를 관람할 시간이 부족해요." :
+        "두 행사를 모두 볼 수 있는지는 첫 행사 종료·체류시간과 다음 행사 운영시간을 확인해 주세요.");
+  } catch (error) {
+    if (version === walkVersion) walkNote.textContent = error.message || "도보 조회에 실패했어요.";
+  } finally {
+    if (version === walkVersion) walkButton.disabled = false;
+  }
+};
+const markers = new Map();
+const mapBox = document.querySelector("#map");
+const mapNote = document.querySelector("#map-note");
+
+/** 선택한 카드와 핀을 동일 ID로 강조한다. */
+function selectEvent(item) {
+  selection.textContent = "선택한 행사 · " + item.title;
+  selection.dataset.id = item.id;
+  document.querySelector("#directions").hidden = false;
+  document.querySelector("#event-directions").replaceChildren(directionLinks(resultOrigin, item));
+  stopReading();
+  const card = [...list.children].find(entry => entry.dataset.id === item.id);
+  readButton.dataset.text = card.querySelector("strong").textContent + ". " + card.querySelector("p").textContent;
+  readButton.disabled = !window.speechSynthesis;
+  fileRead.disabled = false;
+  for (const card of list.children) card.setAttribute("aria-current", String(card.dataset.id === item.id));
+  card.scrollIntoView({block:"nearest", inline:"center"});
+  prev.disabled = item === latestCandidates[0];
+  next.disabled = item === latestCandidates.at(-1);
+  for (const [id, marker] of markers) marker.getElement()?.classList.toggle("active", id === item.id);
+  const marker = markers.get(item.id);
+  if (marker) map.panTo(marker.getLatLng(), {animate:false});
+}
+
+/** 현재 응답의 유효 좌표만 표시한다. 지도 장애에도 카드와 선택 상태를 보존한다. */
+function drawMap() {
+  markers.clear();
+  markerGroup?.clearLayers();
+  const points = latestCandidates.filter(item => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+  mapBox.hidden = !window.L || !points.length;
+  mapNote.textContent = !points.length ? "표시할 좌표가 없습니다." :
+    !window.L ? "지도를 불러올 수 없으면 아래 행사 목록을 이용해 주세요." : "";
+  if (mapBox.hidden) return;
+  if (!map) {
+    map = L.map(mapBox);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
+      maxZoom:19
+    }).on("tileerror", () => { mapNote.textContent = "일부 지도 배경을 불러오지 못했습니다. 아래 목록에서 선택할 수 있습니다."; }).addTo(map);
+    markerGroup = L.layerGroup().addTo(map);
+  }
+  map.invalidateSize();
+  map.fitBounds(points.map(item => [item.lat,item.lng]), {padding:[28,28],maxZoom:15,animate:false});
+  for (const item of points) {
+    const number = latestCandidates.indexOf(item) + 1;
+    const icon = L.divIcon({className:"event-pin",html:String(number),iconSize:[26,26]});
+    const marker = L.marker([item.lat,item.lng],{icon,title:item.title,alt:item.title}).addTo(markerGroup);
+    marker.on("click", () => selectEvent(item));
+    marker.getElement().classList.toggle("active", selection.dataset.id === item.id);
+    markers.set(item.id, marker);
+  }
+}
+
+/** 공급자 문자열은 텍스트로 출력하고 같은 행사 ID로 선택 상태를 표시한다. */
+function showCard(item) {
+  const li = document.createElement("li");
+  li.dataset.id = item.id;
+  const title = document.createElement("strong");
+  title.textContent = item.title;
+  const badge = document.createElement("span");
+  badge.className = "badge";
+  badge.textContent = (list.children.length + 1) + "번 · 추가 확인 필요";
+  const detail = document.createElement("p");
+  detail.className = "facts";
+  const distance = item.distance_km === null ? "위치 확인 필요" : "직선 " + item.distance_km + " km";
+  detail.textContent = [
+    item.venue + " · " + distance, "운영  " + (item.opening_info || "시간 미확인"),
+    "요금  " + (item.fee_type || "분류 미확인") + " · " + (item.price_info || "상세 요금 미확인"),
+    "대상  " + (item.audience || "확인 필요"), ...item.checks_required
+  ].join("\n");
+  const source = document.createElement("a");
+  source.href = item.official_url;
+  source.textContent = "서울문화포털 상세";
+  source.target = "_blank";
+  source.rel = "noopener";
+  const select = document.createElement("button");
+  select.textContent = "이 행사 선택";
+  select.onclick = () => selectEvent(item);
+  li.append(badge, title, detail, select, " ", source);
+  const directions = document.createElement("button");
+  directions.textContent = "경로안내";
+  directions.onclick = () => {
+    selectEvent(item);
+    if (Number.isFinite(item.lat) && Number.isFinite(item.lng)) openWalking(resultOrigin, item);
+    else document.querySelector("#directions").scrollIntoView({block:"start"});
+  };
+  li.append(directions);
+  if (fields.kind.value === "course") {
+    const exclude = document.createElement("button");
+    exclude.textContent = "이 행사 빼고 다시 추천";
+    exclude.onclick = () => {
+      excludedIds.push(item.id);
+      results.hidden = true;
+      form.hidden = false;
+      form.requestSubmit();
+    };
+    li.append(exclude);
+  }
+  list.append(li);
+}
+
+const voiceStatus = document.querySelector("#voice-status");
+const readButton = document.querySelector("#read");
+const fileRead = document.querySelector("#file-read");
+const player = document.querySelector("#player");
+let audioVersion = 0;
+const readStatus = document.querySelector("#read-status");
+const listenButton = document.querySelector("#listen");
+const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let session;
+let speaking;
+let attemptNumber = 0;
+const voiceDebug = document.querySelector("#voice-debug");
+const voiceLog = document.querySelector("#voice-log");
+const copyStatus = document.querySelector("#copy-status");
+
+/** 한 번의 시도에만 경과 시간과 이벤트를 기록한다. 권한 조회는 마이크를 요청하지 않는다. */
+function beginVoiceTrace() {
+  const attempt = ++attemptNumber;
+  const started = performance.now();
+  const api = window.SpeechRecognition ? "SpeechRecognition" : Recognition ? "webkitSpeechRecognition" : "미지원";
+  const lines = [
+    "음성 인식 시도 #" + attempt + " · " + new Date().toISOString(),
+    navigator.userAgent, "페이지 " + location.origin + " · 보안 컨텍스트 " + window.isSecureContext,
+    "API " + api + " · 언어 ko-KR · 브라우저 온라인 표시 " + navigator.onLine
+  ];
+  voiceDebug.hidden = false;
+  copyStatus.textContent = "";
+  const log = message => {
+    if (attempt !== attemptNumber) return;
+    lines.push("+" + Math.round(performance.now() - started) + " ms  " + message);
+    voiceLog.value = lines.join("\n");
+  };
+  log("listen-click");
+  if (navigator.permissions?.query) {
+    navigator.permissions.query({name:"microphone"}).then(
+      p => log("마이크 권한 조회: " + p.state),
+      () => log("마이크 권한 조회: 확인 불가")
+    );
+  } else log("마이크 권한 조회: 미지원");
+  return log;
+}
+
+/** 현재 표시된 진단만 복사하고 클립보드를 쓸 수 없으면 수동 복사를 안내한다. */
+document.querySelector("#copy-voice").onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(voiceLog.value);
+    copyStatus.textContent = "복사했어요.";
+  } catch {
+    voiceLog.focus(); voiceLog.select();
+    copyStatus.textContent = "선택된 진단 기록을 복사해 주세요.";
+  }
+};
+
+/** 현재 음성 재생을 중지하고 이전 카드의 읽기 상태를 지운다. */
+function stopReading() {
+  audioVersion++;
+  player.pause();
+  if (player.hasAttribute("src")) {
+    URL.revokeObjectURL(player.src); player.removeAttribute("src"); player.load();
+  }
+  player.hidden = true; fileRead.disabled = true;
+  speaking = null;
+  window.speechSynthesis?.cancel();
+  readButton.textContent = "선택한 행사 읽기";
+  readStatus.textContent = window.speechSynthesis ? "" : "브라우저 읽기 미지원 · 음성 파일로 들을 수 있어요.";
+  readButton.disabled = true;
+}
+
+/** 브라우저가 보고한 오류와 입력을 이어갈 방법을 보여준다. */
+function showListenError(code) {
+  const hints = {
+    "unsupported": "이 브라우저에서 음성 인식을 지원하지 않아요.",
+    "not-allowed": "마이크 권한 거부 · 브라우저와 Windows 설정에서 마이크 접근을 확인해 주세요.",
+    "service-not-allowed": "이 브라우저에서 음성 인식 서비스를 사용할 수 없어요.",
+    "audio-capture": "마이크 입력을 열 수 없어요. 연결된 입력 장치를 확인해 주세요.",
+    "network": navigator.onLine
+      ? "음성 엔진에서 통신 오류를 보고했어요. 새 탭에서 외부 사이트가 열리는지 확인해 주세요. 내장 브라우저라면 일반 Chrome에서도 비교할 수 있어요."
+      : "브라우저가 오프라인으로 표시돼요. 인터넷 연결을 확인한 뒤 ‘한 번 말하기’를 다시 눌러 주세요.",
+    "empty-result": "음성 인식이 끝났지만 문장이 비어 있어요.",
+    "no-speech": "목소리가 감지되지 않았어요. 듣기를 시작한 뒤 다시 말해 주세요.",
+    "language-not-supported": "이 환경의 음성 인식 서비스가 한국어를 지원하지 않아요.",
+    "aborted": "브라우저가 듣기를 중단했어요."
+  };
+  const alternate = navigator.onLine && /Windows/i.test(navigator.userAgent)
+    ? "이 입력칸에서 Windows 키 + H로 받아쓰거나 직접 입력할 수 있어요."
+    : "이 입력칸에 직접 입력할 수 있어요.";
+  voiceStatus.textContent = (hints[code] || "음성 인식을 시작하지 못했어요.") + " (" + code + ") " + alternate;
+  voiceDebug.open = true;
+  fields.note.focus();
+}
+
+/** 사용자 클릭에서만 한국어 한 번 듣기를 시작하고 실패 시 메모를 보존한다. */
+function listen() {
+  if (session) { session.stop(); return; }
+  const log = beginVoiceTrace();
+  if (!Recognition) {
+    log("API 없음");
+    showListenError("unsupported");
+    return;
+  }
+  let recognition;
+  try { recognition = new Recognition(); }
+  catch (error) { log("constructor 예외 " + error.name); showListenError(error.name || "start-failed"); return; }
+  session = recognition;
+  recognition.lang = "ko-KR";
+  recognition.interimResults = false;
+  listenButton.textContent = "듣기 종료";
+  voiceStatus.textContent = "듣기를 시작하고 있어요.";
+  recognition.onstart = () => {
+    log("start");
+    if (session === recognition) voiceStatus.textContent = "말씀해 주세요.";
+  };
+  for (const name of ["audiostart","soundstart","speechstart","speechend","soundend","audioend","nomatch"]) {
+    recognition["on" + name] = () => log(name);
+  }
+  recognition.onresult = event => {
+    if (session !== recognition) return;
+    const words = (event.results?.[event.resultIndex ?? 0]?.[0]?.transcript || "").trim();
+    log("result · 전사 " + words.length + "자 (내용 제외)");
+    if (!words) { showListenError("empty-result"); return; }
+    fields.note.value = [fields.note.value.trim(), words].filter(Boolean).join(" ");
+    applyNote();
+  };
+  recognition.onerror = event => {
+    log("오류 시점 브라우저 온라인 표시 " + navigator.onLine);
+    log("error " + (event.error || "unknown") + " · 엔진 메시지: " + (event.message?.slice(0,300) || "제공되지 않음"));
+    if (session !== recognition) return;
+    session = null;
+    listenButton.textContent = "한 번 말하기";
+    showListenError(event.error || "unknown");
+  };
+  recognition.onend = () => {
+    log("end");
+    if (session !== recognition) return;
+    session = null; listenButton.textContent = "한 번 말하기";
+    if (["말씀해 주세요.", "듣기를 시작하고 있어요."].includes(voiceStatus.textContent)) {
+      showListenError("no-result");
+    }
+  };
+  log("start() 호출");
+  try { recognition.start(); }
+  catch (error) {
+    log("start() 예외 " + error.name + " · " + error.message);
+    session = null; listenButton.textContent = "한 번 말하기"; showListenError(error.name || "start-failed");
+  }
+}
+
+/** 명확한 요청은 분류 선택과 동기화하고, 겹치거나 부정된 분류는 직접 확인받는다. */
+function applyNote() {
+  const note = fields.note.value.trim();
+  const matches = [...fields.category.options].filter(o => o.value && note.includes(o.value));
+  const negated = /말고|제외|싫|아니|않|빼|아닌|말아|안\s*(?:듣|보|가|원)/.test(note);
+  const wantsCourse = /두\s*곳\s*(?:문화\s*)?코스|문화\s*코스/.test(note) && !negated && matches.length <= 1;
+  if (wantsCourse) {
+    fields.kind.value = "course";
+    fields.kind.onchange();
+  }
+  if (!matches.length) {
+    voiceStatus.textContent = wantsCourse ? "두 곳 문화코스를 선택했어요. 활동 분류와 시간을 확인해 주세요." :
+      note ? "활동 분류를 목록에서 확인해 주세요." : "";
+    return;
+  }
+  if (matches.length !== 1 || negated) {
+    fields.category.value = "";
+    voiceStatus.textContent = "원하는 분류를 목록에서 직접 선택해 주세요.";
+    return;
+  }
+  fields.category.value = matches[0].value;
+  voiceStatus.textContent = matches[0].value + " 분류를 반영했습니다. 추천 전 조건을 확인해 주세요.";
+}
+
+/** 선택한 카드의 화면 문장만 한국어로 읽는다. */
+function readSelection() {
+  const synth = window.speechSynthesis;
+  if (!synth || !readButton.dataset.text) return;
+  if (speaking) {
+    stopReading(); readButton.disabled = false; fileRead.disabled = false;
+    readStatus.textContent = "읽기를 멈췄어요."; return;
+  }
+  stopReading(); readButton.disabled = false; fileRead.disabled = false;
+  const utterance = new SpeechSynthesisUtterance(readButton.dataset.text);
+  speaking = utterance;
+  utterance.lang = "ko-KR";
+  const finish = message => {
+    if (speaking !== utterance) return;
+    speaking = null; readButton.textContent = "선택한 행사 읽기"; readStatus.textContent = message;
+  };
+  utterance.onend = () => finish("읽기 종료 · 소리가 없었으면 ‘음성 파일로 듣기’를 눌러 주세요.");
+  utterance.onerror = () => finish("브라우저 읽기 실패 · ‘음성 파일로 듣기’를 눌러 주세요.");
+  readButton.textContent = "읽기 멈추기";
+  readStatus.textContent = "한국어 읽기 요청";
+  synth.speak(utterance);
+}
+
+listenButton.onclick = listen;
+document.querySelector("#apply-note").onclick = applyNote;
+fields.note.oninput = applyNote;
+fields.category.onchange = () => { voiceStatus.textContent = fields.category.value + " 분류를 선택했습니다."; };
+readButton.onclick = readSelection;
+
+/** 선택 시점의 문장으로 WAV를 받아 재생하고 선택 변경 뒤 도착한 응답은 버린다. */
+fileRead.onclick = async () => {
+  stopReading();
+  const version = audioVersion;
+  readButton.disabled = !window.speechSynthesis;
+  readStatus.textContent = "한국어 음성을 준비하고 있어요.";
+  try {
+    const response = await fetch("/preview/voice", {method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({text:readButton.dataset.text})});
+    if (!response.ok) throw new Error("한국어 음성을 준비하지 못했습니다.");
+    const blob = await response.blob();
+    if (audioVersion !== version) return;
+    player.src = URL.createObjectURL(blob); player.hidden = false;
+    readStatus.textContent = "플레이어에서 재생·일시정지와 음량을 조절할 수 있어요.";
+    try { await player.play(); }
+    catch { if (version === audioVersion) readStatus.textContent = "플레이어의 재생 버튼을 눌러 주세요."; }
+  } catch { if (version === audioVersion) readStatus.textContent = "한국어 음성 파일을 만들지 못했습니다."; }
+  finally { if (version === audioVersion) fileRead.disabled = false; }
+};
+
+let recommendationSnapshot = null;
+let alternativeController = null;
+let alternativeVersion = 0;
+
+/** 조건 변경·재조회·취소 시 지난 대안 응답이 현재 화면을 바꾸지 못하게 한다. */
+function resetAlternatives() {
+  alternativeVersion++;
+  alternativeController?.abort();
+  alternativeController = null;
+  document.querySelector("#alternatives").hidden = true;
+  document.querySelector("#alternative-list").replaceChildren();
+  document.querySelector("#alternatives-status").textContent = "";
+  document.querySelector("#find-alternatives").disabled = false;
+  document.querySelector("#find-alternatives").textContent = "네, 대안 찾아주세요";
+}
+
+/** 기존 요청과 동의한 대안 요청이 같은 개인용 입력 형식을 사용한다. */
+function recommendationRequest(data) {
+  return {request_kind:data.kind, stay_minutes:Number(data.stay), exclude_ids:[...excludedIds],
+    start_location:{label:data.label,lat:data.lat,lng:data.lng}, start_at:data.start + ":00+09:00",
+    end_at:data.end + ":00+09:00", category:data.category, mode:data.mode};
+}
+
+/** 검증된 응답의 조건·카드·지도·경로를 한 번에 적용하고 충돌일 때만 동의를 요청한다. */
+function renderRecommendation(body, data) {
+  resetAlternatives();
+  recommendationSnapshot = {data:{...data}, request:recommendationRequest(data)};
+  stopReading();
+  list.replaceChildren();
+  selection.textContent = "";
+  delete selection.dataset.id;
+  document.querySelector("#directions").hidden = true;
+  resultOrigin = {label:data.label, lat:Number(data.lat), lng:Number(data.lng)};
+  form.hidden = true;
+  results.hidden = false;
+  document.querySelector("#result-title").textContent = data.category + (body.course ? " 도보 코스 결과" : " 행사 추천");
+  displayCourse(body.course, data);
+  const checked = new Date(body.source_checked_at).toLocaleString("ko-KR", {
+    timeZone:"Asia/Seoul", month:"long", day:"numeric", hour:"2-digit", minute:"2-digit"
+  });
+  const scope = (body.mode === "live" ? "실시간" : "기록 재생") + " · " + checked +
+    " 기준 · 서울시 검색 " + body.source_total + "건 중 " + body.searched_count + "건 조회";
+  statusText.textContent = scope + (body.status === "no_results" ? " · 조회 범위에서 맞는 행사가 없습니다." : " · 후보 " + body.candidates.length + "건");
+  latestCandidates = body.course?.ids ? body.course.ids.map(id => body.candidates.find(item => item.id === id)) :
+    body.candidates.filter(item => !excludedIds.includes(item.id));
+  latestCandidates.forEach(showCard);
+  displayCourseDirections(body.course);
+  resetWalk();
+  prev.disabled = true;
+  next.disabled = latestCandidates.length < 2;
+  drawMap();
+  document.querySelector("#result-title").focus();
+  document.querySelector("#alternatives").hidden = body.course?.status !== "conflict";
+}
+
+/** 명시적 동의 후에만 대안을 조회하며 선택 전까지 기존 결과와 입력을 보존한다. */
+async function findAlternatives() {
+  const snapshot = recommendationSnapshot;
+  if (!snapshot || document.querySelector("#find-alternatives").disabled) return;
+  resetAlternatives();
+  document.querySelector("#alternatives").hidden = false;
+  const version = alternativeVersion;
+  const controller = new AbortController();
+  alternativeController = controller;
+  const button = document.querySelector("#find-alternatives");
+  const note = document.querySelector("#alternatives-status");
+  button.disabled = true;
+  note.textContent = "같은 분류와 조회 범위에서 가능한 대안을 계산하고 있어요…";
+  try {
+    const response = await fetch("/preview/recommend", {method:"POST", headers:{"Content-Type":"application/json"},
+      signal:controller.signal, body:JSON.stringify({...snapshot.request, alternatives:true})});
+    const body = await response.json();
+    if (version !== alternativeVersion) return;
+    if (!response.ok) throw new Error(body.message);
+    if (body.course?.status === "unavailable") throw new Error(body.course.message);
+    const choices = body.course?.alternatives || [];
+    note.textContent = choices.length ? "가능한 대안 " + choices.length + "개예요. 선택하면 아래 조건과 일정이 적용돼요. 예약 가능 여부는 별도 확인해 주세요." :
+      "조회한 후보에서 시간이 확인되는 대안을 찾지 못했어요. 조건 바꾸기에서 출발지·시간·분류를 조정해 주세요.";
+    choices.forEach((choice, index) => {
+      const card = document.createElement("section"); card.className = "panel";
+      const title = document.createElement("h3"); title.textContent = "대안 " + (index+1) + " · " + choice.label;
+      const detail = document.createElement("p"); detail.className = "facts";
+      detail.textContent = choice.start_at.slice(11,16) + "~" + choice.end_at.slice(11,16) + " (한국 시각) · " + snapshot.data.category +
+        " · 전시당 " + snapshot.data.stay + "분 · 총 도보 약 " + choice.course.walk_minutes.reduce((a,b) => a+b,0) + "분\n" +
+        choice.course.stops.map(stop => stop.title + " · " + stop.arrive + " 도착 · " + stop.begin + "–" + stop.finish + " 관람").join("\n");
+      const apply = document.createElement("button"); apply.type = "button";
+      apply.textContent = "대안 " + (index+1) + " 선택";
+      apply.onclick = () => {
+        if (version !== alternativeVersion) return;
+        const data = {...snapshot.data, start:choice.start_at.slice(0,16), end:choice.end_at.slice(0,16)};
+        fields.start.value = data.start; fields.end.value = data.end;
+        // 한 곳도 선택한 일정과 출발 구간을 보여주되 다음 요청의 종류는 행사 찾기로 유지한다.
+        if (choice.course.ids.length === 1) { data.kind = "place"; fields.kind.value = "place"; fields.kind.onchange(); }
+        clearRoute();
+        renderRecommendation({...body, course:choice.course}, data);
+      };
+      card.append(title, detail, apply); document.querySelector("#alternative-list").append(card);
+    });
+  } catch (error) {
+    if (version === alternativeVersion) note.textContent = (error.message || "대안 조회 실패") + " 기존 조건은 유지했어요. 다시 조회할 수 있어요.";
+  } finally {
+    if (version === alternativeVersion) { button.disabled = false; button.textContent = "대안 다시 조회"; }
+  }
+}
+document.querySelector("#find-alternatives").onclick = findAlternatives;
+document.querySelector("#keep-course").onclick = resetAlternatives;
+
+/** 입력을 유지하면서 재조회하고 시도별 결과·실패를 구분한다. */
+async function search(event) {
+  event.preventDefault();
+  if (session) {
+    voiceStatus.textContent = "음성 입력을 마치는 중입니다. 입력된 조건을 확인한 뒤 추천받기를 눌러 주세요.";
+    session.stop(); return;
+  }
+  resetAlternatives();
+  const data = Object.fromEntries(new FormData(form));
+  stopReading();
+  fields.fields.disabled = true;
+  statusText.textContent = "문화정보 조회 중…";
+  list.replaceChildren();
+  clearRoute();
+  document.querySelector("#directions").hidden = true;
+  document.querySelector("#event-directions").replaceChildren();
+  document.querySelector("#course-directions").replaceChildren();
+  document.querySelector("#walk-directions").replaceChildren();
+  walkVersion++;
+  resultOrigin = null;
+  selection.textContent = "";
+  delete selection.dataset.id;
+  try {
+    const response = await fetch("/preview/recommend", {method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify(recommendationRequest(data))});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.message);
+    renderRecommendation(body, data);
+  } catch (error) {
+    excludedIds = [];
+    statusText.textContent = error.message || "조회 실패";
+    if (data.kind === "course" && previousCourse) statusText.textContent += "\n이전 조건에서 가능했던 일정\n" + previousCourse;
+  }
+  finally { fields.fields.disabled = false; }
+}
+
+form.onsubmit = search;
+const coords = document.querySelector("#coords");
+const locationStatus = document.querySelector("#location-status");
+let locationVersion = 0;
+fields.label.oninput = () => {
+  locationVersion++;
+  fields.lat.value = ""; fields.lng.value = ""; coords.open = true;
+  locationStatus.textContent = "새 출발지의 좌표를 입력하거나 현재 위치를 사용해 주세요.";
+};
+coords.oninput = () => { locationVersion++; locationStatus.textContent = ""; };
+form.addEventListener("invalid", e => { if (coords.contains(e.target)) coords.open = true; }, true);
+/** 사용자가 요청한 기기 위치만 적용하고 이후에 수정한 값은 보존한다. */
+document.querySelector("#locate").onclick = () => {
+  const version = ++locationVersion;
+  if (!navigator.geolocation) {
+    coords.open = true; locationStatus.textContent = "현재 위치 미지원 · 좌표를 직접 입력해 주세요."; return;
+  }
+  locationStatus.textContent = "현재 위치를 확인하고 있어요.";
+  navigator.geolocation.getCurrentPosition(position => {
+    if (version !== locationVersion || form.hidden) return;
+    fields.label.value = "현재 위치"; fields.lat.value = position.coords.latitude; fields.lng.value = position.coords.longitude;
+    locationStatus.textContent = "현재 위치를 반영했어요.";
+  }, () => {
+    if (version !== locationVersion || form.hidden) return;
+    locationStatus.textContent = "위치를 확인하지 못했어요. 기존 출발지로 계속하거나 좌표를 수정해 주세요.";
+  }, {timeout:8000});
+};
+document.querySelector("#back").onclick = () => {
+  resetAlternatives();
+  excludedIds = [];
+  stopReading(); results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
+};
+init().catch(() => { statusText.textContent = "대표 요청을 읽지 못했습니다. 새로고침해 주세요."; });
+</script>
+<script async src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" onload="if (!results.hidden) drawMap()"></script></html>

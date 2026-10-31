@@ -1,23 +1,31 @@
-# Lab678 · Codyssey AI 해커톤 2026
+# Lab678 · AI 작업 안내
 
-3명(손희영·정민규·김동조)이 함께 만드는 해커톤 서비스예요. 제출 마감은 11/1(일) 13:00이고, 마감 뒤에는 커밋하지 않아요.
-주제와 기술 스택은 정해지면 여기 채워요.
+작업을 시작하기 전에 [TEAM_WORKFLOW.md](TEAM_WORKFLOW.md)를 읽고 따라요. 팀 역할, 브랜치·PR·Merge, 사전 공유, 테스트·보안 및 보고의 공통 기준은 이 문서 하나로 관리해요. 합의·제안·미정 표시를 구분하고 미정 사항을 임의로 확정하지 않아요.
 
-## 폴더
-- `frontend/` 화면
-- `backend/` API · AI 연동
-- `docs/` 기획 · 회의록 · 발표
-- `design/` Figma 링크 · 화면 · 아이콘
+프로젝트 구조와 실행 방법은 [README.md](README.md), 환경변수 형식은 `.env.example`, 실제 작업 요구사항은 확정된 PRD·화면·API 명세를 확인해요.
 
-## 실행
-> 기술 스택 정한 뒤 채워요. README "실행" 섹션과 똑같이 맞춰요.
-- 환경변수: `.env.example`을 복사해서 `.env` 만들기
+**제품 기획 작업 시작점:** [docs/planning/README.md](docs/planning/README.md)를 먼저 읽고, [최신 PRD v0.6](docs/planning/PRD.md)와 [MVP 화면명세서](docs/planning/Lab_678_MVP_화면명세서.md)를 함께 확인해요. `handoff/`는 착수 참고, `archive/`는 구버전 이력이고 현행 요구사항 기준이 아니에요. 팀 검토 대기와 실제 QA 완료를 구분해요.
 
-## 규칙
-- `main`에 직접 push 하지 않아요. 브랜치(`이름/작업내용`)에서 작업하고 PR로 올려요.
-- 커밋 메시지는 한국어로 짧게 써요.
-- API 키·비밀번호는 절대 커밋하지 않아요. 새 키는 `.env.example`에 이름만 추가해요.
-- 시연이 끝까지 돌아가는 게 먼저예요. 새 기능보다 기존 흐름을 깨지 않는 걸 우선해요.
+- 커밋·push는 사용자가 명시적으로 요청할 때만 해요.
+- 커밋 메시지에 Co-Authored-By 같은 AI 표시는 넣지 않고 사용자 명의로만 커밋해요. 커밋 메시지는 한국어로 짧게 써요.
+- 제출 마감은 11/1(일) 13:00이고, 마감 뒤에는 커밋하지 않아요.
 - 장소·가격·시간 같은 사실 데이터는 코드가 정하고, LLM은 설명·해석만 해요.
-- 요청받지 않은 파일은 고치거나 지우지 않아요. 구조를 크게 바꿀 땐 먼저 물어봐요.
-- 실행 방법이나 폴더가 바뀌면 README와 이 파일을 같이 고쳐요.
+
+## 개인 개발 작업 맥락
+
+`dj/develop` 작업을 이어갈 때는 [현재 상태와 다음 할 일](docs/development/current-state.md)을 먼저 확인해요. [저장소 색인](docs/development/repo_index.md)·[기능/함수 역색인](docs/development/repo_reverse_index.md)·[구조](docs/development/repo_tree.md)로 파일을 좁히고, 필요한 경우에만 [개발 맥락](docs/development/README.md)과 [대화·작업 기록](docs/development/discussion-log.md)의 해당 부분을 읽어요. 공통 운영 규칙은 계속 `TEAM_WORKFLOW.md`를 기준으로 삼아요.
+
+김동조님은 완료한 작업을 작업 단위로 커밋하도록 상시 요청했어요. 이 요청에 따라 `dj/develop`에서 작업별로 커밋하며, push는 별도 명시 요청이 있을 때만 해요.
+
+커밋 메시지는 작업 완료 후 사용자에게 출력하는 보고문 전체를 요약하거나 바꾸지 않고 그대로 기록해요. 이 최신 사용자 지시를 짧은 커밋 메시지 권장보다 우선해요.
+
+## 작업 계획·색인·진행 보고
+
+- 작업마다 세부 계획과 단계별 체크표를 만들고 실행 전·후 현재 상태를 출력해요. 이번 도구 작업은 [진행 체크표](docs/development/tooling-progress.md)를 따라요. 이후 작업은 이 형식으로 별도 체크표를 만들어요.
+- 새 파일·기능·함수의 개요와 docstring/JSDoc, 기능→파일 분류를 작성하고 저장소 색인과 utils 색인을 갱신해요. 생성 규칙·명령·한계는 [utils/README.md](utils/README.md)를 따라요.
+- 대화 정정·방향 변경·작업 종료·인계 때 `docs/development/state.json`을 갱신해 현재 목표·승인 범위·완료·진행·다음 행동·미정을 압축해요. 상세 이력과 전체 완료 보고문은 보존해요.
+- [검증 루프](docs/development/engineering-loop.md)에 따라 근거가 있는 최소 수정만 반복하고 한도·실패·미실시를 기록해요. 커밋할 때마다 변경 내용과 검증 결과를 보고해요. 감시기는 생성 문서만 갱신하고 자동 커밋·push는 하지 않아요.
+
+## 이전 코드 참조
+
+재사용 전 [두 브랜치 읽기·경량화 가이드](docs/development/konnect-reuse-reading-guide.md)를 확인해요. `framework`는 경량 범용 기반으로 `framework_doc/` 분석·색인을 먼저, `konnect`는 이전 완성 기능으로 `study/` 분석·색인을 먼저 읽고 필요한 소스·테스트만 대조해요. Google 로그인·Supabase·다중 LLM 호출은 이번 서비스의 필수 전제로 삼지 않아요. 최신 사용자 지시·확정 요구에 맞춰 선택하고 아직 서비스 이식은 시작하지 않았어요.

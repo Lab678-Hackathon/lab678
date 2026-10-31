@@ -9,3 +9,10 @@ __pycache__/
 .DS_Store
 .vscode/
 .idea/
+
+# Local index watcher status/logs; never commit runtime files.
+.local/
+*.index-tmp
+
+# Dongjo's local planning notes; shared planning remains tracked.
+/plan_dj/
