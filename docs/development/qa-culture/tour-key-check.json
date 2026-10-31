@@ -1,0 +1,65 @@
+{
+  "checked_at": "2026-10-31T16:47:06+09:00",
+  "request": {
+    "request_kind": "place",
+    "start_location": {
+      "label": "청량리역",
+      "lat": 37.5805961,
+      "lng": 127.0482573
+    },
+    "category": "전체",
+    "start_at": "2026-11-01T14:00:00+09:00",
+    "end_at": "2026-11-01T17:00:00+09:00",
+    "mode": "live"
+  },
+  "results": [
+    {
+      "source": "seoul",
+      "configured": true,
+      "verification": "provider live call",
+      "http_status": 200,
+      "passed": true,
+      "response_summary": {
+        "status": "ready",
+        "mode": "live",
+        "source_checked_at": "2026-10-31T16:47:06+09:00",
+        "searched_count": 23,
+        "source_total": 23,
+        "applied_preferences": {},
+        "queried_categories": [
+          "전체"
+        ],
+        "coverage_note": "선택한 분류마다 정식 키 최대 100건을 조회했습니다. 조회 범위 밖의 행사는 포함하지 않으며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다.",
+        "source_access": "authenticated",
+        "fetch_limit_per_category": 100,
+        "excluded_count": 0,
+        "unknown_price_count": 0,
+        "preference_notes": []
+      },
+      "candidate_count": 22
+    },
+    {
+      "source": "tour",
+      "configured": true,
+      "verification": "provider live call",
+      "http_status": 502,
+      "passed": false,
+      "response_summary": {
+        "status": "error",
+        "code": "tour_provider_error",
+        "message": "문화시설 제공기관의 조회 권한 또는 응답을 확인해 주세요."
+      },
+      "candidate_count": 0
+    }
+  ],
+  "direct_provider_diagnostic": {
+    "http_status": 403,
+    "recognized_codes": [
+      "SERVICE_KEY_IS_NOT_REGISTERED_ERROR"
+    ],
+    "gateway_fields": [],
+    "response_bytes_read": 192
+  },
+  "conclusion": "TourAPI key configured; live lookup blocked by provider 403 SERVICE_KEY_IS_NOT_REGISTERED_ERROR. Approval/key correspondence not yet verified; do not claim live success.",
+  "user_confirmation": "Authentication key issued; Korean tourism service usage application not submitted yet."
+}

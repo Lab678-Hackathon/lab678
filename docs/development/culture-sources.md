@@ -49,7 +49,7 @@
 
 `python utils/scripts/check_culture_sources.py`: 실제 서버를 통해 서울시 실조회와 TourAPI 설정 상태를 검사한다. 키가 없으면 TourAPI는503 동작 검사만 수행하고 공급자 실호출은 미실시로 기록한다. 입력은 공개 청량리역, 날짜는 검사일 다음날이다.
 
-초기 실행: 서울시 sample HTTP200, TourAPI 키 미설정503 동작 확인. 이후 사용자가 서울시 키를 저장하여 **정식 키 실조회 HTTP200** 확인: 2026-11-01 전체 분류, source_access=authenticated, 요청 상한100, 원본23건/총23건, 추천후보22건. [실조회 근거](qa-culture/authenticated-check.json). 100건 제한까지 실제100건을 받았다는 뜻은 아니다. TourAPI는 여전히 키 미설정이며 공급자 실호출 미실시다.
+초기 실행: 서울시 sample HTTP200, TourAPI 키 미설정503 동작 확인. 이후 사용자가 서울시 키를 저장하여 **정식 키 실조회 HTTP200** 확인: 2026-11-01 전체 분류, source_access=authenticated, 요청 상한100, 원본23건/총23건, 추천후보22건. [실조회 근거](qa-culture/authenticated-check.json). 100건 제한까지 실제100건을 받았다는 뜻은 아니다. 이후 TourAPI 키 저장을 확인하고 실호출했으나 제공기관 HTTP403 `SERVICE_KEY_IS_NOT_REGISTERED_ERROR`로 실패했다. 앱 응답은502 `tour_provider_error`이며 정상0건과 구분한다. [TourAPI 키 검증 근거](qa-culture/tour-key-check.json). 국문 관광정보 서비스 활용 승인 상태·저장 키 일치 여부를 확인해야 하며, 현재 근거만으로 구체 원인이나 승인 반영 시간을 단정하지 않는다. 목록·소개·홈페이지 실제 데이터 검증은 미완료다.
 
 ### TourAPI 키 발급 안내
 
@@ -62,3 +62,5 @@
 - [공공데이터포털 국문 관광정보 서비스](https://www.data.go.kr/data/15101578/openapi.do?recommendDataYn=Y): 공식 페이지의 내장 Swagger에서 KorService2·호출명·좌표X/Y·반경·문화시설14·운영/가격/휴관/홈페이지 필드를 확인했다. 원문은 로컬 검토 자료에 보관했다.
 - [서울시 공개 API 안내](https://tv.seoul.go.kr/v/df1e47ef629d4ae09966817924f58f3d): sample 최대5건과 인증키 안내.
 - [서울시 문화행사 데이터](https://data.seoul.go.kr/dataList/OA-23041/S/1/datasetView.do): 문화행사 데이터 공식 안내. API 응답 검증과 문서 안내를 구분한다.
+
+사용자 확인: 인증키만 발급받았고 해당 서비스 활용신청은 아직 하지 않았다. 국문 관광정보 서비스 활용신청·승인 후 재검증한다.

@@ -103,6 +103,7 @@ lab678/
       qa-culture/
         authenticated-check.json
         initial-check.json
+        tour-key-check.json
       qa-handoff/
         manifest.json
         natural-flow.json
@@ -189,6 +190,7 @@ lab678/
         frontend-chat-package.md
         natural-language-recommendation.md
         seoul-live-and-tour-key.md
+        tour-key-verification.md
       screen-spec-review.md
       state.json
       tasks.md
