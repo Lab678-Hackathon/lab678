@@ -78,15 +78,19 @@ img { display: block; max-width: 100%; }
   animation: pop .35s ease-out;
 }
 .wake__bird { margin-top: 8px; border: 0; padding: 0; background: none; cursor: pointer; flex: 1; min-height: 0; display: flex; align-items: center; }
-.wake__bird img { width: min(72vw, 300px); height: auto; aspect-ratio: 1 / 2; object-fit: cover; object-position: center 30%; max-height: 44dvh; }
+.wake__bird img { width: auto; height: min(44dvh, 360px); max-width: 76vw; object-fit: contain; transform-origin: 50% 90%; }
 .wake[data-state="sleep"] .wake__bird img { animation: breathe 3.2s ease-in-out infinite; }
 .wake[data-state="waking"] .wake__bird img { animation: stretch .9s ease-in-out infinite alternate; }
 .wake[data-state="ready"] .wake__bird { cursor: default; }
+.wake[data-state="ready"] .wake__bird img { animation: breathe 3.2s ease-in-out infinite; }
+/* 까치가 말할 때: 고개를 까딱이며 살짝 커졌다 작아져요 */
+.wake__bird.is-talking img { animation: talk .42s ease-in-out infinite alternate !important; }
 .wake__panel { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
 .wake__panel h2 { font-size: var(--fs-title-l); line-height: 1.35; }
 .wake__actions { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
 @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025) translateY(2px); } }
 @keyframes stretch { from { transform: rotate(-2deg); } to { transform: rotate(2deg) translateY(-4px); } }
+@keyframes talk { from { transform: rotate(-3deg) scale(1); } to { transform: rotate(2deg) scale(1.05) translateY(-3px); } }
 @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.97); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .wake__bird img, .wake__bubble { animation: none !important; } }
 .loading { display: inline-flex; align-items: center; gap: 10px; color: var(--text-secondary); font-size: var(--fs-label); }

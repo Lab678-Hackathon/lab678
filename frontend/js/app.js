@@ -66,6 +66,18 @@ function route() {
 }
 
 /**
+ * 까치가 말하는 동안 움직이게 해요 (말풍선이 나올 때). 시간이 지나면 다시 숨쉬기로 돌아가요.
+ * @param {HTMLElement} el 까치 이미지를 감싼 요소
+ * @param {number} ms
+ */
+export function talkFor(el, ms) {
+  if (!el) return;
+  el.classList.add('is-talking');
+  clearTimeout(el._talkTimer);
+  el._talkTimer = setTimeout(() => el.classList.remove('is-talking'), ms);
+}
+
+/**
  * S00 까치 깨우기. 열자마자 서버를 미리 깨우기 시작하고(조용히),
  * 사용자가 까치나 버튼을 누르면 일어나는 모습 → 서버가 답하면 인사로 바꿔요.
  * 서버가 끝내 답하지 않으면 다시 깨우기를 보여줘요 (Mock 으로 넘어가지 않음).
@@ -92,7 +104,7 @@ function initLanding() {
     btn.hidden = state === 'ready';
     btn.disabled = state === 'waking';
     if (state === 'sleep' || state === 'tired') {
-      img.src = 'assets/kkachi-sleep.jpg';
+      img.src = 'assets/kkachi-sleep.png';
       img.alt = '빨간 목도리를 두른 까치가 단풍 가지에서 자고 있어요';
     }
     if (state === 'sleep') {
@@ -102,7 +114,7 @@ function initLanding() {
       btn.className = 'btn btn--primary';
     }
     if (state === 'waking') {
-      img.src = 'assets/kkachi-wake.jpg';
+      img.src = 'assets/kkachi-wake.png';
       img.alt = '까치가 날개를 펴고 기지개를 켜고 있어요';
       title.textContent = '까치가 기지개를 켜고 있어요';
       sub.innerHTML = '잠깐만 기다려 주세요.<br>처음엔 30초~1분쯤 걸릴 수 있어요.';
@@ -116,7 +128,7 @@ function initLanding() {
       btn.className = 'btn btn--primary';
     }
     if (state === 'ready') {
-      img.src = 'assets/kkachi-hello.jpg';
+      img.src = 'assets/kkachi-hello.png';
       img.alt = '까치가 날개를 흔들며 인사해요';
       title.textContent = '';
       sub.textContent = '';
@@ -131,6 +143,7 @@ function initLanding() {
     show('waking');
     const [ok] = await Promise.all([pending, new Promise((r) => setTimeout(r, MIN_WAKE_MS))]);
     show(ok ? 'ready' : 'tired');
+    if (ok) talkFor(document.querySelector('#s00 .wake__bird'), 2600);
   };
 
   document.querySelectorAll('#s00 [data-wake]').forEach((el) => el.addEventListener('click', wake));
