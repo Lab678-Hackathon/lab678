@@ -125,3 +125,13 @@ class CultureSourceTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class OfficialImageTest(unittest.TestCase):
+    def test_only_seoul_culture_portal_images(self):
+        """공식 문화포털 이미지만 https 로 넘기고, 다른 주소·빈 값은 None."""
+        from outing import official_image
+        self.assertEqual(official_image("http://culture.seoul.go.kr/cmmn/file/getImage.do?atchFileId=abc"),
+                         "https://culture.seoul.go.kr/cmmn/file/getImage.do?atchFileId=abc")
+        for bad in (None, "", "javascript:alert(1)", "https://evil.example.com/x.jpg", "x" * 600):
+            self.assertIsNone(official_image(bad))

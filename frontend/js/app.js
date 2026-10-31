@@ -7,7 +7,7 @@ import { wakeServer } from './api.js';
 import { initChat, renderChat } from './chat.js';
 import { initPlace, renderPlace, renderMap } from './place.js';
 import { isSignedIn, savedPlaces, endDemo, startDemo } from './saved.js';
-import { $, el, button, readStore, writeStore, talkFor, unlockSpeech, speakKo } from './util.js';
+import { $, el, button, readStore, writeStore, talkFor, unlockSpeech, speakKo, photo } from './util.js';
 
 /** 까치가 일어나는 모습을 최소한 이만큼은 보여줘요 (너무 빨리 넘어가면 깜빡이는 느낌) */
 const MIN_WAKE_MS = 1600;
@@ -116,9 +116,7 @@ function initLanding() {
 /** 저장한 장소 카드 (홈 미리보기·내 나들이) */
 function savedCard(p) {
   const art = el('article', 'saved-card');
-  const img = el('div', 'saved-card__img');
-  img.style.backgroundImage = `url(assets/${p.genre?.includes('전시') ? 'place-museum' : 'place-palace'}.jpg)`;
-  art.append(img);
+  art.append(photo(p, 'saved-card__img'));
   const body = el('div', 'saved-card__body');
   body.append(el('h3', null, p.title), el('p', 'muted', p.venue || ''));
   if ((p.checks_required || []).length) body.append(el('p', 'chat-card__warn', `! ${p.checks_required[0]}`));

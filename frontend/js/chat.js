@@ -8,7 +8,7 @@
 import { state, save, resetChat } from './state.js';
 import { requestRecommend, requestChat, searchPlaces } from './api.js';
 import { parseUtterance, longEnough } from './parse.js';
-import { $, el, button, formatDate, formatTime, todayIso, minutes, hhmm, isTest, isDebug, talkFor, unlockSpeech } from './util.js';
+import { $, el, button, formatDate, formatTime, todayIso, minutes, hhmm, isTest, isDebug, talkFor, unlockSpeech, photo } from './util.js';
 
 const QA_START = { label: '청량리역', lat: 37.5805961, lng: 127.0482573 };
 const CATEGORIES = ['전시', '국악', '클래식', '콘서트', '연극', '전체'];
@@ -98,9 +98,7 @@ function userSays(text) {
 function card(c, index) {
   const art = el('article', 'chat-card');
   art.dataset.id = c.id;
-  const top = el('div', 'chat-card__img');
-  top.style.backgroundImage = `url(assets/${c.genre?.includes('전시') ? 'place-museum' : 'place-palace'}.jpg)`;
-  top.append(el('span', 'chat-card__imgnote', '분위기 사진 · 실제 장소 아님'));
+  const top = photo(c, 'chat-card__img');
   const meta = [c.genre?.split('/')[0], c.district, c.fee_type].filter(Boolean).join(' · ');
   const body = el('div', 'chat-card__body');
   body.append(el('p', 'chat-card__meta', `${index + 1} · ${meta || '문화행사'}`), el('h3', null, c.title), el('p', 'muted', c.venue || '장소 이름 확인 필요'));

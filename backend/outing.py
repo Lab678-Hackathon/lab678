@@ -114,6 +114,16 @@ def seoul_page(day, category, mode):
     return page["row"], checked, int(page["list_total_count"])
 
 
+def official_image(value):
+    """서울시 문화포털의 공식 대표 이미지 주소만 넘긴다. 다른 주소·형식이 이상하면 None (화면은 대체 그림 사용)."""
+    if not isinstance(value, str) or len(value) > 500:
+        return None
+    parts = urlsplit(value.strip())
+    if parts.scheme not in {"http", "https"} or parts.hostname != "culture.seoul.go.kr":
+        return None
+    return parts._replace(scheme="https").geturl()
+
+
 def distance_km(lat, lng, other_lat, other_lng):
     """두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다."""
     dlat, dlng = math.radians(other_lat - lat), math.radians(other_lng - lng)
@@ -182,6 +192,7 @@ def recommend(data, mode="live"):
             event_lat = event_lng = distance = None
             checks.append("지도 좌표 확인")
         candidates.append(dict(id="seoul:" + ids[0], title=row["TITLE"], venue=row["PLACE"], lat=event_lat,
+                               image_url=official_image(row.get("MAIN_IMG")),
                                event_start_date=first.isoformat(), event_end_date=last.isoformat(),
                                district=row.get("GUNAME") or None, address=None,
                                lng=event_lng, distance_km=distance, official_url=url.geturl(),
