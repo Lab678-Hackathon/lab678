@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **선택·코스 구간별 외부 경로안내**: [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md), [docs/development/mobility-routing-review.md](../../docs/development/mobility-routing-review.md)
 - **두 곳 도보 문화코스**: [backend/course.py](../../backend/course.py), [backend/test_course.py](../../backend/test_course.py), [backend/walking.py](../../backend/walking.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **행사장 사이 도보 거리·시간**: [backend/walking.py](../../backend/walking.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/mobility-routing-review.md](../../docs/development/mobility-routing-review.md)
 - **문화행사 추천·점검 화면**: [backend/outing.py](../../backend/outing.py), [backend/local_voice.py](../../backend/local_voice.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [backend/test_outing.py](../../backend/test_outing.py), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)

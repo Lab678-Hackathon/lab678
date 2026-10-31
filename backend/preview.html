@@ -22,6 +22,7 @@ h1 {font-size:clamp(30px,5vw,44px)} h2 {font-size:26px} h3 {font-size:21px}
 button,input,select {font:inherit; min-height:46px; border-radius:12px; max-width:100%}
 button,summary {cursor:pointer} button {padding:8px 16px; background:white; border:1px solid #88a7a9; color:var(--ink); font-weight:650}
 button:disabled {opacity:.55; cursor:default}.primary {background:var(--teal); color:white; border:0; width:100%}
+.route-link {display:inline-block; padding:10px 16px; border:1px solid #88a7a9; border-radius:12px; font-weight:650; text-decoration:none}
 :focus-visible {outline:3px solid #aa5100; outline-offset:2px}
 fieldset {border:0; margin:0; padding:0; min-width:0}
 .group {margin:20px 0; padding-top:16px; border-top:1px solid var(--line)}
@@ -80,10 +81,15 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <section id="results" hidden><p class="kicker">02 · 나들이 후보</p><h2 id="result-title" tabindex="-1">지도에서 살펴보세요</h2>
 <div class="actions"><button id="back">조건 바꾸기</button></div>
 <section class="panel" id="course-result" hidden><h3>두 곳 문화코스</h3><p id="course-conditions"></p><p id="course-text" class="facts"></p>
+<div id="course-directions"></div>
 <small>도보 예상 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · 예약 가능 여부는 각 행사 상세에서 확인해 주세요.</small></section>
 <p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
 <div class="actions"><h3>추천 행사</h3><button id="prev" aria-label="이전 행사">이전</button><button id="next" aria-label="다음 행사">다음</button></div>
 <ol id="list" aria-label="추천 행사 카드"></ol><p id="selection" role="status"></p>
+<section class="panel" id="directions" hidden aria-labelledby="directions-title">
+<h3 id="directions-title" tabindex="-1">선택한 행사로 경로안내</h3>
+<div id="event-directions"></div>
+<p class="muted">카카오맵을 새 탭으로 열어요. 이 탭으로 돌아오면 선택한 행사와 조건을 계속 볼 수 있어요. 이동 날짜·시각은 카카오맵에서 확인해 주세요.</p></section>
 <button type="button" id="read" disabled>선택한 행사 읽기</button>
 <button type="button" id="file-read" disabled>음성 파일로 듣기</button>
 <audio id="player" controls hidden aria-label="선택한 행사의 한국어 음성" style="width:100%;margin-top:10px"></audio>
@@ -93,6 +99,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <label>다음 행사 <select id="walk-to"></select></label></div>
 <p>선택한 두 행사장의 공개 좌표로 보행 경로를 조회해요.</p>
 <button id="walk-check">도보 시간 확인</button><p id="walk-note" role="status"></p>
+<div id="walk-directions"></div>
 <small>도보 경로 제공 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a></small></section></section>
 <footer><small>문화정보 제공 · 서울특별시 서울문화포털</small></footer></main>
 <script>
@@ -105,6 +112,56 @@ fields.kind.onchange = () => {
 };
 let previousCourse = "";
 let excludedIds = [];
+let resultOrigin = null;
+
+/** 확인한 두 좌표와 순서로 카카오맵 도보·대중교통 링크를 만든다. 클릭할 때 새 탭으로 이동한다. */
+function directionLinks(origin, destination) {
+  const group = document.createElement("div");
+  group.className = "group";
+  const title = document.createElement("p");
+  title.textContent = (origin?.label || origin?.venue || "출발지").trim() + " → " +
+    (destination?.venue || "도착지").trim();
+  group.append(title);
+  if (![origin, destination].every(point => point && Number.isFinite(point.lat) &&
+    Math.abs(point.lat) <= 90 && Number.isFinite(point.lng) && Math.abs(point.lng) <= 180)) {
+    const message = document.createElement("p");
+    message.textContent = "출발지와 행사장의 좌표를 확인해야 경로안내를 열 수 있어요.";
+    group.append(message);
+    return group;
+  }
+  const points = [origin, destination].map(point => {
+    const name = (point.label || point.venue || "위치").trim().replace(/[,/]/g, " ");
+    return encodeURIComponent(name) + "," + point.lat + "," + point.lng;
+  }).join("/");
+  const links = document.createElement("div");
+  links.className = "actions";
+  for (const [mode, label] of [["walk","도보 길찾기"], ["traffic","대중교통 길찾기"]]) {
+    const link = document.createElement("a");
+    link.className = "route-link";
+    link.textContent = label;
+    link.href = "https://map.kakao.com/link/by/" + mode + "/" + points;
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    link.setAttribute("aria-label", title.textContent + " · 카카오맵 " + label + " (새 탭)");
+    links.append(link);
+  }
+  group.append(links);
+  return group;
+}
+
+/** 현재 응답의 방문 순서로 출발지와 행사 간 길찾기를 연결하고 오래된 링크는 비운다. */
+function displayCourseDirections(course) {
+  const target = document.querySelector("#course-directions");
+  target.replaceChildren();
+  if (!course?.ids || latestCandidates.length !== 2) return;
+  const heading = document.createElement("h3");
+  heading.textContent = "구간별 경로안내";
+  const note = document.createElement("p");
+  note.className = "muted";
+  note.textContent = "카카오맵에서 새 탭으로 열어요. 날짜·시각과 대중교통 소요시간을 확인해 주세요.";
+  target.append(heading, directionLinks(resultOrigin, latestCandidates[0]),
+    directionLinks(latestCandidates[0], latestCandidates[1]), note);
+}
 
 /** 가능한 일정과 확인이 필요한 조합을 구분하고 재계산 실패 때 이전 유효 일정을 보존한다. */
 function displayCourse(course, data) {
@@ -192,6 +249,12 @@ function changeWalk() {
   walkVersion++;
   walkButton.disabled = walkFrom.value === walkTo.value;
   walkNote.textContent = walkButton.disabled ? "서로 다른 두 행사를 선택해 주세요." : "";
+  const target = document.querySelector("#walk-directions");
+  target.replaceChildren();
+  if (!walkButton.disabled) {
+    const pair = [walkFrom, walkTo].map(select => latestCandidates.find(item => item.id === select.value));
+    target.append(directionLinks(...pair));
+  }
 }
 walkFrom.onchange = walkTo.onchange = changeWalk;
 
@@ -230,6 +293,8 @@ const mapNote = document.querySelector("#map-note");
 function selectEvent(item) {
   selection.textContent = "선택한 행사 · " + item.title;
   selection.dataset.id = item.id;
+  document.querySelector("#directions").hidden = false;
+  document.querySelector("#event-directions").replaceChildren(directionLinks(resultOrigin, item));
   stopReading();
   const card = [...list.children].find(entry => entry.dataset.id === item.id);
   readButton.dataset.text = card.querySelector("strong").textContent + ". " + card.querySelector("p").textContent;
@@ -299,6 +364,14 @@ function showCard(item) {
   select.textContent = "이 행사 선택";
   select.onclick = () => selectEvent(item);
   li.append(badge, title, detail, select, " ", source);
+  const directions = document.createElement("button");
+  directions.textContent = "경로안내";
+  directions.onclick = () => {
+    selectEvent(item);
+    document.querySelector("#directions").scrollIntoView({block:"start"});
+    document.querySelector("#directions-title").focus({preventScroll:true});
+  };
+  li.append(directions);
   if (fields.kind.value === "course") {
     const exclude = document.createElement("button");
     exclude.textContent = "이 행사 빼고 다시 추천";
@@ -545,6 +618,12 @@ async function search(event) {
   fields.fields.disabled = true;
   statusText.textContent = "문화정보 조회 중…";
   list.replaceChildren();
+  document.querySelector("#directions").hidden = true;
+  document.querySelector("#event-directions").replaceChildren();
+  document.querySelector("#course-directions").replaceChildren();
+  document.querySelector("#walk-directions").replaceChildren();
+  walkVersion++;
+  resultOrigin = null;
   selection.textContent = "";
   delete selection.dataset.id;
   try {
@@ -553,6 +632,7 @@ async function search(event) {
         start_at:data.start + ":00+09:00",end_at:data.end + ":00+09:00",category:data.category,mode:data.mode})});
     const body = await response.json();
     if (!response.ok) throw new Error(body.message);
+    resultOrigin = {label:data.label, lat:Number(data.lat), lng:Number(data.lng)};
     form.hidden = true;
     results.hidden = false;
     document.querySelector("#result-title").textContent = data.category + (body.course ? " 도보 코스 결과" : " 행사 추천");
@@ -566,6 +646,7 @@ async function search(event) {
     latestCandidates = body.course?.ids ? body.course.ids.map(id => body.candidates.find(item => item.id === id)) :
       body.candidates.filter(item => !excludedIds.includes(item.id));
     latestCandidates.forEach(showCard);
+    displayCourseDirections(body.course);
     resetWalk();
     prev.disabled = true;
     next.disabled = latestCandidates.length < 2;
