@@ -65,7 +65,7 @@ async function ready(browser, config = {}, handler) {
     stats.calls++;
     return handler ? handler(route) : route.fulfill({ json: response(route.request().postDataJSON()) });
   });
-  await page.goto(`${base}/?debug=1&season=none#/search`);
+  await page.goto(`${base}/?debug=1&season=none#/home`);
   await page.locator('#chat-mic').waitFor();
   await page.locator('#chat-voice-settings summary').click();
   await page.locator('#chat-silence-seconds').fill('5');
@@ -369,7 +369,7 @@ async function main() {
       await page.locator('#chat-text').fill('직접 입력'); await stopped(page, /멈췄/);
       await page.locator('#chat-mic').click();
       await page.waitForFunction(() => voiceTest.starts === 2);
-      await page.evaluate(() => { location.hash = '/home'; });
+      await page.evaluate(() => { location.hash = '/search'; });
       await page.waitForFunction(() => document.querySelector('#chat-voice-status').dataset.phase === 'idle');
       assert.equal(stats.calls, 0); assert.equal(await page.evaluate(() => voiceTest.aborts), 2); await page.close();
     });

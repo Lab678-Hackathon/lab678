@@ -44,4 +44,4 @@ export function initCulture() {
   refresh();
 }
 
-initCulture();
+// 초기의 간단한 S02 폼을 유지한다. 문화시설 점검은 기존 /checks에서 제공한다.

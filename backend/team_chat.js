@@ -65,8 +65,9 @@ style.textContent += '#chat-mic .mic-visual{position:relative;display:grid;place
 style.textContent += '#chat-voice-debug{padding:14px;border:1px solid #9faeb0;border-radius:12px;margin:14px 0}#chat-voice-debug h3{font-size:19px;margin:0 0 10px}#chat-voice-log{white-space:pre-wrap;overflow-wrap:anywhere;max-height:280px;overflow:auto;font:15px/1.6 ui-monospace,monospace;background:#f0f3f4;padding:12px;border-radius:8px}';
 style.textContent += '#chat-live-transcript{padding:14px;border:2px solid #79978a;border-radius:12px;background:#f2f7f4;font-size:20px;line-height:1.7;white-space:pre-wrap}#chat-live-transcript[data-state="interim"]{border-style:dashed}';
 style.textContent += '#dj-chat{display:block;padding:16px}#dj-chat details{margin:4px 0}#dj-chat summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:650}#dj-chat p:empty{display:none}#chat-voice-status{font-size:16px;line-height:1.5;margin:8px 0}#chat-status{font-size:19px;line-height:1.6;margin-bottom:12px}#chat-voice-settings{padding:0 10px}#s01 .home__hero,#s01 [data-tip]{display:none}#chat-mic[data-phase="speaking"] .mic-visual svg{display:none}#chat-mic[data-phase="speaking"] .mic-visual::before{content:"🔊";border:0;opacity:1;font-size:32px;display:grid;place-items:center}#chat-mic[data-phase="thinking"] .mic-visual svg,#chat-mic[data-phase="starting"] .mic-visual svg{display:none}#chat-mic[data-phase="thinking"] .mic-visual::before,#chat-mic[data-phase="starting"] .mic-visual::before{content:"⏳";border:0;opacity:1;font-size:30px;display:grid;place-items:center}';
-root.querySelector('[data-field="start"]').before(box);
+document.querySelector('#s01 .home__hero').after(box);
 const $ = (selector) => box.querySelector(selector);
+style.textContent += '.app{max-width:390px;width:100%;margin-inline:auto}#s01 .home{padding:12px 16px 88px;gap:12px}#s02 .page{padding:8px 16px 110px;gap:10px}#s02 .field{gap:6px}#s02 .field__label{font-size:18px}#s02 .input{font-size:18px;min-height:48px;padding:10px 12px}#s02 .chip{font-size:17px;min-height:44px;padding:0 12px}#s02 .bubble{font-size:18px;padding:12px}#s02 .segmented button{font-size:17px;padding:10px 8px}#s02 .bottombar{padding:12px 16px}#dj-chat{margin:0;padding:14px}#dj-chat .chat-actions{gap:8px;margin:10px 0}#dj-chat #chat-mic{padding:12px;min-height:60px}';
 const inputMeter = mountInputMeter($('#chat-mic-meter'));
 
 /** 전사 내용 없이 엔진 이벤트를 기록한다. 접힌 점검 메뉴에서도 메모리 로그를 계속 갱신한다. */
@@ -171,20 +172,21 @@ function draft() {
 }
 let fingerprint = JSON.stringify(draft());
 
-/** 공통 패널 하나를 구현된 화면으로 옮긴다. 대화·설정·이벤트를 복제하지 않는다. */
+/** 대화 패널은 첫 화면에만 둔다. 기존 설정/결과 화면으로 이동하면 음성도 종료한다. */
 function mountConversation() {
   const screen = screenContext();
-  let target = document.querySelector({ home: '#s01 .home', search: '#s02 .page', results: '#s03 .page', detail: '#chat-host-detail', me: '#chat-host-me' }[screen.kind] || '#s01 .home');
-  if (!target && ['detail', 'me'].includes(screen.kind)) {
-    target = document.createElement('div'); target.className = 'page'; target.id = `chat-host-${screen.kind}`;
-    const anchor = document.querySelector(screen.kind === 'detail' ? '#s04-body' : '#s07 .stub');
-    anchor.before(target);
+  if (screen.kind === 'search' && state.form.cultureSource !== 'seoul') {
+    state.form.cultureSource = 'seoul'; save();
   }
-  if (screen.kind === 'landing') { box.hidden = true; return; }
-  box.hidden = false;
+  const target = document.querySelector('#s01 .home');
+  box.hidden = screen.kind !== 'home';
+  if (box.hidden) {
+    stopSingleRecognition();
+    voiceSession?.stop('대화를 멈추고 설정 화면으로 이동했어요.');
+    window.speechSynthesis?.cancel();
+  }
   if (target && box.parentElement !== target) {
-    if (screen.kind === 'home') target.querySelector('.home__hero')?.after(box);
-    else target.prepend(box);
+    target.querySelector('.home__hero')?.after(box);
   }
   $('#chat-screen').textContent = `현재 화면 · ${screen.name}`;
   const manual = document.querySelector('#chat-manual-entry, #s01 button[data-go="/search"]');
@@ -194,13 +196,14 @@ function mountConversation() {
   }
 }
 
-/** 같은 출처의 기존 메뉴로 검증된 초안을 한 번 전달한다. URL에 대화/좌표를 넣거나 추천을 실행하지 않는다. */
+/** 초안을 보존하고 기존 S02 설정 화면으로 이동한다. 개발 점검 화면으로 보내지 않는다. */
 function openOriginalMenu(need, message) {
-  try {
-    sessionStorage.setItem('lab678_need_handoff', JSON.stringify({ version: 1, draft: need, message, createdAt: Date.now() }));
-    voiceSession?.stop('원하는 활동을 확인했어요. 처음 나들이 설정 메뉴로 이동해요.');
-    location.assign('/checks?from=conversation');
-  } catch { note('설정 메뉴를 열지 못했어요. 다시 시도해 주세요.'); }
+  stopSingleRecognition();
+  voiceSession?.stop('원하는 활동을 확인했어요. 나들이 설정으로 이동해요.');
+  window.speechSynthesis?.cancel();
+  state.form.cultureSource = 'seoul';
+  save();
+  void navigateVoice('/search');
 }
 
 /** 음성이 요청한 알려진 화면으로 이동할 때만 대화를 이어간다. 수동 이동은 중지한다. */

@@ -131,6 +131,12 @@ lab678/
         keys.json
         manifest.json
         map-check.json
+      qa-simple-settings/
+        diagnostic.json
+        meter.json
+        navigation.json
+        summary.json
+        voice.json
       qa-transit-mobile/
         ui-checks.json
       qa-unified-chat/
@@ -201,6 +207,7 @@ lab678/
         2026-10-31-route-text.md
         2026-10-31-screen-spec-review.md
         2026-10-31-section-checks.md
+        2026-10-31-simple-settings-restore.md
         2026-10-31-speaker-check.md
         2026-10-31-speech-input-errors.md
         2026-10-31-speech-offline.md
