@@ -45,6 +45,24 @@ def short_text(value):
     return value.strip()
 
 
+def route_path(raw):
+    """선택적 WGS84 [경도,위도] 경로를 Leaflet [위도,경도]로 변환한다. 손상 시 선만 생략한다."""
+    points = raw.get("points") if isinstance(raw, dict) else None
+    if not isinstance(points, list) or not 2 <= len(points) <= 20000:
+        return []
+    result = []
+    for point in points:
+        if not isinstance(point, list) or len(point) != 2:
+            return []
+        lng, lat = point
+        if any(type(n) not in (int, float) or not math.isfinite(n) for n in point):
+            return []
+        if not -180 <= lng <= 180 or not -90 <= lat <= 90:
+            return []
+        result.append([lat, lng])
+    return result
+
+
 def normalize_routes(body):
     """공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다."""
     status = body.get("status")
@@ -70,7 +88,8 @@ def normalize_routes(body):
             if mode not in {"WALKING", "BUS", "SUBWAY"}:
                 raise ValueError("미지원 이동 수단")
             steps.append(dict(mode=mode, instruction=short_text(step["guidance"]),
-                              duration_s=metric(step["time"]), distance_m=metric(step["distance"], 10000000)))
+                              duration_s=metric(step["time"]), distance_m=metric(step["distance"], 10000000),
+                              path=route_path(raw.get("path"))))
         if not any(s["mode"] != "WALKING" for s in steps):
             raise ValueError("대중교통 구간 없음")
         walk = [s for s in steps if s["mode"] == "WALKING"]

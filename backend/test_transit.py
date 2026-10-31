@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
-from transit import normalize_routes, transit_between
+from transit import normalize_routes, route_path, transit_between
 
 
 def provider_response():
@@ -45,6 +45,26 @@ class TransitTests(unittest.TestCase):
         self.assertIsNone(route["listed_walk_duration_s"])
         self.assertIsNone(route["listed_walk_distance_m"])
         self.assertIn("전체 도보량은 확인되지",route["walk_note"])
+
+    def test_route_geometry(self):
+        """경위도 순서를 검증하고 손상/누락 경로선 때문에 텍스트 안내까지 잃지 않는다."""
+        points = [[127.048,37.58],[126.991,37.577]]
+        raw = provider_response()
+        raw["routes"][0]["steps"][1]["path"] = {"points":points}
+        steps = normalize_routes(raw)["routes"][0]["steps"]
+        self.assertEqual(steps[1]["path"],[[37.58,127.048],[37.577,126.991]])
+        self.assertEqual(steps[0]["path"],[])
+        for invalid in [None, {}, {"points":[[True,37],[127,38]]},
+                        {"points":[[127,91],[127,38]]}, {"points":[[181,37],[127,38]]},
+                        {"points":[[127,float("nan")],[127,38]]},
+                        {"points":[[127,37,0],[127,38]]}, {"points":points[:1]},
+                        {"points":[[127,37]]*20001}]:
+            with self.subTest(invalid_type=type(invalid).__name__):
+                self.assertEqual(route_path(invalid),[])
+                raw["routes"][0]["steps"][1]["path"] = invalid
+                result = normalize_routes(raw)
+                self.assertEqual(result["status"],"ready")
+                self.assertEqual(result["routes"][0]["steps"][1]["path"],[])
 
     def test_bad_payloads(self):
         """음수·누락·잘못된 이동수단·손상된 성공 응답을 정상이 아닌 것으로 처리한다."""

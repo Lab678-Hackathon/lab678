@@ -97,6 +97,7 @@ lab678/
         2026-10-31-tooling-setup.md
         2026-10-31-transit-guide.md
         2026-10-31-transit-live.md
+        2026-10-31-transit-map.md
         2026-10-31-transit-provider-factcheck.md
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md

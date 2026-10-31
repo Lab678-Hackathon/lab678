@@ -43,7 +43,7 @@
 | `main` | [utils/scripts/watch.py:39](../utils/scripts/watch.py#L39) | Watch in a cooperative single-process loop; retain errors in local status. |
 | `markdown_files` | [utils/scripts/harness.py:39](../utils/scripts/harness.py#L39) | Select active documentation, excluding copied PRDs and historical snapshots. |
 | `metric` | [backend/transit.py:34](../backend/transit.py#L34) | 응답의 초·m·원 값을 유한한 음수 아닌 수로 제한한다. 미확인은 0으로 대체하지 않는다. |
-| `normalize_routes` | [backend/transit.py:48](../backend/transit.py#L48) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |
+| `normalize_routes` | [backend/transit.py:66](../backend/transit.py#L66) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |
 | `OutingTests` | [backend/test_outing.py:9](../backend/test_outing.py#L9) | 개인 추천의 의미가 바뀌는 경계 사례를 재현한다. |
 | `OutingTests.setUp` | [backend/test_outing.py:12](../backend/test_outing.py#L12) | 각 사례에 독립적인 청량리역 요청을 준비한다. |
 | `OutingTests.test_actual_fields` | [backend/test_outing.py:16](../backend/test_outing.py#L16) | 빈 요금, 무료 분류, 명시한 0원, 거리 오름차순을 보존한다. |
@@ -69,6 +69,7 @@
 | `render_wave` | [backend/local_voice.py:25](../backend/local_voice.py#L25) | 문자열을 표준 입력으로 전달해 메모리에서 합성하고, 실패·과부하 때 예외를 반환한다. |
 | `repo_files` | [utils/scripts/catalog.py:46](../utils/scripts/catalog.py#L46) | Inventory repository files, including untracked work, without reading secrets. |
 | `review_text` | [utils/scripts/read_pdf.py:18](../utils/scripts/read_pdf.py#L18) | Mask credential-related lines and two following lines before console output. |
+| `route_path` | [backend/transit.py:48](../backend/transit.py#L48) | 선택적 WGS84 [경도,위도] 경로를 Leaflet [위도,경도]로 변환한다. 손상 시 선만 생략한다. |
 | `run` | [utils/scripts/harness.py:63](../utils/scripts/harness.py#L63) | Execute finite static checks and optional isolated utility tests. |
 | `safe_target` | [utils/scripts/reuse.py:18](../utils/scripts/reuse.py#L18) | Resolve a relative destination without traversal, links or Git internals. |
 | `schedule_pair` | [backend/course.py:35](../backend/course.py#L35) | 두 구간과 당일 시간표를 합산해 가능·미확인·충돌 및 방문별 예상시각을 반환한다. |
@@ -110,14 +111,15 @@
 | `ToolsTest.test_watcher_detects_add_modify_delete` | [utils/tests/test_tools.py:215](../utils/tests/test_tools.py#L215) | Source additions, content changes and deletion alter the watcher signature. |
 | `ToolsTest.test_watcher_excludes_its_outputs` | [utils/tests/test_tools.py:207](../utils/tests/test_tools.py#L207) | Generated outputs do not trigger another watcher cycle even without config hints. |
 | `ToolsTest.write` | [utils/tests/test_tools.py:39](../utils/tests/test_tools.py#L39) | Write a temporary UTF-8 test file and return its location. |
-| `transit_between` | [backend/transit.py:95](../backend/transit.py#L95) | 좌표 두 개로 사용자 요청당 1회 조회한다. 미설정/인증/한도/빈 결과/실패를 구별한다. |
+| `transit_between` | [backend/transit.py:114](../backend/transit.py#L114) | 좌표 두 개로 사용자 요청당 1회 조회한다. 미설정/인증/한도/빈 결과/실패를 구별한다. |
 | `TransitTests` | [backend/test_transit.py:19](../backend/test_transit.py#L19) | 비밀값 비노출·단위·미연결·잘못된 좌표·HTTP200 오류·한도를 독립적으로 검사한다. |
 | `TransitTests.setUp` | [backend/test_transit.py:22](../backend/test_transit.py#L22) | 실제 사용자 위치와 무관한 공개 장소 좌표를 준비한다. |
-| `TransitTests.test_bad_payloads` | [backend/test_transit.py:49](../backend/test_transit.py#L49) | 음수·누락·잘못된 이동수단·손상된 성공 응답을 정상이 아닌 것으로 처리한다. |
+| `TransitTests.test_bad_payloads` | [backend/test_transit.py:69](../backend/test_transit.py#L69) | 음수·누락·잘못된 이동수단·손상된 성공 응답을 정상이 아닌 것으로 처리한다. |
 | `TransitTests.test_missing_access_walk` | [backend/test_transit.py:38](../backend/test_transit.py#L38) | 실응답처럼 지하철만 표시되어도 생략된 접근/마지막 도보를 0으로 확정하지 않는다. |
 | `TransitTests.test_normalization` | [backend/test_transit.py:26](../backend/test_transit.py#L26) | 초/m/환승/요금 및 미확인 요금을 보존한다. |
-| `TransitTests.test_request_and_provider_errors` | [backend/test_transit.py:68](../backend/test_transit.py#L68) | 헤더만 키를 담고 날짜는 보내지 않으며 인증·한도·통신·본문 오류를 구분한다. |
-| `TransitTests.test_unconfigured_and_coordinates` | [backend/test_transit.py:60](../backend/test_transit.py#L60) | 미설정 시 외부 호출을 하지 않고 입력 누락·중복 좌표는 거절한다. |
+| `TransitTests.test_request_and_provider_errors` | [backend/test_transit.py:88](../backend/test_transit.py#L88) | 헤더만 키를 담고 날짜는 보내지 않으며 인증·한도·통신·본문 오류를 구분한다. |
+| `TransitTests.test_route_geometry` | [backend/test_transit.py:49](../backend/test_transit.py#L49) | 경위도 순서를 검증하고 손상/누락 경로선 때문에 텍스트 안내까지 잃지 않는다. |
+| `TransitTests.test_unconfigured_and_coordinates` | [backend/test_transit.py:80](../backend/test_transit.py#L80) | 미설정 시 외부 호출을 하지 않고 입력 누락·중복 좌표는 거절한다. |
 | `validate` | [backend/outing.py:25](../backend/outing.py#L25) | 개인 장소 요청을 검증하고 한국 시각의 당일 구간과 출발점을 반환한다. |
 | `verify_message` | [utils/scripts/commit_report.py:17](../utils/scripts/commit_report.py#L17) | Compare raw latest-commit message bytes to the complete report file. |
 | `visit_window` | [backend/course.py:11](../backend/course.py#L11) | 행사 시간 원문에서 검증 가능한 당일 시작·종료와 고정 공연 여부를 얻는다. |
