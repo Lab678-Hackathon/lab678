@@ -145,18 +145,22 @@
         <p class="muted" id="s08-tstate" hidden></p>
         <div class="route-list" id="s08-routes"></div>
       </div>
-      <div class="map map--route" id="s08-mapbox"></div>
+      <div class="mapwrap" id="s08-mapwrap">
+        <div class="map map--route" id="s08-mapbox"></div>
+        <a class="map-big" id="s08-kakao" target="_blank" rel="noopener">실시간 경로</a>
+        <div class="map-fullbar" id="s08-fullbar">
+          <p class="map-fullbar__info" id="s08-fullinfo"></p>
+          <button class="btn btn--primary btn--small" type="button" id="s08-small">작게 보기</button>
+        </div>
+      </div>
       <p class="map-error" id="s08-maperr" hidden>지도를 불러오지 못했어요.</p>
-      <p class="caption muted" id="s08-credit"></p>
+      <p class="credit" id="s08-credit"></p>
       <p class="caption muted" id="s08-tnote"></p>
       <div class="notice notice--warn" id="s08-error" hidden>
         <p id="s08-errmsg"></p>
         <button class="btn btn--outline btn--small" type="button" id="s08-retry">다시 찾기</button>
       </div>
-      <div class="external">
-        <a class="btn btn--outline" id="s08-kakao" target="_blank" rel="noopener">카카오맵 앱으로 길찾기 ↗</a>
-        <p class="caption muted">누르면 이 앱 밖(카카오맵)으로 나가요. 돌아오려면 뒤로 가기를 눌러 주세요.</p>
-      </div>
+      <button class="btn btn--outline" type="button" id="s08-big">⤢ 지도 크게 보기</button>
     </div>
     <div class="bottombar">
       <button class="btn btn--primary" type="button" data-go="/chat">기존 대화로 돌아가기</button>
