@@ -11,7 +11,7 @@
 | 3 | PRD·화면명세 및 안내 버전 갱신 | 정본·README·AGENTS 참조 일치, 합의 상태 보존 | [x] 완료 |
 | 4 | ID·링크·Markdown·변경 범위 검증 | ID·상대 링크 확인, `git diff --check` 통과 | [x] 완료 |
 | 5 | 요청된 임시 원본 두 파일 정리 | 정본 확인 후 원본만 제거, 다른 미추적 파일 보존 | [x] 완료 |
-| 6 | 기획 문서만 커밋·Push·PR 생성 | 중복 PR 확인, `develop` 대상 PR 생성, Merge 금지 | [ ] 진행 중 |
+| 6 | 기획 문서만 커밋·Push·PR 생성 | 중복 PR 확인, `develop` 대상 PR 생성, Merge 금지 | [x] 완료 |
 
 ## 실행 전·후 상태
 
@@ -21,6 +21,7 @@
 | 비교 후 | 신규 흐름과 기존 정책 간 충돌 식별 | S03 결과 배치·조건 확인·S04 CTA 변경. S05 코스·임시 선택은 삭제하지 않고 팀 검토 대기 |
 | 갱신 후 | 정본 두 문서와 버전 안내 갱신 | H01~H20 별도 집합, D01~D20 crosswalk, F01~F20 및 Q1~Q6 추적 보존. QA는 미실행으로 표시 |
 | 최종 문서 검증 | 완료 | F/H/D/S ID 교차 확인, 상대 Markdown 링크 전부 존재, `git diff --check` 통과. 색인은 Python 3.9 호환 래퍼로 갱신·검증. 요청된 임시 원본만 제거. |
+| GitHub 반영 | 완료 | 커밋 `eafcff7aeee14ab145cf51a37d98badb4e2d947b` Push 및 [PR #17](https://github.com/Lab678-Hackathon/lab678/pull/17) 생성. `develop` 대상, 열림·미병합. |
 
 ## 주요 미결 사항
 

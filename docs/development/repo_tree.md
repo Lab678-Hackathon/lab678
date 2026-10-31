@@ -105,6 +105,7 @@ lab678/
         2026-10-31-mvp-plan.md
         2026-10-31-personal-attachment-copy.md
         2026-10-31-personal-notes-scope.md
+        2026-10-31-planning-doc-refresh.md
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md

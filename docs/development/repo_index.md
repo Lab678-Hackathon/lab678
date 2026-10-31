@@ -66,7 +66,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md) | 김동조의 문화외출 MVP 개발 계획 | `94ef8e460f1e` |
 | [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `c13aa99e5f82` |
 | [docs/development/place-search-api.md](../../docs/development/place-search-api.md) | 출발지 검색과 첫 프론트 연결 안내 | `4510f9c7c9d2` |
-| [docs/development/planning-doc-refresh-progress.md](../../docs/development/planning-doc-refresh-progress.md) | 기획 정본 v0.7.0·화면명세 v0.3.0 갱신 체크표 | `ca67224596ff` |
+| [docs/development/planning-doc-refresh-progress.md](../../docs/development/planning-doc-refresh-progress.md) | 기획 정본 v0.7.0·화면명세 v0.3.0 갱신 체크표 | `ad63d6a17f8f` |
 | [docs/development/recommend-api.md](../../docs/development/recommend-api.md) | 추천 API 연결 안내 | `6c5aff0817bd` |
 | [docs/development/render-demo-guide.md](../../docs/development/render-demo-guide.md) | Render 단일 서비스 시연 준비 | `85efffadf892` |
 | [docs/development/repo_index.md](../../docs/development/repo_index.md) | 자동 생성 색인 | `generated` |
@@ -98,6 +98,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/2026-10-31-mvp-plan.md](../../docs/development/reports/2026-10-31-mvp-plan.md) | 동조님 MVP 실행계획을 보완해 `dj/develop`에 커밋했습니다. [MVP 실행계획과 단계별 체크표](D:/git/lab678/docs/development/mvp-plan.md) | `b80901c14064` |
 | [docs/development/reports/2026-10-31-personal-attachment-copy.md](../../docs/development/reports/2026-10-31-personal-attachment-copy.md) | 답변 반영했습니다. **첨부 원본의 개인 사본은 `plan_dj`에 보관**합니다. | `1564ee2573d1` |
 | [docs/development/reports/2026-10-31-personal-notes-scope.md](../../docs/development/reports/2026-10-31-personal-notes-scope.md) | `plan_dj`를 **동조님이 저에게 특별히 요청한 개인 사항만 보관하는 폴더**로 정리했습니다. | `fabbb9e1d83d` |
+| [docs/development/reports/2026-10-31-planning-doc-refresh.md](../../docs/development/reports/2026-10-31-planning-doc-refresh.md) | Lab 678 기획 정본 갱신 완료 보고 | `0f9943c8ed79` |
 | [docs/development/reports/2026-10-31-preview-map.md](../../docs/development/reports/2026-10-31-preview-map.md) | **청량리역에서 나들이를 찾아 지도와 카드로 선택하는 첫 흐름이 동작합니다.** 개인 점검 서버를 실행해 두었습니다. [내 PC에서 나들이 찾기 열기](http://127.0.0.1:8765/) | `be882160cc56` |
 | [docs/development/reports/2026-10-31-preview-speech.md](../../docs/development/reports/2026-10-31-preview-speech.md) | 민규님 대화 덕분에 **v0.5 문서가 아직 보이지 않는 경위**를 파악했습니다. 10월 31일 오전 원격 저장소를 확인했을 때 브랜치는 기존 6개였고, PR은 협업 규칙 관련 #1·#2뿐이었습니다. PRD 문서 5종과 UI·API 최종 합의는 확인  | `c2a6f85d400b` |
 | [docs/development/reports/2026-10-31-preview.md](../../docs/development/reports/2026-10-31-preview.md) | 실데이터 확보에 이어 개인 점검 화면에서 **출발 조건 → 실시간 추천 → 선택 → 조건 변경·재조회**를 연결했습니다. [내 PC에서 나들이 찾기 열기](http://127.0.0.1:8765/) | `463d1b48dba4` |
@@ -126,7 +127,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/20261031-push-pr-issue.md](../../docs/development/reports/20261031-push-pr-issue.md) | 최신 백엔드 11개 커밋을 dj/develop에 Push했습니다. | `a908007b899d` |
 | [docs/development/reports/20261031-qa01-received.md](../../docs/development/reports/20261031-qa01-received.md) | 기획의 QA-01 기준과 후속 할 일을 기록했습니다. | `052acc1b388b` |
 | [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `07c093eb5b29` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `999ef16b6ecc` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `f7e071ac8a25` |
 | [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `609b9a031a2b` |
 | [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md) | LAB678 · 동료와 LLM을 위한 개발 참조·실행 안내 | `cc447d4a1c21` |
 | [docs/development/team-integration-checklist.md](../../docs/development/team-integration-checklist.md) | 팀 의견 대조 · 최종 UI 연결 우선 체크표 | `6c9ce2ba63db` |
