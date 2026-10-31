@@ -123,6 +123,8 @@ lab678/
         keys.json
         manifest.json
         map-check.json
+      qa-transit-mobile/
+        ui-checks.json
       qa-voice-navigation/
         navigation-checks.json
         session-checks.json
@@ -213,6 +215,7 @@ lab678/
         service-key-ui-integration.md
         tour-key-verification.md
         tour-live-verification.md
+        transit-mobile-cards.md
       screen-spec-review.md
       service-key-status.md
       state.json
@@ -220,6 +223,7 @@ lab678/
       team-backend-guide.md
       team-integration-checklist.md
       tooling-progress.md
+      transit-mobile.md
       transit-progress.md
     meetings/
       2026-10-28.md
@@ -295,6 +299,8 @@ lab678/
       check_result_preservation.cjs
       check_service_keys.py
       check_team_flow.cjs
+      check_transit_details.py
+      check_transit_mobile.cjs
       check_transit_ui.cjs
       check_voice_navigation.cjs
       check_voice_session.cjs

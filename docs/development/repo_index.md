@@ -30,7 +30,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [backend/outing.py](../../backend/outing.py) | 서울시 분류별 공개 후보에서 날짜·시간·대화 선호를 확인해 추천한다. | `1a1d5fcfc0b7` |
 | [backend/places.py](../../backend/places.py) | 출발지 선택용 카카오 장소명/주소 검색. 사용자 검색어·키·원문 응답은 저장하지 않는다. | `a7ee2f080b69` |
 | [backend/preferences.py](../../backend/preferences.py) | 대화 선호의 형식과 공식 행사 사실 기반 선별. AI가 가격·경로 사실을 만들지 않는다. | `36a907bf95bc` |
-| [backend/preview.html](../../backend/preview.html) | 설정·자료 파일; 필요할 때 원문 확인 | `61183561427c` |
+| [backend/preview.html](../../backend/preview.html) | 설정·자료 파일; 필요할 때 원문 확인 | `5cad8d598b48` |
 | [backend/preview.py](../../backend/preview.py) | 동조 개인용 로컬 추천 점검 화면. python backend/preview.py로 시작한다. | `6cd2b0752f9c` |
 | [backend/team_chat.js](../../backend/team_chat.js) | 팀 프론트 164cd40의 공통 자동 대화 모듈. 최종 반영 전 담당 확인용이다. | `d87f4bb00124` |
 | [backend/team_culture.js](../../backend/team_culture.js) | 문화정보 출처 선택·표시. 팀 복사본과 인계 패키지에서 사용하는 독립 모듈. | `f1729cf148be` |
@@ -45,10 +45,10 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [backend/test_places.py](../../backend/test_places.py) | 장소/주소 검색의 입력·좌표·실제0건·공급자 장애·비밀값 노출 방지 회귀. | `944752f387e3` |
 | [backend/test_preferences.py](../../backend/test_preferences.py) | 대화→조건→추천 경계. 복수 관심사·제외·가격 미확인·확정값 보호를 재현한다. | `fb951ade6da2` |
 | [backend/test_preview.py](../../backend/test_preview.py) | HTTP 처리기의 입력 오류 계약과 route/course 호환을 외부 조회 없이 검증한다. | `420a2c6eb03f` |
-| [backend/test_transit.py](../../backend/test_transit.py) | 실제 노선 성공과 구분한 대중교통 어댑터 단위 검증. 가상 수치로 응답/오류 경계를 검사한다. | `edc7bef15b85` |
+| [backend/test_transit.py](../../backend/test_transit.py) | 실제 노선 성공과 구분한 대중교통 어댑터 단위 검증. 가상 수치로 응답/오류 경계를 검사한다. | `a4610c4c9b6e` |
 | [backend/test_walking.py](../../backend/test_walking.py) | 한국어 경로 단계와 지도 좌표가 같은 응답을 사용하는지 검증한다. | `c93d16baf2e1` |
 | [backend/tour_places.py](../../backend/tour_places.py) | 국문 TourAPI 문화시설 조회. 상설 장소를 특정 날짜의 공연/전시로 간주하지 않는다. | `312d34a26f38` |
-| [backend/transit.py](../../backend/transit.py) | 개인 점검용 카카오 대중교통 텍스트 안내. 키는 서버에서만 읽고 원문 응답은 저장하지 않는다. | `023f0760ebe1` |
+| [backend/transit.py](../../backend/transit.py) | 개인 점검용 카카오 대중교통 텍스트 안내. 키는 서버에서만 읽고 원문 응답은 저장하지 않는다. | `e64929bf1612` |
 | [backend/voice_session.js](../../backend/voice_session.js) | 횟수와 무응답 시간으로 제한된 브라우저 음성 대화. 시작 클릭 없이 재생/녹음하지 않는다. | `a83906bb82d6` |
 | [backend/walking.py](../../backend/walking.py) | 개인 점검 화면에서 선택한 행사장 두 곳의 Valhalla 보행 경로를 조회한다. | `fedc1567e347` |
 | [design/AGENTS.md](../../design/AGENTS.md) | design 작업 | `57262504e6ff` |
@@ -62,10 +62,10 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/conversation-validation.md](../../docs/development/conversation-validation.md) | 자연어 대화·추천 추가 구간 검증 | `1a9c1234e83c` |
 | [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md) | 시간 부족 → 동의 → 대안 선택 진행표 | `a662e7da1bee` |
 | [docs/development/culture-sources.md](../../docs/development/culture-sources.md) | 서울시 조회 확대와 국문 문화시설 연결 | `6db9e42de60b` |
-| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `fdd7623abb6d` |
+| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `5f54d27d2c5b` |
 | [docs/development/demo-login-server-progress.md](../../docs/development/demo-login-server-progress.md) | 데모 로그인·해커톤 서버 검토 진행표 | `ca878f31c5f8` |
 | [docs/development/demo-profile-design.md](../../docs/development/demo-profile-design.md) | 인증 없는 이용·체험 프로필·로컬 저장 설계안 | `87e1d5b21681` |
-| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `28efa0fdbaff` |
+| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `95034731fac0` |
 | [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md) | 개발 도구·반복 검증·컨텍스트 운영 | `ce0d9492072b` |
 | [docs/development/examples/course-selected-place.live.json](../../docs/development/examples/course-selected-place.live.json) | 구조화 설정·상태 데이터 | `447d8ceff61e` |
 | [docs/development/examples/demo-users.sample.json](../../docs/development/examples/demo-users.sample.json) | 구조화 설정·상태 데이터 | `f148990a7ff7` |
@@ -89,7 +89,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/naito-usage.md](../../docs/development/naito-usage.md) | Naito 사용 안내 · 사용자 제공 자료 보관 | `1cbeeb232f66` |
 | [docs/development/natural-language-handoff.md](../../docs/development/natural-language-handoff.md) | 자연어 자동 설정·추천 연결 | `a85f3d9a5b84` |
 | [docs/development/natural-language-recommendation-review.md](../../docs/development/natural-language-recommendation-review.md) | 자연어 중심 추천 · 이전 구현과 현재 구현 비교 | `0790684e7610` |
-| [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `80d8382d12f3` |
+| [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `031fed5c6ca0` |
 | [docs/development/place-search-api.md](../../docs/development/place-search-api.md) | 출발지 검색과 첫 프론트 연결 안내 | `4510f9c7c9d2` |
 | [docs/development/qa-chat/chat-conflict.png](../../docs/development/qa-chat/chat-conflict.png) | 설정·자료 파일; 필요할 때 원문 확인 | `4ebd31bbf62d` |
 | [docs/development/qa-chat/chat-to-detail.png](../../docs/development/qa-chat/chat-to-detail.png) | 설정·자료 파일; 필요할 때 원문 확인 | `721da4d00e8d` |
@@ -111,6 +111,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/qa-services/keys.json](../../docs/development/qa-services/keys.json) | 구조화 설정·상태 데이터 | `0fd1a384ea40` |
 | [docs/development/qa-services/manifest.json](../../docs/development/qa-services/manifest.json) | 구조화 설정·상태 데이터 | `543e7c212339` |
 | [docs/development/qa-services/map-check.json](../../docs/development/qa-services/map-check.json) | 구조화 설정·상태 데이터 | `7101f3208c60` |
+| [docs/development/qa-transit-mobile/ui-checks.json](../../docs/development/qa-transit-mobile/ui-checks.json) | 구조화 설정·상태 데이터 | `6f406a33c481` |
 | [docs/development/qa-voice-navigation/navigation-checks.json](../../docs/development/qa-voice-navigation/navigation-checks.json) | 구조화 설정·상태 데이터 | `a8b9675ac423` |
 | [docs/development/qa-voice-navigation/session-checks.json](../../docs/development/qa-voice-navigation/session-checks.json) | 구조화 설정·상태 데이터 | `dd917756e6eb` |
 | [docs/development/qa-voice-session/live-ai-check.json](../../docs/development/qa-voice-session/live-ai-check.json) | 구조화 설정·상태 데이터 | `6181aadb6acf` |
@@ -197,13 +198,15 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/service-key-ui-integration.md](../../docs/development/reports/service-key-ui-integration.md) | 공유하신 메일은 **희영님의 로컬 QA 통과 보고**입니다. Render 승인 알림은 아니며, 본문에서도 Render/Vercel 실제 통신은 미검증입니다. | `d84e046d9585` |
 | [docs/development/reports/tour-key-verification.md](../../docs/development/reports/tour-key-verification.md) | 인증키 저장은 확인했습니다. **국문 관광정보 서비스 활용신청이 추가로 필요합니다.** | `84081e413436` |
 | [docs/development/reports/tour-live-verification.md](../../docs/development/reports/tour-live-verification.md) | **TourAPI 실제 조회에 성공했습니다.** | `0eed32a8dc3f` |
+| [docs/development/reports/transit-mobile-cards.md](../../docs/development/reports/transit-mobile-cards.md) | 대중교통 노선과 모바일 표시를 수정했습니다. | `50cf33b453f0` |
 | [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `6be14b542825` |
 | [docs/development/service-key-status.md](../../docs/development/service-key-status.md) | 키별 실제 동작·앱 반영 점검 | `447866c5a4a0` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `d556edf9505b` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `e6a882db2c68` |
 | [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `ecc6ea2576d6` |
 | [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md) | LAB678 · 동료와 LLM을 위한 개발 참조·실행 안내 | `a8cfdbe6a06b` |
 | [docs/development/team-integration-checklist.md](../../docs/development/team-integration-checklist.md) | 팀 의견 대조 · 최종 UI 연결 우선 체크표 | `a9c94afd0cf6` |
 | [docs/development/tooling-progress.md](../../docs/development/tooling-progress.md) | 재사용 도구·자동 색인·컨텍스트 구축 진행 체크표 | `b72aa1e78379` |
+| [docs/development/transit-mobile.md](../../docs/development/transit-mobile.md) | 대중교통 노선·모바일 경로 카드 | `663dc494c4e5` |
 | [docs/development/transit-progress.md](../../docs/development/transit-progress.md) | 앱 내부 대중교통 안내 진행표 | `de4987d17983` |
 | [docs/meetings/2026-10-28.md](../../docs/meetings/2026-10-28.md) | 10/28 팀 회의 | `4423b5dec6ce` |
 | [docs/planning/AGENTS.md](../../docs/planning/AGENTS.md) | 첨부 기획 원본 | `참고 원본 / 966218f93a04` |
@@ -238,7 +241,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [frontend/README.md](../../frontend/README.md) | frontend | `8f3bc2455014` |
 | [utils/AGENTS.md](../../utils/AGENTS.md) | utils 작업 | `606b01a12f06` |
 | [utils/README.md](../../utils/README.md) | 재사용 개발 도구 | `e1df914a2f02` |
-| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `6e676113399a` |
+| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `a1f504a19461` |
 | [utils/index.md](../../utils/index.md) | 자동 생성 색인 | `generated` |
 | [utils/reverse_index.md](../../utils/reverse_index.md) | 자동 생성 색인 | `generated` |
 | [utils/scripts/catalog.py](../../utils/scripts/catalog.py) | Build deterministic code indexes without importing source modules. | `ecb99cd9ca5b` |
@@ -262,7 +265,9 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [utils/scripts/check_result_preservation.cjs](../../utils/scripts/check_result_preservation.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `a65aea175729` |
 | [utils/scripts/check_service_keys.py](../../utils/scripts/check_service_keys.py) | 현재 설정 키별 실제 서비스 응답 검사. 키·헤더·공급자 URL은 기록하지 않는다. | `cd4786cf9c84` |
 | [utils/scripts/check_team_flow.cjs](../../utils/scripts/check_team_flow.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `82c79b99ad8c` |
-| [utils/scripts/check_transit_ui.cjs](../../utils/scripts/check_transit_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `a1f5a4ac7b53` |
+| [utils/scripts/check_transit_details.py](../../utils/scripts/check_transit_details.py) | 공개 QA 좌표의 실제 대중교통 노선·승하차를 확인한다. 키/원문 요청/사용자 위치는 저장하지 않는다. | `e0254b0fbca4` |
+| [utils/scripts/check_transit_mobile.cjs](../../utils/scripts/check_transit_mobile.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `68009b4eeb65` |
+| [utils/scripts/check_transit_ui.cjs](../../utils/scripts/check_transit_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `0d799b35eb0d` |
 | [utils/scripts/check_voice_navigation.cjs](../../utils/scripts/check_voice_navigation.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `a099d1c3c4f1` |
 | [utils/scripts/check_voice_session.cjs](../../utils/scripts/check_voice_session.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `ed9972adc747` |
 | [utils/scripts/commit_report.py](../../utils/scripts/commit_report.py) | Commit an approved task with its complete UTF-8 report as the exact message. | `71ec658dfada` |

@@ -267,6 +267,14 @@
       "utils/scripts/check_voice_navigation.cjs",
       "utils/scripts/check_voice_session.cjs",
       "docs/development/automatic-voice.md"
+    ],
+    "대중교통 노선·모바일 경로 카드": [
+      "backend/transit.py",
+      "backend/preview.html",
+      "backend/test_transit.py",
+      "utils/scripts/check_transit_details.py",
+      "utils/scripts/check_transit_mobile.cjs",
+      "docs/development/transit-mobile.md"
     ]
   }
 }

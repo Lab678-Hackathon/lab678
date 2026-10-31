@@ -106,6 +106,7 @@
 | `main` | [utils/scripts/check_conversation_edges.py:19](../utils/scripts/check_conversation_edges.py#L19) | 독립 예산·제외·제약·시간 시나리오를 실행하고 조건 유지/해제를 명시적으로 검사한다. |
 | `main` | [utils/scripts/check_culture_sources.py:30](../utils/scripts/check_culture_sources.py#L30) | 서울시 실제 조회와 TourAPI 설정/실조회를 명확히 나누어 결과를 저장한다. |
 | `main` | [utils/scripts/check_service_keys.py:16](../utils/scripts/check_service_keys.py#L16) | 공개 청량리역 조건으로 서비스별 결과를 요약한다. HTTP200과 실제 기능 성공을 구분한다. |
+| `main` | [utils/scripts/check_transit_details.py:15](../utils/scripts/check_transit_details.py#L15) | 고정 청량리역→서울돈화문국악당 구간을 실조회하고 확인된 공개 경로 필드만 기록한다. |
 | `main` | [utils/scripts/commit_report.py:52](../utils/scripts/commit_report.py#L52) | Check by default; stage and commit only when --commit is explicitly given. |
 | `main` | [utils/scripts/context.py:48](../utils/scripts/context.py#L48) | Write, check, or print only the short restart brief. |
 | `main` | [utils/scripts/harness.py:88](../utils/scripts/harness.py#L88) | Run the harness once; fixing failures requires a separately scoped change. |
@@ -140,7 +141,7 @@
 | `normalize_place` | [backend/tour_places.py:79](../backend/tour_places.py#L79) | 목록/상세 사실만 통합한다. 결측 좌표·운영·요금은 null, 관람 가능 여부는 check다. |
 | `normalize_places` | [backend/places.py:32](../backend/places.py#L32) | 공급자 x/y를 숫자 lng/lat로 바꾸고 선택 가능한 최대5건만 반환한다. 손상과0건을 구분한다. |
 | `normalize_proposal` | [backend/chat_conditions.py:24](../backend/chat_conditions.py#L24) | 허용된 조건만 정규화한다. null은 변경 없음, 좌표·잘못된 값은 ValueError다. |
-| `normalize_routes` | [backend/transit.py:66](../backend/transit.py#L66) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |
+| `normalize_routes` | [backend/transit.py:91](../backend/transit.py#L91) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |
 | `note` | [backend/team_chat.js:141](../backend/team_chat.js#L141) | JS/TS 정규식 후보; AST 검증 아님 |
 | `official_link` | [backend/tour_places.py:54](../backend/tour_places.py#L54) | 공식 응답이 제공한 홈페이지만 허용한다. ID로 확인하지 않은 상세 URL을 만들어 내지 않는다. |
 | `openingQuestion` | [backend/team_voice_actions.js:13](../backend/team_voice_actions.js#L13) | JS/TS 정규식 후보; AST 검증 아님 |
@@ -249,6 +250,8 @@
 | `start` | [backend/location_view.js:46](../backend/location_view.js#L46) | JS/TS 정규식 후보; AST 검증 아님 |
 | `start` | [utils/scripts/loop.py:14](../utils/scripts/loop.py#L14) | Create an explicit task state with at most ten verification attempts. |
 | `status` | [backend/location_view.js:15](../backend/location_view.js#L15) | JS/TS 정규식 후보; AST 검증 아님 |
+| `step_transport` | [backend/transit.py:66](../backend/transit.py#L66) | 공급자의 차량 이름·정류장 순서를 보존한다. 선택 필드 손상/누락은 미확인으로 남긴다. |
+| `step_transport.label` | [backend/transit.py:68](../backend/transit.py#L68) | 선택적 공개 노선/역 이름만 길이를 제한해 받는다. 없으면 사실을 추정하지 않는다. |
 | `stop` | [backend/location_view.js:25](../backend/location_view.js#L25) | JS/TS 정규식 후보; AST 검증 아님 |
 | `summarize` | [backend/chat_conditions.py:63](../backend/chat_conditions.py#L63) | 코드로 누락·추천 입력·60분을 검사한다. ready는 S02a 진입 가능이며 추천 승인이 아니다. |
 | `text_or_none` | [backend/places.py:27](../backend/places.py#L27) | 공급자 텍스트를 제한된 길이로 읽고 공백·누락은 null로 유지한다. |
@@ -285,15 +288,17 @@
 | `ToolsTest.test_watcher_excludes_its_outputs` | [utils/tests/test_tools.py:207](../utils/tests/test_tools.py#L207) | Generated outputs do not trigger another watcher cycle even without config hints. |
 | `ToolsTest.write` | [utils/tests/test_tools.py:39](../utils/tests/test_tools.py#L39) | Write a temporary UTF-8 test file and return its location. |
 | `track` | [backend/map_view.js:62](../backend/map_view.js#L62) | JS/TS 정규식 후보; AST 검증 아님 |
-| `transit_between` | [backend/transit.py:114](../backend/transit.py#L114) | 좌표 두 개로 사용자 요청당 1회 조회한다. 미설정/인증/한도/빈 결과/실패를 구별한다. |
+| `transit_between` | [backend/transit.py:139](../backend/transit.py#L139) | 좌표 두 개로 사용자 요청당 1회 조회한다. 미설정/인증/한도/빈 결과/실패를 구별한다. |
 | `TransitTests` | [backend/test_transit.py:19](../backend/test_transit.py#L19) | 비밀값 비노출·단위·미연결·잘못된 좌표·HTTP200 오류·한도를 독립적으로 검사한다. |
 | `TransitTests.setUp` | [backend/test_transit.py:22](../backend/test_transit.py#L22) | 실제 사용자 위치와 무관한 공개 장소 좌표를 준비한다. |
-| `TransitTests.test_bad_payloads` | [backend/test_transit.py:69](../backend/test_transit.py#L69) | 음수·누락·잘못된 이동수단·손상된 성공 응답을 정상이 아닌 것으로 처리한다. |
+| `TransitTests.test_bad_payloads` | [backend/test_transit.py:93](../backend/test_transit.py#L93) | 음수·누락·잘못된 이동수단·손상된 성공 응답을 정상이 아닌 것으로 처리한다. |
 | `TransitTests.test_missing_access_walk` | [backend/test_transit.py:38](../backend/test_transit.py#L38) | 실응답처럼 지하철만 표시되어도 생략된 접근/마지막 도보를 0으로 확정하지 않는다. |
 | `TransitTests.test_normalization` | [backend/test_transit.py:26](../backend/test_transit.py#L26) | 초/m/환승/요금 및 미확인 요금을 보존한다. |
-| `TransitTests.test_request_and_provider_errors` | [backend/test_transit.py:88](../backend/test_transit.py#L88) | 헤더만 키를 담고 날짜는 보내지 않으며 인증·한도·통신·본문 오류를 구분한다. |
-| `TransitTests.test_route_geometry` | [backend/test_transit.py:49](../backend/test_transit.py#L49) | 경위도 순서를 검증하고 손상/누락 경로선 때문에 텍스트 안내까지 잃지 않는다. |
-| `TransitTests.test_unconfigured_and_coordinates` | [backend/test_transit.py:80](../backend/test_transit.py#L80) | 미설정 시 외부 호출을 하지 않고 입력 누락·중복 좌표는 거절한다. |
+| `TransitTests.test_optional_vehicle_metadata_is_not_guessed` | [backend/test_transit.py:62](../backend/test_transit.py#L62) | 누락/손상된 노선·역 이름을 안내문에서 추측하지 않고 HTML 문자도 평문으로 전달한다. |
+| `TransitTests.test_request_and_provider_errors` | [backend/test_transit.py:112](../backend/test_transit.py#L112) | 헤더만 키를 담고 날짜는 보내지 않으며 인증·한도·통신·본문 오류를 구분한다. |
+| `TransitTests.test_route_geometry` | [backend/test_transit.py:73](../backend/test_transit.py#L73) | 경위도 순서를 검증하고 손상/누락 경로선 때문에 텍스트 안내까지 잃지 않는다. |
+| `TransitTests.test_unconfigured_and_coordinates` | [backend/test_transit.py:104](../backend/test_transit.py#L104) | 미설정 시 외부 호출을 하지 않고 입력 누락·중복 좌표는 거절한다. |
+| `TransitTests.test_vehicle_and_stops` | [backend/test_transit.py:49](../backend/test_transit.py#L49) | 호선/버스 이름과 승하차를 실제 응답 필드에서만 보존하며 대체 노선도 유지한다. |
 | `validate` | [backend/outing.py:39](../backend/outing.py#L39) | 개인 장소 요청을 검증하고 한국 시각의 당일 구간과 출발점을 반환한다. |
 | `validate_request` | [backend/naito_chat.py:56](../backend/naito_chat.py#L56) | 짧은 발화/대화와 초안 revision을 검증한다. 오류에 사용자 원문을 포함하지 않는다. |
 | `verify_message` | [utils/scripts/commit_report.py:17](../utils/scripts/commit_report.py#L17) | Compare raw latest-commit message bytes to the complete report file. |
