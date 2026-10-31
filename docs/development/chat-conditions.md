@@ -53,6 +53,8 @@ result = apply_interpretation(
 
 message는 1~1000자, conversation_context는 최근 최대6개 `{role: user/assistant, content: 문자열}`(각1~1000자), 전체 HTTP 요청은 기존 상한8192바이트다. revision은 음수가 아닌 정수. 한국 현재 시각은 서버가 제공한다. 성공은 위 내부 결과에 `source: naito`, `model: claude-sonnet-4`를 추가한다. 지원하는 변경을 추출하지 못하면 `interpretation_status: no_supported_change`, ready=false이며 반영 실패를 안내한다.
 
+로컬 팀 화면 연결 모듈은 시각을 아직 입력하지 않은 경우에도 선택한 날짜를 전달하기 위해 `condition_draft.date: YYYY-MM-DD`를 추가한다. date는 해석 맥락이며 모델의 허용 변경 필드/confirmed_fields에는 포함하지 않는다. 최종 추천에는 기존 start_at/end_at을 사용한다. [화면 연결 인계](chat-ui-handoff.md)를 참고한다.
+
 | HTTP | code / 상태 | 프론트 동작 |
 |---|---|---|
 | 200 | draft / needs_confirmation | revision 비교 후 초안 또는 변경 전후 표시 |

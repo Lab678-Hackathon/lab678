@@ -4,7 +4,7 @@
     "김동조 · LAB678 개발 담당 · dj/develop. 기술 통합·배포 담당 수락은 별개 미정."
   ],
   "objective": [
-    "백엔드 중심으로 S02 AI 대화 조건 해석과 안전한 초안 반영을 준비한다. Naito claude-sonnet-4는 사용자 지정. Render 인증/배포는 보류, 팀 프론트는 담당 협의 후 연결한다."
+    "최신 팀 프론트164cd40 복사본에 독립 채팅 모듈을 연결해 S02/S02a→추천→상세를 검증했다. 다음은 프론트 담당과 모듈/계약/디자인 반영 확인. Naito claude-sonnet-4 유지, Render 보류."
   ],
   "permissions": [
     "10/31 최신 사용자 지시: 공용 plan/기획 문서는 수정하지 않고 개인 개발 계획은 plan_dj에 저장한다. plan_dj·개인 첨부·환경 파일은 Git와 공유 색인에서 제외한다.",
@@ -14,7 +14,7 @@
     "10/31 진행표에 따라 구현 재개 승인. 개인 backend/점검 화면·API 전달 문서·검증 및 작업별 커밋을 진행한다. 공용 기획/최종 UI/공유 계약 확정은 담당 협의. push는 별도 요청, develop은 PR 필수. 2026-11-01 13:00 KST 이후 커밋 금지.",
     "팀 요청: 앞으로 문서·이슈·PR·커밋에 이전 프로젝트 고유 명칭을 쓰지 않고 기존 프로젝트/기존 코드로 표현한다. 기존 이력 재작성은 요청받지 않았다.",
     "10/31 카카오 지도 전환→내 위치 표시→이동 중 갱신/중지를 차례대로 개발하도록 사용자 승인. 공용 plan은 수정하지 않는다. 실제 키/도메인 확인과 모바일 실검증은 별도.",
-    "PR #15 develop 병합·이슈 #16 생성 및 팀 화면 QA 완료. 사용자 다음 작업 승인으로 채팅 백엔드 개발 진행. Naito 사용법 보관·claude-sonnet-4 지정. 작업별 커밋, 새 Push는 별도 요청. 공용 plan/팀 UI는 수정하지 않는다."
+    "PR #15 병합·이슈 #16 생성 후 개인 개발 계속 승인. 사용자 시작 요청으로 팀 화면 복사본 채팅 연결 진행. 팀 원본/공용plan은 수정하지 않는다. 작업별 커밋, Push 별도 요청."
   ],
   "completed": [
     "음성·국악·청취·두 곳 코스·내부 도보·동의 기반 대안 검증. 사용자 저장 카카오 키로 대중교통 실조회 성공: 청량리→돈화문 3경로, 도암갤러리 브라우저 3경로 선택/전환. 실응답의 접근 도보 누락 발견·총 도보 null 및 안내 구간만 별도 표시로 수정. 백엔드 19개·live 화면/모의 오류 PASS.",
@@ -23,33 +23,31 @@
     "대화 조건 코어·Naito 어댑터·POST /preview/chat 구현. 확인값 변경 동의/거절, revision 보호, 좌표 생성 금지, 기존60분 검증. 백엔드60개·실제 로컬HTTP4구간PASS(공급자 응답은 모의).",
     "사용자 제공 Naito 주소/프로토콜/모델표/설정 예제 저장. 앱 모델claude-sonnet-4, 로컬 .local/naito.env 생성(키 미출력·Git 제외).",
     "작업 재개용 state/context·파일/함수 색인 운영. 상세 완료 이력은 기존 reports/discussion-log에 보존.",
-    "Naito 실제 키로 claude-sonnet-4 예문3개 PASS, 실행 서버 /preview/chat HTTP200·CORS PASS. OpenAI 경로403(프로토콜 권한)을 Anthropic /v1/messages로 수정. 개발 서버PID31240 재시작. 키 미출력/Git제외."
+    "Naito 실제 키로 claude-sonnet-4 예문3개 PASS, 실행 서버 /preview/chat HTTP200·CORS PASS. OpenAI 경로403(프로토콜 권한)을 Anthropic /v1/messages로 수정. 개발 서버PID31240 재시작. 키 미출력/Git제외.",
+    "팀 화면 채팅 연결: backend/team_chat.js와 격리 실행기. 실제Naito3회→조건동의/거절→S02a→recorded추천→S03/S04 seoul:159578 PASS. 오류·지연·좌표초기화·모의STT 포함UI5구간PASS. 백엔드60개PASS."
   ],
   "in_progress": [
-    "Naito 단일 조건 추출 실제3예문 검증 완료. 프론트 STT 자동전송/충돌 UI/revision 비교는 아직 연결 전. 자유대화 전체 품질과 예외는 후속 검증.",
-    "Render 가입 및 GitHub 조직 연결 요청 진행했으나 승인/배포 확인 전 사용자 요청으로 보류. 공개 서비스 URL 없음.",
-    "채팅 API는 개인 백엔드 구현이며 팀 계약 합의/최종UI 연결 전. 지원 필드는 대표 분류·출발지 검색어·날짜시각·종류·체류시간. 복수관심사/걷기/예산 등 요구 유지·미적용."
+    "로컬5174는 최신팀164cd40 복사본+독립채팅모듈. 실제 Naito와 recorded추천 연결. 서버PID16788, 백엔드PID31660. 팀 frontend 원본/브랜치 변경 없이 연결 검증 완료.",
+    "Render 인증·배포는 사용자 요청으로 보류. 공개 URL 없음. 실제 마이크/스피커·실기기 검증과 팀브랜치/최종디자인 반영은 미실시.",
+    "복수관심사/예산/걷기 등 요구는 유지·미적용. 팀코스 UI는 준비중이어서 모듈에서 course 자동실행을 막고 안내한다."
   ],
   "next": [
-    "프론트 담당과 chat-conditions.md 계약 확인 후 /preview/chat 연결: STT 종료 자동 요청·현재 조건 보존·revision 비교·변경 동의/거절·S02a 최종 확인.",
-    "Naito 사용 안내와 examples/naito-chat.live.json 실제 예문 결과 공유. 현재 서버 새 경로 반영 완료. 호출3회 검사도구는 사용량 발생하므로 필요한 경우만 재실행.",
-    "최신 작업 기록/코드는 로컬 커밋만. Push/PR/develop 병합은 사용자 별도 요청 후. QA-01과 채팅 완료 범위를 혼동하지 않는다.",
-    "Render 승인 확인·Vercel 프록시/백엔드 배포 통신은 사용자 재개 요청 시 진행. 이후 팀 UI/모바일 실기기 최종QA.",
-    "개인 계획 plan_dj/chat-progress.md와 팀 통합 체크표 유지. 공용 plan 수정 금지."
+    "chat-ui-handoff.md로 프론트 담당 확인: 독립모듈 복사/병합, DOM/state명·revision·동의 UI·배치/자동읽기 정책. 확인 전 팀 원본 파일에 직접 반영하지 않는다.",
+    "로컬 확인 URL http://127.0.0.1:5174/?mode=recorded&debug=1#/search. 실제 마이크/스피커는 구간 단위로 함께 확인. 기존5173은 이전 QA화면이다.",
+    "작업은 로컬 커밋. Push/PR/병합은 사용자 별도 요청 시. Render 재개 요청 뒤 공개 배포·기획최종QA."
   ],
   "open_questions": [
-    "Naito 실제 키·claude-sonnet-4 호출은 확인. 자유대화 일반화/상대날짜/모호한 시각/복수관심사 및 실제 차감량은 미검증. 사용자 문장·대화·조건 요약을 전송하며 좌표는 제외한다.",
-    "팀 프론트의 충돌 UI·revision·STT 자동전송 및 대화 계약 합의 필요. 코어 구현만으로 브라우저 최신값 보호 완료를 주장하지 않는다.",
-    "복수관심사/걷기/예산/제외 등 조건은 미적용. 자유로운 전체 AI 상담·TTS 응답·팀 최종 UI 완료가 아니다.",
-    "PRD v0.6.1·화면명세 v0.2 기준. 기술 통합/최종배포 담당과 main 승인 기준은 TEAM_WORKFLOW를 따른다."
+    "팀 UI 반영 전 담당 확인 필요. 현재는164cd40 구조에 붙이는 로컬 복사본 검증이며 담당브랜치/원본UI에는 미반영.",
+    "STT 자동전송은 모의 이벤트 검사, 실제 마이크/소리 미검증. 자유대화 품질·복수관심사·걷기·코스 연결은 후속.",
+    "사용자 지정 Naito claude-sonnet-4 실제 연결 확인, 키는.local에서만 읽는다. Render 보류, main 승인 기준은 TEAM_WORKFLOW."
   ],
   "read_next": [
+    "[팀 화면 채팅 인계](chat-ui-handoff.md): 로컬5174·담당확인·검증5구간·실제/모의 구분.",
     "[대화 조건·API 초안](chat-conditions.md): 구현/미검증·revision·변경동의·요청/오류.",
     "[Naito 사용 안내](naito-usage.md): 사용자 제공 주소·모델표·설정, 앱 모델claude-sonnet-4.",
     "[QA-01 실제 팀 화면 연결 결과](qa01-team-connection.md): recorded/live ID일치·모의오류 구분·캡처·다음배포.",
     "[Render 실행·공개 점검 안내](render-demo-guide.md): 입력값·환경변수·검증 완료/미실시 범위. 계획은 plan_dj에만 보관.",
     "[추천 API 요청·응답·오류 계약](recommend-api.md): 현재 구현 자료와 기록 응답. 팀 최종 계약 확정과 구분.",
-    "[출발지 검색·첫 프론트 연결](place-search-api.md): 실제 JSON, 실행/CORS, 오류와 구현/미검증 구분.",
-    "[동료·LLM 개발 참조 및 실행 안내](team-backend-guide.md): 브랜치/읽는 순서/Python 실행/키·OS·CORS 제약/API/PR 흐름. GitHub TEAM_WORKFLOW 원문 대조 완료."
+    "[출발지 검색·첫 프론트 연결](place-search-api.md): 실제 JSON, 실행/CORS, 오류와 구현/미검증 구분."
   ]
 }

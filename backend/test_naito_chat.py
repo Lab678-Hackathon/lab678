@@ -32,7 +32,7 @@ class NaitoChatTests(unittest.TestCase):
     def test_provider_request_excludes_coordinates(self):
         """키는 헤더에만, 좌표는 제외하며 공식 고정 주소로 한 번 요청한다."""
         body = {"content": [{"type": "text", "text": '{"category":"국악"}'}], "stop_reason": "end_turn"}
-        draft = dict(start_location=dict(label="청량리역", lat=37.5805961, lng=127.0482573))
+        draft = dict(date="2026-10-31", start_location=dict(label="청량리역", lat=37.5805961, lng=127.0482573))
         with patch("naito_chat.urlopen", return_value=io.BytesIO(json.dumps(body).encode())) as call:
             self.assertEqual(extract_conditions("국악", draft, [], "secret-test", "claude-sonnet-4"), {"category": "국악"})
         request = call.call_args.args[0]
@@ -40,6 +40,8 @@ class NaitoChatTests(unittest.TestCase):
         self.assertEqual(request.get_header("X-api-key"), "secret-test")
         self.assertEqual(request.get_header("Anthropic-version"), "2023-06-01")
         self.assertEqual(json.loads(request.data)["max_tokens"], 1024)
+        context = json.loads(json.loads(request.data)["messages"][0]["content"])
+        self.assertEqual(context["condition_draft"]["date"], "2026-10-31")
         self.assertNotIn(b"secret-test", request.data)
         self.assertNotIn(b"37.5805961", request.data)
         self.assertEqual(call.call_count, 1)

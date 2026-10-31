@@ -30,6 +30,7 @@ lab678/
     places.py
     preview.html
     preview.py
+    team_chat.js
     test_chat_conditions.py
     test_course.py
     test_map_config.py
@@ -50,6 +51,7 @@ lab678/
     development/
       README.md
       chat-conditions.md
+      chat-ui-handoff.md
       course-alternatives-progress.md
       current-state.md
       demo-login-server-progress.md
@@ -79,6 +81,10 @@ lab678/
       naito-usage.md
       outing-handoff.md
       place-search-api.md
+      qa-chat/
+        chat-conflict.png
+        chat-to-detail.png
+        result.json
       qa01-team-connection.md
       qa01/
         live-s03.png
@@ -147,6 +153,7 @@ lab678/
         20261031-place-search-integration.md
         20261031-push-pr-issue.md
         20261031-qa01-received.md
+        20261031-team-chat-connected.md
         20261031-team-flow-connected.md
       screen-spec-review.md
       state.json
@@ -211,6 +218,7 @@ lab678/
       catalog.py
       check_chat_api.py
       check_chat_live.py
+      check_chat_ui.cjs
       check_course_alternatives.cjs
       check_course_edit.cjs
       check_deployment.cjs
@@ -229,6 +237,7 @@ lab678/
       loop.py
       read_pdf.py
       reuse.py
+      team_chat_preview.py
       verify_watch.py
       watch.py
     templates/

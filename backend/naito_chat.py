@@ -19,6 +19,7 @@ category(전시/전체/국악/클래식/콘서트/연극 중 하나), request_ki
 없는 값, 좌표, 행사, 가격, 추천, 건강 상태를 만들지 않는다. 모호한 시각이나 복수 관심사를 임의 확정하지 않는다.
 오전/오후가 불명확하면 해당 시각을 생략한다. 날짜만 바꾸되 시각이 현재 초안에 있으면 그 시각을 보존한다.
 상대 날짜는 제공된 한국 현재 날짜 기준이다. 시각만 말하면 현재 초안 날짜가 있을 때만 결합한다.
+현재 초안의 date는 화면에서 선택한 날짜다. start_at/end_at이 아직 없으면 그 date와 명확한 시각을 결합한다.
 지원하지 않는 요구나 추가 해석 불가능한 발화는 {}를 반환한다. JSON 이외 설명/마크다운을 쓰지 않는다.
 """
 
@@ -60,7 +61,7 @@ def validate_request(data):
 
 def extract_conditions(message, draft, history, key, model):
     """공식 사용자 제공 주소로 1회 호출한다. 좌표는 보내지 않고 응답 최대64KiB/20초로 제한한다."""
-    context = {k: draft[k] for k in ("start_at", "end_at", "category", "request_kind", "stay_minutes", "start_query") if k in draft}
+    context = {k: draft[k] for k in ("date", "start_at", "end_at", "category", "request_kind", "stay_minutes", "start_query") if k in draft}
     if isinstance(draft.get("start_location"), dict):
         context["start_query"] = draft["start_location"].get("label")
     request_data = dict(model=model, max_tokens=1024, system=SYSTEM, messages=[dict(role="user", content=json.dumps(
