@@ -120,3 +120,7 @@ python utils/scripts/harness.py
 **LLM에 붙여 넣을 시작 지시문**
 
 > LAB678에서 내 담당 범위만 작업해 줘. 먼저 현재 브랜치·커밋·미커밋 변경을 확인하고 AGENTS.md, TEAM_WORKFLOW.md, 담당 폴더 지침을 읽어. 최신 기획은 docs/planning/README.md에서 찾고, 실제 개발 현황은 docs/development/current-state.md 및 team-backend-guide.md로 확인해. screen-spec-review.md는 v0.1 당시 기록임을 주의해. 필요한 소스·테스트는 색인으로 좁혀 읽고 실제 실행 결과와 요구사항을 구분해. 다른 담당 영역·공유 API·공통 설정은 변경 전에 관련 담당자 확인이 필요해. 비밀값과 개인 plan_dj는 수집하거나 공유하지 마. 구현·Mock·미검증을 구분하고 구간별로 테스트한 뒤 변경 파일·검증·남은 문제를 보고해. Git 작업은 내 요청 범위와 TEAM_WORKFLOW에 따라 진행해.
+
+### 대중교통 지도 응답 추가 (2026-10-31)
+
+`routes[].steps[].path`는 검증된 `[위도, 경도]` 좌표 배열이다. 빈 배열은 지도 좌표 미확인이며 이동 단계 텍스트는 그대로 표시한다. 단계 사이를 임의로 연결하지 않는다. 개인 점검 화면은 텍스트/내부 지도 전환과 단계 확대를 지원한다. 기존 시간·거리·요금 필드와 null 의미는 유지한다. 상세 검증은 [인계 문서](outing-handoff.md)의 대중교통 내부 지도 항목을 참고한다.
