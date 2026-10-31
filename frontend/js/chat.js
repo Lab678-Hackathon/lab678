@@ -123,7 +123,7 @@ function bubble(m) {
   if (m.role === 'ai') {
     const av = el('div', 'msg__avatar');
     const img = el('img');
-    img.src = 'assets/kkachi-face.png';
+    img.src = voiceMode ? 'assets/kkachi-hello.png' : 'assets/kkachi-face.png'; // 말로 대화는 조금 큰 전신 까치
     img.alt = '';
     av.append(img);
     row.append(av);
@@ -234,7 +234,7 @@ function liveBubble() {
  * 까치가 말하는 동안에는 마이크를 켜지 않아요 (자기 목소리를 다시 듣지 않게).
  */
 function speak(text, then) {
-  const avatar = $('#chat-log .msg--ai:last-of-type .msg__avatar');
+  const avatar = [...document.querySelectorAll('#chat-log .msg--ai .msg__avatar')].pop(); // 방금 말한 까치
   const ms = Math.min(600 + text.length * 70, 5000);
   talkFor(avatar, ms);
   talkFor($('#listen-bird'), state.sound ? Math.max(ms, 1500 + text.length * 120) : ms);
@@ -287,7 +287,8 @@ function setMode(mode) {
   save();
   $('#s02').dataset.mode = mode;
   if (mode === 'text' && recognizer) { discardVoice = true; session?.finish('discard'); }
-  updateVoiceUi();
+  if (state.messages.length) render(); // 까치 모양(전신·얼굴)을 모드에 맞게
+  else updateVoiceUi();
 }
 
 /** 듣는 중/아님에 따라 상태 문구와 버튼 바꾸기 */
