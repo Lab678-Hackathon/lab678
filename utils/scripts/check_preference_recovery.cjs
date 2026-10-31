@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const base = process.env.LAB678_TEST_BASE || 'http://127.0.0.1:5174';
 const output = path.resolve(__dirname, '../../.local/preference-recovery');
 
 /** 최종 조건 확인과 추천 실행을 나누고 HTTP/화면 이동을 확인한다. */
@@ -24,11 +25,11 @@ async function recommend(page) {
 async function main() {
   await fs.mkdir(output, { recursive: true });
   const browser = await chromium.launch({ headless: true, channel: 'chrome' });
-  const report = { modes: { initial_preferences: 'fixture', chat: 'Naito live', recommendation: 'recorded', error: 'mock 502' }, checks: [] };
+  const report = { base, modes: { initial_preferences: 'fixture', chat: 'Naito live', recommendation: 'recorded', error: 'mock 502' }, checks: [] };
   try {
     const page = await browser.newPage({ viewport: { width: 412, height: 915 }, timezoneId: 'Asia/Seoul' });
     const errors = []; page.on('pageerror', e => errors.push(e.message));
-    await page.goto('http://127.0.0.1:5174/?mode=recorded&debug=1&season=none#/search');
+    await page.goto(`${base}/?mode=recorded&debug=1&season=none#/search`);
     await page.locator('#chat-text').waitFor();
     await page.evaluate(async () => {
       const { state, save } = await import('/js/state.js');
@@ -70,7 +71,7 @@ async function main() {
     await page.locator('#s04-pick').waitFor();
     assert.equal(await page.locator('#s04-pick').getAttribute('data-id'), report.restored.result.candidates[0].id);
     report.checks.push('PASS: 해제한 조건으로 재추천→새로고침→상세 ID 동일');
-    await page.goto('http://127.0.0.1:5174/?mode=recorded&debug=1&season=none#/search');
+    await page.goto(`${base}/?mode=recorded&debug=1&season=none#/search`);
     await page.locator('#chat-text').waitFor();
     await page.locator('#f-end').fill('18:00'); await page.locator('#f-start').click();
     await page.route('**/preview/recommend', route => route.fulfill({ status: 502, json: { status: 'error', message: '검증용 추천 조회 실패' } }));

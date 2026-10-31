@@ -12,6 +12,7 @@ from pathlib import Path
 import subprocess
 from urllib.parse import urlsplit
 import zipfile
+from prepare_chat_handoff import integrate_index, integrate_search
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -50,7 +51,11 @@ def main():
             path = urlsplit(self.path).path
             if path in {"/", "/index.html"}:
                 html = (front / "index.html").read_text(encoding="utf-8")
-                body = html.replace("</body>", '<script type="module" src="/js/dj-chat.js"></script></body>').encode()
+                try:
+                    body = integrate_index(html).encode()
+                except ValueError:
+                    self.send_error(409, "Team frontend changed; integration review required")
+                    return
                 content_type = "text/html; charset=utf-8"
             elif path == "/js/dj-chat.js":
                 body = (ROOT / "backend/team_chat.js").read_bytes()
@@ -61,15 +66,11 @@ def main():
             elif path == "/js/search.js":
                 # 해당 팀 버전의 두 연결 지점만 응답에서 확장한다. 디스크 원본은 보존한다.
                 source = (front / "js/search.js").read_text(encoding="utf-8")
-                hooks = {"state.confirmed = request;": "state.confirmed = withPreferences(request);",
-                         "$('#confirm-mode').hidden = testMode() !== 'recorded';":
-                         "$('#confirm-mode').hidden = testMode() !== 'recorded'; renderPreferenceSummary(r);"}
-                for before, after in hooks.items():
-                    if source.count(before) != 1:
-                        self.send_error(409, "Team frontend changed; integration review required")
-                        return
-                    source = source.replace(before, after)
-                body = ("import { withPreferences, renderPreferenceSummary } from './dj-preferences.js';\n" + source).encode()
+                try:
+                    body = integrate_search(source).encode()
+                except ValueError:
+                    self.send_error(409, "Team frontend changed; integration review required")
+                    return
                 content_type = "text/javascript; charset=utf-8"
             else:
                 super().do_GET()

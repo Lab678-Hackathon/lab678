@@ -6,6 +6,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const base = process.env.LAB678_TEST_BASE || 'http://127.0.0.1:5174';
 const output = path.resolve(__dirname, '../../.local/natural-flow');
 
 /** 발화 하나를 보내 실제 응답과 화면 반영을 함께 기다린다. */
@@ -24,11 +25,11 @@ async function say(page, message) {
 async function main() {
   await fs.mkdir(output, { recursive: true });
   const browser = await chromium.launch({ headless: true, channel: 'chrome' });
-  const report = { ai: 'Naito claude-sonnet-4 live', ui_recommendation: 'recorded', turns: [], checks: [] };
+  const report = { base, ai: 'Naito claude-sonnet-4 live', ui_recommendation: 'recorded', turns: [], checks: [] };
   try {
     const page = await browser.newPage({ viewport: { width: 412, height: 915 }, timezoneId: 'Asia/Seoul' });
     const errors = []; page.on('pageerror', e => errors.push(e.message));
-    await page.goto('http://127.0.0.1:5174/?mode=recorded&debug=1&season=none#/search');
+    await page.goto(`${base}/?mode=recorded&debug=1&season=none#/search`);
     await page.locator('#chat-text').waitFor();
     let body = await say(page, '음악을 듣고 싶어');
     report.turns.push(body);
@@ -74,7 +75,7 @@ async function main() {
     assert.equal(await page.locator('#s04-pick').getAttribute('data-id'), report.result.candidates[0].id);
     assert.deepEqual(errors, []);
     report.checks.push('PASS: 음악 탐색→골고루→복합 조건 자동 설정→실제 요청 선호→기록 후보 선별→상세 ID');
-    const live = await page.request.post('http://127.0.0.1:5174/preview/recommend', { data: {
+    const live = await page.request.post(`${base}/preview/recommend`, { data: {
       ...report.request, mode: 'live', category: '국악', categories: ['국악', '클래식', '콘서트'],
       free_only: false, exclude_terms: [], start_at: '2026-11-01T14:00:00+09:00', end_at: '2026-11-01T17:00:00+09:00'
     }, timeout: 30000 });

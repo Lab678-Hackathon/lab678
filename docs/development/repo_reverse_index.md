@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **팀 프론트 실파일 적용 패키지·통합 검사**: [utils/scripts/prepare_chat_handoff.py](../../utils/scripts/prepare_chat_handoff.py), [docs/development/frontend-chat-package.md](../../docs/development/frontend-chat-package.md), [docs/development/qa-handoff/manifest.json](../../docs/development/qa-handoff/manifest.json)
 - **자연어 수정·조건 해제·추천 회복 검증**: [utils/scripts/check_conversation_edges.py](../../utils/scripts/check_conversation_edges.py), [utils/scripts/check_preference_recovery.cjs](../../utils/scripts/check_preference_recovery.cjs), [docs/development/conversation-validation.md](../../docs/development/conversation-validation.md), [docs/development/qa-conversation/edges.json](../../docs/development/qa-conversation/edges.json), [docs/development/qa-conversation/recovery.json](../../docs/development/qa-conversation/recovery.json)
 - **자연어 선호 탐색·자동 설정·실제 후보 선별**: [backend/preferences.py](../../backend/preferences.py), [backend/test_preferences.py](../../backend/test_preferences.py), [backend/team_preferences.js](../../backend/team_preferences.js), [utils/scripts/check_natural_flow.cjs](../../utils/scripts/check_natural_flow.cjs), [docs/development/natural-language-handoff.md](../../docs/development/natural-language-handoff.md), [docs/development/qa-natural/result.json](../../docs/development/qa-natural/result.json)
 - **자연어 중심 추천·이전 구현 비교**: [docs/development/natural-language-recommendation-review.md](../../docs/development/natural-language-recommendation-review.md)
@@ -99,6 +100,8 @@
 | `generated_paths` | [utils/scripts/catalog.py:150](../../utils/scripts/catalog.py#L150) | Return the actual output paths, independent of optional configuration hints. |
 | `InputError` | [backend/outing.py:18](../../backend/outing.py#L18) | 추천 입력 오류의 공개 코드·필드·안내문을 담는다. 원본 입력값은 포함하지 않는다. |
 | `InputError.__init__` | [backend/outing.py:21](../../backend/outing.py#L21) | HTTP 오류 응답과 필드별 안내에 사용할 고정 메타데이터를 보관한다. |
+| `integrate_index` | [utils/scripts/prepare_chat_handoff.py:17](../../utils/scripts/prepare_chat_handoff.py#L17) | 원본 HTML에 모듈을 한 번만 연결한다. 이미 연결되거나 구조가 다르면 거절한다. |
+| `integrate_search` | [utils/scripts/prepare_chat_handoff.py:24](../../utils/scripts/prepare_chat_handoff.py#L24) | 확정 요청과 S02a 요약의 두 지점만 확장한다. 다른 팀 변경을 추측해 덮어쓰지 않는다. |
 | `invalidate` | [backend/team_chat.js:179](../../backend/team_chat.js#L179) | JS/TS 정규식 후보; AST 검증 아님 |
 | `known_price` | [backend/preferences.py:39](../../backend/preferences.py#L39) | 공식 무료 표시 또는 단일 원화 가격만 판독한다. 할인/복수 좌석/범위는 미확인이다. |
 | `ll` | [backend/map_view.js:53](../../backend/map_view.js#L53) | JS/TS 정규식 후보; AST 검증 아님 |
@@ -111,13 +114,14 @@
 | `main` | [utils/scripts/context.py:48](../../utils/scripts/context.py#L48) | Write, check, or print only the short restart brief. |
 | `main` | [utils/scripts/harness.py:88](../../utils/scripts/harness.py#L88) | Run the harness once; fixing failures requires a separately scoped change. |
 | `main` | [utils/scripts/loop.py:40](../../utils/scripts/loop.py#L40) | Persist only task evidence; never run shell, LLM, network or Git writes. |
+| `main` | [utils/scripts/prepare_chat_handoff.py:104](../../utils/scripts/prepare_chat_handoff.py#L104) | 명시한 로컬 Git ref로 인계 산출물을 생성한다. 네트워크/push/checkout/merge는 하지 않는다. |
 | `main` | [utils/scripts/read_pdf.py:33](../../utils/scripts/read_pdf.py#L33) | Extract page-delimited local evidence and display masked page text. |
 | `main` | [utils/scripts/reuse.py:77](../../utils/scripts/reuse.py#L77) | Compare two files or copy an explicitly selected local Git snapshot. |
-| `main` | [utils/scripts/team_chat_preview.py:34](../../utils/scripts/team_chat_preview.py#L34) | 루프백에만 서버를 띄워 팀 HTML과 기존 API 프록시에 독립 모듈을 붙인다. |
+| `main` | [utils/scripts/team_chat_preview.py:35](../../utils/scripts/team_chat_preview.py#L35) | 루프백에만 서버를 띄워 팀 HTML과 기존 API 프록시에 독립 모듈을 붙인다. |
 | `main` | [utils/scripts/verify_watch.py:32](../../utils/scripts/verify_watch.py#L32) | Verify creation, symbol/overview changes and deletion; clean our probe. |
 | `main` | [utils/scripts/watch.py:39](../../utils/scripts/watch.py#L39) | Watch in a cooperative single-process loop; retain errors in local status. |
-| `main.Handler` | [utils/scripts/team_chat_preview.py:45](../../utils/scripts/team_chat_preview.py#L45) | 팀 프록시/정적 서빙을 유지하고 index와 채팅 모듈 두 경로만 추가한다. |
-| `main.Handler.do_GET` | [utils/scripts/team_chat_preview.py:48](../../utils/scripts/team_chat_preview.py#L48) | 원본 HTML을 디스크에 수정하지 않고 모듈 script를 응답에만 추가한다. |
+| `main.Handler` | [utils/scripts/team_chat_preview.py:46](../../utils/scripts/team_chat_preview.py#L46) | 팀 프록시/정적 서빙을 유지하고 index와 채팅 모듈 두 경로만 추가한다. |
+| `main.Handler.do_GET` | [utils/scripts/team_chat_preview.py:49](../../utils/scripts/team_chat_preview.py#L49) | 원본 HTML을 디스크에 수정하지 않고 모듈 script를 응답에만 추가한다. |
 | `main.run` | [utils/scripts/check_conversation_edges.py:31](../../utils/scripts/check_conversation_edges.py#L31) | 변경된 초안과 결과를 기록한다. 실패 원문은 정규화된 시험 응답만 남긴다. |
 | `map_config` | [backend/map_config.py:9](../../backend/map_config.py#L9) | 환경변수 우선으로 JS 키를 반환한다. 미설정은 기존 지도를 유지하며 값은 로그하지 않는다. |
 | `MapConfigTests` | [backend/test_map_config.py:8](../../backend/test_map_config.py#L8) | 실제 로컬 키를 읽지 않고 환경·파일 우선순위와 공개 범위를 점검한다. |
@@ -174,6 +178,7 @@
 | `PreferenceTests.test_unverified_hard_requirement_blocks_before_source` | [backend/test_preferences.py:89](../../backend/test_preferences.py#L89) | 계단 없음 등 필수 제약을 검증 못하면 외부 호출 전 명시적으로 차단한다. |
 | `preferenceText` | [backend/team_preferences.js:15](../../backend/team_preferences.js#L15) | JS/TS 정규식 후보; AST 검증 아님 |
 | `preflight` | [utils/scripts/commit_report.py:23](../../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
+| `prepare` | [utils/scripts/prepare_chat_handoff.py:38](../../utils/scripts/prepare_chat_handoff.py#L38) | 공개 Git 프론트 복사본에 패치를 실제 적용하고 결과 해시를 검증한 뒤 인계 ZIP을 만든다. |
 | `Preview` | [backend/preview.py:41](../../backend/preview.py#L41) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
 | `Preview.do_GET` | [backend/preview.py:81](../../backend/preview.py#L81) | 점검 폼과 저장소의 대표 요청만 제공한다. |
 | `Preview.do_OPTIONS` | [backend/preview.py:52](../../backend/preview.py#L52) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
@@ -230,7 +235,7 @@
 | `showHistory` | [backend/team_chat.js:80](../../backend/team_chat.js#L80) | JS/TS 정규식 후보; AST 검증 아님 |
 | `signature` | [utils/scripts/watch.py:18](../../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |
-| `snapshot` | [utils/scripts/team_chat_preview.py:19](../../utils/scripts/team_chat_preview.py#L19) | 명시한 Git ref의 프론트만 해시별 경로에 복사한다. 기존 복사본은 덮어쓰지 않는다. |
+| `snapshot` | [utils/scripts/team_chat_preview.py:20](../../utils/scripts/team_chat_preview.py#L20) | 명시한 Git ref의 프론트만 해시별 경로에 복사한다. 기존 복사본은 덮어쓰지 않는다. |
 | `source_files` | [utils/scripts/catalog.py:26](../../utils/scripts/catalog.py#L26) | List supported source files in configured roots, excluding symlinks. |
 | `speak` | [backend/team_chat.js:89](../../backend/team_chat.js#L89) | JS/TS 정규식 후보; AST 검증 아님 |
 | `start` | [backend/location_view.js:46](../../backend/location_view.js#L46) | JS/TS 정규식 후보; AST 검증 아님 |

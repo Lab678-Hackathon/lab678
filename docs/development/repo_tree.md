@@ -74,6 +74,7 @@ lab678/
         recommend-response.recorded.json
         recommend-selected-place.live.json
         seoul-events.capture.json
+      frontend-chat-package.md
       hackathon-server-usage-review.md
       kakao-map-location.md
       keyless-routing-review.md
@@ -93,6 +94,10 @@ lab678/
         result.json
       qa-conversation/
         edges.json
+        recovery.json
+      qa-handoff/
+        manifest.json
+        natural-flow.json
         recovery.json
       qa-natural/
         confirmation.png
@@ -172,6 +177,7 @@ lab678/
         20261031-team-flow-connected.md
         20261031-user-preferences-kakao-review.md
         conversation-validation.md
+        frontend-chat-package.md
         natural-language-recommendation.md
       screen-spec-review.md
       state.json
@@ -256,6 +262,7 @@ lab678/
       context.py
       harness.py
       loop.py
+      prepare_chat_handoff.py
       read_pdf.py
       reuse.py
       team_chat_preview.py
