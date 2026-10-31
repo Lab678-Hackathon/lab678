@@ -51,6 +51,7 @@
 | `culture_key` | [backend/culture_config.py:6](../backend/culture_config.py#L6) | seoul/tour 키를 읽는다. 명시 환경값이 로컬 파일보다 우선하며 미설정은 빈 문자열이다. |
 | `culture_places` | [backend/tour_places.py:114](../backend/tour_places.py#L114) | 선택적 문화시설 API. 키 없음503/조회 실패502/정상0건을 구분하며 행사 추천에 몰래 혼합하지 않는다. |
 | `culture_places.details` | [backend/tour_places.py:134](../backend/tour_places.py#L134) | 동일 ID의 소개/홈페이지를 가져온다. 상세 호출 실패를 값 없음으로 숨기지 않는다. |
+| `cultureLabel` | [backend/team_culture.js:5](../backend/team_culture.js#L5) | JS/TS 정규식 후보; AST 검증 아님 |
 | `CultureSourceTests` | [backend/test_culture_sources.py:13](../backend/test_culture_sources.py#L13) | 실제 키 없이 가능한 공급자 계약 회귀. 실서비스 성공과 구분한다. |
 | `CultureSourceTests.response` | [backend/test_culture_sources.py:22](../backend/test_culture_sources.py#L22) | 공식 response/header/body 형태를 생성한다. 실제 행사 데이터가 아니다. |
 | `CultureSourceTests.setUp` | [backend/test_culture_sources.py:16](../backend/test_culture_sources.py#L16) | 공개 위치의 시험 입력과 가상 문화시설 응답을 준비한다. |
@@ -78,9 +79,11 @@
 | `file_overview` | [utils/scripts/catalog.py:138](../utils/scripts/catalog.py#L138) | Describe a file using only its static overview, heading, or file type. |
 | `file_voice_available` | [backend/local_voice.py:25](../backend/local_voice.py#L25) | Windows 파일 합성 지원 여부만 반환한다. 음성 설치·합성 성공은 별도 검증한다. |
 | `generated_paths` | [utils/scripts/catalog.py:150](../utils/scripts/catalog.py#L150) | Return the actual output paths, independent of optional configuration hints. |
+| `initCulture` | [backend/team_culture.js:11](../backend/team_culture.js#L11) | JS/TS 정규식 후보; AST 검증 아님 |
 | `InputError` | [backend/outing.py:19](../backend/outing.py#L19) | 추천 입력 오류의 공개 코드·필드·안내문을 담는다. 원본 입력값은 포함하지 않는다. |
 | `InputError.__init__` | [backend/outing.py:22](../backend/outing.py#L22) | HTTP 오류 응답과 필드별 안내에 사용할 고정 메타데이터를 보관한다. |
 | `integrate_index` | [utils/scripts/prepare_chat_handoff.py:17](../utils/scripts/prepare_chat_handoff.py#L17) | 원본 HTML에 모듈을 한 번만 연결한다. 이미 연결되거나 구조가 다르면 거절한다. |
+| `integrate_results` | [utils/scripts/prepare_chat_handoff.py:38](../utils/scripts/prepare_chat_handoff.py#L38) | 추천·상세의 출처 표시만 확장하며 같은 후보 ID/지도/카드 흐름을 유지한다. |
 | `integrate_search` | [utils/scripts/prepare_chat_handoff.py:24](../utils/scripts/prepare_chat_handoff.py#L24) | 확정 요청과 S02a 요약의 두 지점만 확장한다. 다른 팀 변경을 추측해 덮어쓰지 않는다. |
 | `invalidate` | [backend/team_chat.js:179](../backend/team_chat.js#L179) | JS/TS 정규식 후보; AST 검증 아님 |
 | `known_price` | [backend/preferences.py:39](../backend/preferences.py#L39) | 공식 무료 표시 또는 단일 원화 가격만 판독한다. 할인/복수 좌석/범위는 미확인이다. |
@@ -91,11 +94,12 @@
 | `main` | [utils/scripts/check_chat_live.py:18](../utils/scripts/check_chat_live.py#L18) | 국악·장소/시간·확정 시간 변경을 1회씩 호출하고 사실 경계와 충돌 보존을 검사한다. |
 | `main` | [utils/scripts/check_conversation_edges.py:19](../utils/scripts/check_conversation_edges.py#L19) | 독립 예산·제외·제약·시간 시나리오를 실행하고 조건 유지/해제를 명시적으로 검사한다. |
 | `main` | [utils/scripts/check_culture_sources.py:30](../utils/scripts/check_culture_sources.py#L30) | 서울시 실제 조회와 TourAPI 설정/실조회를 명확히 나누어 결과를 저장한다. |
+| `main` | [utils/scripts/check_service_keys.py:16](../utils/scripts/check_service_keys.py#L16) | 공개 청량리역 조건으로 서비스별 결과를 요약한다. HTTP200과 실제 기능 성공을 구분한다. |
 | `main` | [utils/scripts/commit_report.py:52](../utils/scripts/commit_report.py#L52) | Check by default; stage and commit only when --commit is explicitly given. |
 | `main` | [utils/scripts/context.py:48](../utils/scripts/context.py#L48) | Write, check, or print only the short restart brief. |
 | `main` | [utils/scripts/harness.py:88](../utils/scripts/harness.py#L88) | Run the harness once; fixing failures requires a separately scoped change. |
 | `main` | [utils/scripts/loop.py:40](../utils/scripts/loop.py#L40) | Persist only task evidence; never run shell, LLM, network or Git writes. |
-| `main` | [utils/scripts/prepare_chat_handoff.py:104](../utils/scripts/prepare_chat_handoff.py#L104) | 명시한 로컬 Git ref로 인계 산출물을 생성한다. 네트워크/push/checkout/merge는 하지 않는다. |
+| `main` | [utils/scripts/prepare_chat_handoff.py:121](../utils/scripts/prepare_chat_handoff.py#L121) | 명시한 로컬 Git ref로 인계 산출물을 생성한다. 네트워크/push/checkout/merge는 하지 않는다. |
 | `main` | [utils/scripts/read_pdf.py:33](../utils/scripts/read_pdf.py#L33) | Extract page-delimited local evidence and display masked page text. |
 | `main` | [utils/scripts/reuse.py:77](../utils/scripts/reuse.py#L77) | Compare two files or copy an explicitly selected local Git snapshot. |
 | `main` | [utils/scripts/team_chat_preview.py:35](../utils/scripts/team_chat_preview.py#L35) | 루프백에만 서버를 띄워 팀 HTML과 기존 API 프록시에 독립 모듈을 붙인다. |
@@ -161,9 +165,9 @@
 | `PreferenceTests.test_no_partial_success_when_one_source_fails` | [backend/test_preferences.py:51](../backend/test_preferences.py#L51) | 한 관심사 조회 실패를 0건/다른 분류 성공으로 숨기지 않는다. |
 | `PreferenceTests.test_same_id_with_different_official_url_once` | [backend/test_preferences.py:56](../backend/test_preferences.py#L56) | 메뉴 쿼리가 다른 동일 행사도 후보 ID 기준으로 한 번만 반환한다. |
 | `PreferenceTests.test_unverified_hard_requirement_blocks_before_source` | [backend/test_preferences.py:89](../backend/test_preferences.py#L89) | 계단 없음 등 필수 제약을 검증 못하면 외부 호출 전 명시적으로 차단한다. |
-| `preferenceText` | [backend/team_preferences.js:15](../backend/team_preferences.js#L15) | JS/TS 정규식 후보; AST 검증 아님 |
+| `preferenceText` | [backend/team_preferences.js:16](../backend/team_preferences.js#L16) | JS/TS 정규식 후보; AST 검증 아님 |
 | `preflight` | [utils/scripts/commit_report.py:23](../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
-| `prepare` | [utils/scripts/prepare_chat_handoff.py:38](../utils/scripts/prepare_chat_handoff.py#L38) | 공개 Git 프론트 복사본에 패치를 실제 적용하고 결과 해시를 검증한 뒤 인계 ZIP을 만든다. |
+| `prepare` | [utils/scripts/prepare_chat_handoff.py:53](../utils/scripts/prepare_chat_handoff.py#L53) | 공개 Git 프론트 복사본에 패치를 실제 적용하고 결과 해시를 검증한 뒤 인계 ZIP을 만든다. |
 | `Preview` | [backend/preview.py:42](../backend/preview.py#L42) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
 | `Preview.do_GET` | [backend/preview.py:82](../backend/preview.py#L82) | 점검 폼과 저장소의 대표 요청만 제공한다. |
 | `Preview.do_OPTIONS` | [backend/preview.py:53](../backend/preview.py#L53) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
@@ -174,22 +178,24 @@
 | `PreviewContractTests.request` | [backend/test_preview.py:15](../backend/test_preview.py#L15) | JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다. |
 | `PreviewContractTests.setUp` | [backend/test_preview.py:30](../backend/test_preview.py#L30) | 각 테스트가 사용할 독립적인 정상 요청을 읽는다. |
 | `PreviewContractTests.test_chat_route_and_validation` | [backend/test_preview.py:35](../backend/test_preview.py#L35) | 새 대화 경로는 어댑터 응답을 전달하고 잘못된 입력은 필드 오류를 반환한다. |
-| `PreviewContractTests.test_file_voice_disabled` | [backend/test_preview.py:128](../backend/test_preview.py#L128) | 파일 음성이 꺼진 서버에서는 버튼을 숨기고 합성 요청도 실행하지 않는다. |
-| `PreviewContractTests.test_invalid_kind` | [backend/test_preview.py:72](../backend/test_preview.py#L72) | 지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다. |
-| `PreviewContractTests.test_kind_compatibility` | [backend/test_preview.py:55](../backend/test_preview.py#L55) | 정확히 60분인 route/course가 같은 코스 경로로, place는 후보만 반환한다. |
-| `PreviewContractTests.test_origin_configuration` | [backend/test_preview.py:77](../backend/test_preview.py#L77) | 허용 주소의 정확한 일치만 사용하고 와일드카드·자격정보·잘못된 설정을 제외한다. |
-| `PreviewContractTests.test_place_search_contract` | [backend/test_preview.py:141](../backend/test_preview.py#L141) | 새 검색 경로에도 입력400·허용origin·공급자 상태 전달을 동일 적용한다. |
-| `PreviewContractTests.test_preflight` | [backend/test_preview.py:86](../backend/test_preview.py#L86) | 설정된 origin·POST·Content-Type만 사전 요청에서 허용한다. |
-| `PreviewContractTests.test_render_origin` | [backend/test_preview.py:108](../backend/test_preview.py#L108) | 서버 설정의 공개 HTTPS 주소만 허용하고 비슷한 다른 주소는 거절한다. |
-| `PreviewContractTests.test_server_options` | [backend/test_preview.py:117](../backend/test_preview.py#L117) | 배포 포트·주소를 지원하되 명시 옵션이 우선하고 잘못된 포트는 시작 전에 거절한다. |
-| `PreviewContractTests.test_short_duration_response` | [backend/test_preview.py:44](../backend/test_preview.py#L44) | 60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다. |
-| `PreviewContractTests.test_source_error_is_not_input_error` | [backend/test_preview.py:65](../backend/test_preview.py#L65) | 공급자 장애는 필드 오류 대신 502이며 공급자 예외 내용은 숨긴다. |
+| `PreviewContractTests.test_culture_source_routes_and_errors` | [backend/test_preview.py:44](../backend/test_preview.py#L44) | 문화시설 선택은 같은 추천 경로에서 전달하며 오류를 행사로 대체하지 않는다. |
+| `PreviewContractTests.test_file_voice_disabled` | [backend/test_preview.py:141](../backend/test_preview.py#L141) | 파일 음성이 꺼진 서버에서는 버튼을 숨기고 합성 요청도 실행하지 않는다. |
+| `PreviewContractTests.test_invalid_kind` | [backend/test_preview.py:85](../backend/test_preview.py#L85) | 지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다. |
+| `PreviewContractTests.test_kind_compatibility` | [backend/test_preview.py:68](../backend/test_preview.py#L68) | 정확히 60분인 route/course가 같은 코스 경로로, place는 후보만 반환한다. |
+| `PreviewContractTests.test_origin_configuration` | [backend/test_preview.py:90](../backend/test_preview.py#L90) | 허용 주소의 정확한 일치만 사용하고 와일드카드·자격정보·잘못된 설정을 제외한다. |
+| `PreviewContractTests.test_place_search_contract` | [backend/test_preview.py:154](../backend/test_preview.py#L154) | 새 검색 경로에도 입력400·허용origin·공급자 상태 전달을 동일 적용한다. |
+| `PreviewContractTests.test_preflight` | [backend/test_preview.py:99](../backend/test_preview.py#L99) | 설정된 origin·POST·Content-Type만 사전 요청에서 허용한다. |
+| `PreviewContractTests.test_render_origin` | [backend/test_preview.py:121](../backend/test_preview.py#L121) | 서버 설정의 공개 HTTPS 주소만 허용하고 비슷한 다른 주소는 거절한다. |
+| `PreviewContractTests.test_server_options` | [backend/test_preview.py:130](../backend/test_preview.py#L130) | 배포 포트·주소를 지원하되 명시 옵션이 우선하고 잘못된 포트는 시작 전에 거절한다. |
+| `PreviewContractTests.test_short_duration_response` | [backend/test_preview.py:57](../backend/test_preview.py#L57) | 60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다. |
+| `PreviewContractTests.test_source_error_is_not_input_error` | [backend/test_preview.py:78](../backend/test_preview.py#L78) | 공급자 장애는 필드 오류 대신 502이며 공급자 예외 내용은 숨긴다. |
 | `provider_response` | [backend/test_transit.py:11](../backend/test_transit.py#L11) | 공식 스키마를 따르는 가상 도보·지하철·도보 3구간을 만든다. 시연 데이터가 아니다. |
 | `put_value` | [backend/chat_conditions.py:97](../backend/chat_conditions.py#L97) | 출발지 검색어가 바뀌면 이전 좌표를 제거한다. 다른 조건은 초안에만 반영한다. |
 | `query_walking` | [backend/walking.py:16](../backend/walking.py#L16) | 개인 화면의 도보 조회 간격을 제한하고 공급자의 JSON 또는 실패 상태를 반환한다. |
 | `recommend` | [backend/outing.py:136](../backend/outing.py#L136) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
 | `record` | [utils/scripts/loop.py:21](../utils/scripts/loop.py#L21) | Append one evidenced attempt, rejecting terminal states and blind repeats. |
 | `refresh` | [backend/location_view.js:36](../backend/location_view.js#L36) | JS/TS 정규식 후보; AST 검증 아님 |
+| `refresh` | [backend/team_culture.js:24](../backend/team_culture.js#L24) | JS/TS 정규식 후보; AST 검증 아님 |
 | `refresh` | [utils/scripts/watch.py:30](../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
 | `remember` | [backend/team_chat.js:72](../backend/team_chat.js#L72) | JS/TS 정규식 후보; AST 검증 아님 |
 | `render` | [utils/scripts/catalog.py:204](../utils/scripts/catalog.py#L204) | Produce all utility and repository indexes without volatile timestamps. |
@@ -197,8 +203,8 @@
 | `render_repo` | [utils/scripts/catalog.py:156](../utils/scripts/catalog.py#L156) | Index every eligible file plus code symbols, features and directory layout. |
 | `render_utils` | [utils/scripts/catalog.py:118](../utils/scripts/catalog.py#L118) | Render stable forward and reverse indexes with repository-relative links. |
 | `render_wave` | [backend/local_voice.py:30](../backend/local_voice.py#L30) | 문자열을 표준 입력으로 전달해 메모리에서 합성하고, 실패·과부하 때 예외를 반환한다. |
-| `renderPreferenceSummary` | [backend/team_preferences.js:29](../backend/team_preferences.js#L29) | JS/TS 정규식 후보; AST 검증 아님 |
-| `renderResultPreferences` | [backend/team_preferences.js:39](../backend/team_preferences.js#L39) | JS/TS 정규식 후보; AST 검증 아님 |
+| `renderPreferenceSummary` | [backend/team_preferences.js:30](../backend/team_preferences.js#L30) | JS/TS 정규식 후보; AST 검증 아님 |
+| `renderResultPreferences` | [backend/team_preferences.js:40](../backend/team_preferences.js#L40) | JS/TS 정규식 후보; AST 검증 아님 |
 | `repo_files` | [utils/scripts/catalog.py:46](../utils/scripts/catalog.py#L46) | Inventory repository files, including untracked work, without reading secrets. |
 | `request` | [utils/scripts/check_chat_api.py:19](../utils/scripts/check_chat_api.py#L19) | 임시 서버로 JSON POST 또는 CORS OPTIONS를 보내 상태/본문/허용 origin을 반환한다. |
 | `resolve_changes` | [backend/chat_conditions.py:153](../backend/chat_conditions.py#L153) | 동일 초안/revision에서 명시적 bool 동의만 반영한다. 미응답 충돌은 유지한다. |
@@ -213,7 +219,7 @@
 | `searchOrigin` | [backend/team_chat.js:173](../backend/team_chat.js#L173) | JS/TS 정규식 후보; AST 검증 아님 |
 | `send` | [backend/team_chat.js:193](../backend/team_chat.js#L193) | JS/TS 정규식 후보; AST 검증 아님 |
 | `seoul_page` | [backend/outing.py:80](../backend/outing.py#L80) | 지정일 키 없으면5건, 정식 키면100건을 조회한다. 인증 실패를 sample로 대체하지 않는다. |
-| `server_options` | [backend/preview.py:173](../backend/preview.py#L173) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
+| `server_options` | [backend/preview.py:180](../backend/preview.py#L180) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
 | `settings` | [backend/naito_chat.py:43](../backend/naito_chat.py#L43) | 앱 전용 환경변수/무시된 로컬 파일에서 키와 모델을 읽는다. 실제 값은 출력하지 않는다. |
 | `short_text` | [backend/transit.py:41](../backend/transit.py#L41) | 이동 안내 원문을 길이 제한된 텍스트로 받아 HTML 실행 없이 표시하도록 반환한다. |
 | `showConflicts` | [backend/team_chat.js:124](../backend/team_chat.js#L124) | JS/TS 정규식 후보; AST 검증 아님 |
@@ -284,5 +290,5 @@
 | `WalkingTests.test_bad_steps` | [backend/test_walking.py:38](../backend/test_walking.py#L38) | 지도 밖 단계나 영어 대체 응답을 한국어 안내 성공으로 표시하지 않는다. |
 | `WalkingTests.test_detail_and_summary` | [backend/test_walking.py:28](../backend/test_walking.py#L28) | 기존 요약 응답을 유지하고 상세 요청에만 단계와 경로선을 추가한다. |
 | `WalkingTests.test_polyline_precision` | [backend/test_walking.py:20](../backend/test_walking.py#L20) | 공개 polyline 예제의 정수 값을 백만분의 일 도 단위로 해독한다. |
-| `withPreferences` | [backend/team_preferences.js:8](../backend/team_preferences.js#L8) | JS/TS 정규식 후보; AST 검증 아님 |
+| `withPreferences` | [backend/team_preferences.js:9](../backend/team_preferences.js#L9) | JS/TS 정규식 후보; AST 검증 아님 |
 | `write_indexes` | [utils/scripts/catalog.py:211](../utils/scripts/catalog.py#L211) | Write changed outputs only, allowing repeated watcher runs to be quiet. |

@@ -1,12 +1,13 @@
 /** 로컬 팀 화면의 대화 선호를 최종 확인·실제 추천 요청에 연결한다. 담당 원본에는 미반영. */
 import { state } from './state.js';
+import { cultureLabel } from './dj-culture.js';
 
 export const preferenceFields = ['categories', 'music_followup', 'free_only', 'budget_krw', 'keywords',
   'exclude_terms', 'walking_preference', 'indoor_outdoor', 'unsupported_requirements'];
 
 /** 최종 확인 시점의 선호를 복사해 요청에 고정한다. 이전 확정 요청을 나중 값으로 덮지 않는다. */
 export function withPreferences(request) {
-  const confirmed = { ...request, ...structuredClone(state.chat?.preferences || {}) };
+  const confirmed = { ...request, ...structuredClone(state.chat?.preferences || {}), culture_source: state.form.cultureSource || 'seoul' };
   if (state.chat) state.chat.confirmedDraft = structuredClone(confirmed);
   return confirmed;
 }
@@ -32,7 +33,7 @@ export function renderPreferenceSummary(request) {
     node = document.createElement('p'); node.id = 'confirm-preferences';
     document.querySelector('#confirm-rows').after(node);
   }
-  node.textContent = preferenceText(request);
+  node.textContent = cultureLabel(request.culture_source) + ' / ' + preferenceText(request);
 }
 
 /** 결과에 적용 선호·제한·빈 결과 의미를 표시한다. 미확인을 추천 성공으로 포장하지 않는다. */
@@ -45,7 +46,7 @@ export function renderResultPreferences() {
   }
   const r = state.result;
   const lines = [preferenceText(r.applied_preferences || {}), ...(r.preference_notes || []), r.coverage_note];
-  if (r.status === 'no_results') lines.unshift('조회한 후보에서 조건에 맞는 행사를 찾지 못했어요. 조건은 그대로 유지했습니다. 조건 바꾸기로 관심사나 예산을 직접 바꿀 수 있어요.');
+  if (r.status === 'no_results') lines.unshift('조회한 후보에서 조건에 맞는 장소를 찾지 못했어요. 조건은 그대로 유지했습니다. 조건 바꾸기로 관심사나 예산을 직접 바꿀 수 있어요.');
   node.replaceChildren(...lines.filter(Boolean).map(text => {
     const p = document.createElement('p'); p.textContent = text; return p;
   }));

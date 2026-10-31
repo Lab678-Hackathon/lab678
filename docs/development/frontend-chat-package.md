@@ -59,3 +59,7 @@ git apply /패키지경로/team-chat.patch
 패치를 실제 파일에 적용한 별도 복사본에서 일반 개발 서버로 실행했고, 실제AI→조건확인→기록추천→상세와 실시간 음악조회, 0건/조건해제/재추천/오류보존까지 통과했습니다. 적용 범위와 UI 배치를 확인해 주시면 최신 프론트에 맞춰 통합하겠습니다. 기록 재생/실시간은 구분하며, 실제 마이크와 공개 배포는 후속 확인입니다.
 
 저장소 안내는 docs/development/frontend-chat-package.md, 생성 명령은 python utils/scripts/prepare_chat_handoff.py --ref origin/feature/front 입니다. 백엔드 최신 개발분과 이 도구는 동조 로컬에 있으며 Push 공유는 아직 하지 않았습니다.
+
+## 최신 패키지 · 문화시설 선택 포함
+
+기존 네파일 패키지 이후 추가된 최신 버전은 **6파일**이다. results.js 출처표시와 dj-culture.js 입력선택을 추가했다. 현재 실행본은 `.local/chat-handoff-164cd40-78acae4abc/`이고5175로 제공한다. 문화시설은 live만 지원하므로 http://127.0.0.1:5175/?debug=1#/search 로 확인한다. 이전 recorded 링크는 서울시 기록 검증에만 사용한다. [키별 반영·최신 검증·인계](service-key-status.md). 기존 본문의 네파일/ab4591e631은 이전 작업 이력이다.

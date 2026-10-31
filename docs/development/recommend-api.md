@@ -119,3 +119,7 @@ const result = await response.json();
 ## 개인 화면의 제외 적용 시점 (10/31)
 
 `exclude_ids`는 제외 예정/취소 버튼에서 전송하지 않고 사용자가 `코스 다시 만들기`를 누를 때 누적 적용한다. 재생성 결과가 `course.status=ready`인 경우에만 기존 코스를 교체한다. 오류·insufficient·unavailable·check·conflict는 이전 코스/선택을 유지하며 제외 예정 취소 또는 재시도가 가능하다. 서버 계약 변경은 없으며 팀 UI는 이 정책을 별도 연결한다.
+
+## 문화정보 소스 선택 추가 · 10/31
+
+선택 필드 `culture_source: seoul | tour`를 지원한다. 기본 seoul은 기존 그대로다. tour는 국문 문화시설 조회를 호출하며 category=전체/request_kind=place/mode=live만 지원한다. 원래 /preview/culture-places도 유지한다. source=tourapi_kor/candidate_kind=cultural_facility로 행사와 구분한다. [출처별 계약/실제 UI 검증](service-key-status.md). 이 추가 계약은 개인 구현/팀복사본에서 검증했으며 팀 원본 반영은 담당 확인 후 진행한다.

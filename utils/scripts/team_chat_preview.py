@@ -12,7 +12,7 @@ from pathlib import Path
 import subprocess
 from urllib.parse import urlsplit
 import zipfile
-from prepare_chat_handoff import integrate_index, integrate_search
+from prepare_chat_handoff import integrate_index, integrate_search, integrate_results
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -62,6 +62,16 @@ def main():
                 content_type = "text/javascript; charset=utf-8"
             elif path == "/js/dj-preferences.js":
                 body = (ROOT / "backend/team_preferences.js").read_bytes()
+                content_type = "text/javascript; charset=utf-8"
+            elif path == "/js/dj-culture.js":
+                body = (ROOT / "backend/team_culture.js").read_bytes()
+                content_type = "text/javascript; charset=utf-8"
+            elif path == "/js/results.js":
+                try:
+                    body = integrate_results((front / "js/results.js").read_text(encoding="utf-8")).encode()
+                except ValueError:
+                    self.send_error(409, "Team frontend changed; integration review required")
+                    return
                 content_type = "text/javascript; charset=utf-8"
             elif path == "/js/search.js":
                 # 해당 팀 버전의 두 연결 지점만 응답에서 확장한다. 디스크 원본은 보존한다.

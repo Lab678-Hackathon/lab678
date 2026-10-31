@@ -41,6 +41,19 @@ class PreviewContractTests(unittest.TestCase):
         status, body = self.request({"message": "", "revision": 0}, path="/preview/chat")
         self.assertEqual((status, body["field"]), (400, "message"))
 
+    def test_culture_source_routes_and_errors(self):
+        """문화시설 선택은 같은 추천 경로에서 전달하며 오류를 행사로 대체하지 않는다."""
+        for expected in (200, 502, 503):
+            with patch("preview.culture_places", return_value=(expected, {"status":"check"})) as tour, patch("preview.recommend") as seoul:
+                status, body = self.request(dict(self.data, culture_source="tour"))
+            self.assertEqual(status, expected)
+            tour.assert_called_once()
+            seoul.assert_not_called()
+        status, body = self.request(dict(self.data, culture_source="invalid"))
+        self.assertEqual((status, body["code"]), (400, "invalid_culture_source"))
+        status, body = self.request(dict(self.data, culture_source="tour", category="전체", mode="recorded"))
+        self.assertEqual((status, body["code"]), (400, "culture_mode"))
+
     def test_short_duration_response(self):
         """60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다."""
         self.data.update(request_kind="route", end_at="2026-10-31T14:59:00+09:00")

@@ -34,6 +34,7 @@ lab678/
     preview.html
     preview.py
     team_chat.js
+    team_culture.js
     team_preferences.js
     test_chat_conditions.py
     test_course.py
@@ -113,6 +114,12 @@ lab678/
         confirmation.png
         result.json
         results.png
+      qa-services/
+        culture-ui-first-run.json
+        culture-ui.json
+        keys.json
+        manifest.json
+        map-check.json
       qa01-team-connection.md
       qa01/
         live-s03.png
@@ -191,9 +198,11 @@ lab678/
         frontend-chat-package.md
         natural-language-recommendation.md
         seoul-live-and-tour-key.md
+        service-key-ui-integration.md
         tour-key-verification.md
         tour-live-verification.md
       screen-spec-review.md
+      service-key-status.md
       state.json
       tasks.md
       team-backend-guide.md
@@ -261,6 +270,7 @@ lab678/
       check_course_alternatives.cjs
       check_course_edit.cjs
       check_culture_sources.py
+      check_culture_ui.cjs
       check_deployment.cjs
       check_frontend_connection.cjs
       check_input_contract.cjs
@@ -271,6 +281,7 @@ lab678/
       check_place_search.cjs
       check_preference_recovery.cjs
       check_result_preservation.cjs
+      check_service_keys.py
       check_team_flow.cjs
       check_transit_ui.cjs
       commit_report.py

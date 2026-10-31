@@ -157,6 +157,13 @@ class Preview(BaseHTTPRequestHandler):
                 else:
                     self.reply(200, audio, "audio/wav")
                 return
+            source = data.get("culture_source", "seoul")
+            if source not in ("seoul", "tour"):
+                raise InputError("invalid_culture_source", "culture_source", "전시·공연 또는 문화시설을 선택해 주세요.")
+            if source == "tour":
+                status, body = culture_places(data)
+                self.reply(status, body)
+                return
             result = recommend(data, data.get("mode", "live"))
             if data.get("request_kind") in ("course", "route"):
                 result["course"] = build_course(data, result["candidates"])

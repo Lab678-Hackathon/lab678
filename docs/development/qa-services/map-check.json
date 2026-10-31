@@ -1,0 +1,7 @@
+{
+  "date": "2026-10-31",
+  "personal_map": "PASS actual Kakao SDK/tiles and marker selection on 127.0.0.1:8765",
+  "team_map": "PASS actual OSM tiles and facility pins on 127.0.0.1:5175; Kakao not integrated into team map",
+  "route_test": "Kakao browser test uses mock walking coordinates; separate key audit calls real transit/walk APIs",
+  "test_environment": "Installed Chrome executable; bundled headless shell missing on first launch"
+}
