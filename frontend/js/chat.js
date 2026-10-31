@@ -350,13 +350,43 @@ async function handle(text) {
   if (startQuery && state.lastRequest) { await findStart(startQuery, true); return; }
   if (!Object.keys(changes).length && !startQuery) {
     if (/^(네|응|좋아|그래)/.test(text) && !missing()) { next(); return; }
-    say(nothingUnderstood());
+    // 출발지를 물어본 상태라면 짧은 답("개포동")도 출발지 이름으로 봐요 (QA-03 P1)
+    const asked = lastQuestion();
+    if (asked === 'startLocation' && !d().startLocation) {
+      const name = placeName(text);
+      if (name) { await findStart(name); return; }
+    }
+    say(nothingUnderstood(asked), { ask: !!asked });
     return;
   }
   next();
 }
 
-function nothingUnderstood() {
+/** 까치가 바로 앞에 물어본 것 (출발지·날짜·시간·관심사) — 결과를 보여준 뒤면 null */
+function lastQuestion() {
+  const lastAi = [...state.messages].reverse().find((m) => m.role === 'ai');
+  if (!lastAi || lastAi.cards) return null;
+  return missing();
+}
+
+/** 단답에서 장소 이름만 남기기: "개포동이요" → "개포동" */
+function placeName(text) {
+  const t = text.replace(/[.!?~,]/g, ' ').trim()
+    .replace(/(에서\s*)?(출발(할게요|해요|합니다)?|이요|이에요|예요|요|입니다)$/u, '').trim();
+  if (!t || t.length > 30 || /^(몰라|글쎄|아무|음+|어+)/.test(t)) return null;
+  return t;
+}
+
+/** 알아듣지 못했을 때: 묻던 게 있으면 그 질문을 다시, 결과 뒤라면 할 수 있는 것을 안내 */
+function nothingUnderstood(asked) {
+  const hints = {
+    startLocation: '어디에서 출발하시는지 동네나 역 이름으로 말씀해 주세요. 예: "개포동", "청량리역". 아래 "현재 위치 사용"을 눌러도 돼요.',
+    date: '언제 가실지 알려 주세요. 예: "오늘", "내일", "11월 2일".',
+    time: '몇 시부터 몇 시까지인지 알려 주세요. 예: "오후 2시부터 5시까지".',
+    category: '어떤 걸 보고 싶으세요? 전시, 국악, 클래식, 콘서트, 연극 중에서 골라 주세요.',
+  };
+  if (asked && hints[asked]) return `제가 잘 알아듣지 못했어요. ${hints[asked]}`;
+  if (state.shown.length) return '다른 곳을 더 보여 드릴까요, 아니면 시간이나 보고 싶은 것, 출발지를 바꿔 볼까요? 바꾸실 내용을 말씀해 주세요.';
   if (!state.messages.some((m) => m.role === 'user' && m !== state.messages[state.messages.length - 1])) {
     return '어떤 나들이를 하고 싶으세요? 예를 들어 "내일 오후 2시부터 5시까지 전시 보고 싶어요"처럼 말씀해 주세요.';
   }
@@ -480,7 +510,22 @@ async function search() {
   }
   list.forEach((c) => { state.candidates[c.id] = c; });
   state.pool = list.map((c) => c.id);
-  showCards(state.pool.slice(0, MAX_CARDS), `${list.length > MAX_CARDS ? `${list.length}곳 중 ` : ''}가까운 순서로 ${Math.min(list.length, MAX_CARDS)}곳을 골랐어요. 운영시간과 예약은 꼭 다시 확인해 주세요.`);
+  showCards(state.pool.slice(0, MAX_CARDS), distanceText(state.pool.slice(0, MAX_CARDS), list.length));
+}
+
+/**
+ * 추천 안내 문구. 직선 거리 범위를 그대로 말하고, 멀면 멀다고 알려요 (QA-03 P2).
+ * 직선 거리는 걷는 거리·이동시간이 아니에요.
+ */
+function distanceText(ids, total) {
+  const ds = ids.map((id) => state.candidates[id]?.distance_km).filter((v) => v != null);
+  const n = ids.length;
+  const head = `${total > n ? `찾은 ${total}곳 중 ` : ''}출발지에서 직선 거리가 짧은 순서로 ${n}곳을 골랐어요.`;
+  if (!ds.length) return `${head} 운영시간과 예약은 꼭 다시 확인해 주세요.`;
+  const lo = Math.min(...ds), hi = Math.max(...ds);
+  const range = lo === hi ? `직선 약 ${lo}km` : `직선 약 ${lo}~${hi}km`;
+  if (lo > 5) return `${head} 다만 가장 가까운 곳도 직선 약 ${lo}km 떨어져 있어요 (보여 드린 곳 ${range}). 더 가까운 곳을 원하시면 보고 싶은 것을 "아무거나"로 넓히거나 날짜·출발지를 바꿔 말씀해 주세요.`;
+  return `${head} (${range}) 운영시간과 예약은 꼭 다시 확인해 주세요.`;
 }
 
 function showCards(ids, text) {
