@@ -90,6 +90,7 @@ lab678/
         2026-10-31-speech-offline.md
         2026-10-31-speech-trace.md
         2026-10-31-spoken-category.md
+        2026-10-31-team-backend-guide.md
         2026-10-31-tooling-setup.md
         2026-10-31-transit-guide.md
         2026-10-31-transit-live.md
@@ -100,6 +101,7 @@ lab678/
       screen-spec-review.md
       state.json
       tasks.md
+      team-backend-guide.md
       tooling-progress.md
       transit-progress.md
     meetings/

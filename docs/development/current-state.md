@@ -11,7 +11,7 @@
 
 ## 현재 목표
 
-- 실제 조건 → 문화활동 추천 → 지도·카드 → 선택/조건 변경을 최소 구현으로 검증하고 오늘 제작할 UI에 연결한다. 동조 개인 MVP 실행계획과 단계별 통과 기준 작성 완료.
+- 동조님은 백엔드 중심 개발에 집중한다는 사용자 방향. 문화정보/API·추천·코스·이동·테스트를 구현하고 프론트 담당에게 계약을 인계한다. 기존 preview는 개발 검증용이며 팀 UI 통합은 별도 확인.
 
 ## 승인된 범위·운영
 
@@ -27,7 +27,7 @@
 - 정민규 화면명세 v0.1 원본 수신·해시 일치 보관, S01~S07 대조 완료(screen-spec-review.md). v0.5 기반 초안이며 PRD 전문 수신은 아님. 위치 검색/AI 확인/상세·저장 미구현, 재계산 실패는 이전 일정 문자열만 보존함을 정정.
 - PR #5 병합을 origin/develop 50c34d3에서 확인. 로컬 develop 갱신 후 dj/develop에 충돌 없이 반영하고 구간별 점검 기록 5bca221을 보존. 첨부 기획 6개와 TEAM_WORKFLOW 구버전 15개 보관.
 - docs/align-team-workflow는 이미 develop에 병합됨. 현재 루트 협업 문서 적용.
-- utils 재사용 도구 8개, docstring·개요, 폴더별 안내·작업 템플릿·하네스·제한 루프 기록 구축.
+- 동료·LLM용 실행·참조 안내 작성. 최신 GitHub TEAM_WORKFLOW 대조, 백엔드 19개·로컬 홈200·recorded 추천200 ready/5건 재확인. 개인 브랜치 최신 추가분 미push; 공유 전 기준 커밋 전달 필요.
 - utils 색인 2개와 repo 파일/기능/함수/구조 색인 3개, state.json → 짧은 현재 상태 구축.
 - 도구 구축 커밋 a04c871. 현재 기본 도구 8개+PDF 도구 1개이며 최종 테스트 26개·정적 하네스 PASS. 기본 감시 실검증도 PASS.
 - test1/test2 JSON과 무인증·기기 저장/선택 프로필 설계 작성. Google·Supabase 필수 아님이라는 최신 사용자 지시 반영.
@@ -58,6 +58,7 @@
 
 ## 필요할 때 읽을 자료
 
+- [동료·LLM 개발 참조 및 실행 안내](team-backend-guide.md): 브랜치/읽는 순서/Python 실행/키·OS·CORS 제약/API/PR 흐름. GitHub TEAM_WORKFLOW 원문 대조 완료.
 - [화면명세 대조·차이·후속 체크표](screen-spec-review.md): 수신 v0.1 기준 S01~S07 구현 범위와 보완 사항.
 - [개인 시연·UI 인계](outing-handoff.md), [MVP 실행 체크표](mvp-plan.md), [개발 할 일](tasks.md).
 - [양쪽 참조 순서](konnect-reuse-reading-guide.md), [서버 활용안](hackathon-server-usage-review.md), [도구 사용법](../../utils/README.md).
