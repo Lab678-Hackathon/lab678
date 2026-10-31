@@ -21,10 +21,13 @@ lab678/
     README.md
     course.py
     local_voice.py
+    map_config.py
+    map_view.js
     outing.py
     preview.html
     preview.py
     test_course.py
+    test_map_config.py
     test_outing.py
     test_preview.py
     test_transit.py
@@ -52,6 +55,7 @@ lab678/
         recommend-response.recorded.json
         seoul-events.capture.json
       hackathon-server-usage-review.md
+      kakao-map-location.md
       keyless-routing-review.md
       konnect-reuse-reading-guide.md
       loops/
@@ -81,6 +85,7 @@ lab678/
         2026-10-31-frontend-ready.md
         2026-10-31-guide-push-ready.md
         2026-10-31-input-contract.md
+        2026-10-31-kakao-map.md
         2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md
         2026-10-31-local-plan-folder.md
@@ -177,6 +182,7 @@ lab678/
       check_deployment.cjs
       check_frontend_connection.cjs
       check_input_contract.cjs
+      check_kakao_map.cjs
       check_outing_ui.cjs
       check_result_preservation.cjs
       check_transit_ui.cjs

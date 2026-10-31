@@ -53,6 +53,8 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 .facts {white-space:pre-line; margin:10px 0}
 .event-pin {background:white; border:2px solid var(--teal); border-radius:50%; text-align:center; color:var(--ink); font:bold 16px/24px sans-serif}
 .event-pin.active {background:var(--teal); color:white}
+.kakao-pin {display:block; min-height:32px; width:32px; padding:0; line-height:28px}
+.route-pin {display:block; color:#007385; background:white; border:2px solid #007385; border-radius:50%; width:24px; text-align:center}
 </style>
 <main>
 <header><span class="brand">LAB<b>678</b></span><small>서울 문화나들이</small></header>
@@ -142,6 +144,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <p id="route-map-status" role="status"></p>
 <small id="walk-credit">예상 도보 경로 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></small>
 </div></dialog>
+<script src="/map-view.js"></script>
 <script>
 const form = document.querySelector("#form");
 const fields = form.elements;
@@ -189,7 +192,7 @@ routeDialog.onclose = clearRoute;
 function showRouteMap(step = null) {
   if (!routeData) return;
   if (routeData.mode === "transit") return showTransitMap(step);
-  if (!window.L) {
+  if (!LabMap.ready) {
     document.querySelector("#route-map-status").textContent = "지도를 불러오지 못했어요. 텍스트 안내로 확인해 주세요.";
     return;
   }
@@ -198,30 +201,27 @@ function showRouteMap(step = null) {
   document.querySelector("#route-text").setAttribute("aria-pressed", "false");
   document.querySelector("#route-show-map").setAttribute("aria-pressed", "true");
   if (!routeMap) {
-    routeMap = L.map(routeMapBox);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', maxZoom:19
-    }).on("tileerror", () => {
+    routeMap = LabMap.create(routeMapBox, () => {
       document.querySelector("#route-map-status").textContent = "지도 배경을 불러오지 못했어요. 텍스트 안내를 이용해 주세요.";
-    }).addTo(routeMap);
-    L.polyline(routeData.path, {color:"#007385", weight:5}).addTo(routeMap);
-    L.marker(routeData.path[0], {title:"경로 출발"}).addTo(routeMap);
-    L.marker(routeData.path.at(-1), {title:"경로 도착"}).addTo(routeMap);
+    });
+    routeMap.line(routeData.path);
+    routeMap.pin(routeData.path[0], {title:"경로 출발"});
+    routeMap.pin(routeData.path.at(-1), {title:"경로 도착"});
   }
   routeMap.invalidateSize();
   routeHighlight?.remove();
   routeHighlight = null;
   if (step) {
-    routeHighlight = L.circleMarker(routeData.path[step.begin], {color:"#aa5100",radius:10}).addTo(routeMap);
-    routeMap.fitBounds(L.latLngBounds(routeData.path.slice(step.begin, step.end+1)), {padding:[24,24],maxZoom:17});
+    routeHighlight = routeMap.dot(routeData.path[step.begin], {color:"#aa5100",radius:10});
+    routeMap.fitBounds(routeData.path.slice(step.begin, step.end+1), {padding:[24,24],maxZoom:17});
   } else {
-    routeMap.fitBounds(L.latLngBounds(routeData.path), {padding:[24,24]});
+    routeMap.fitBounds(routeData.path, {padding:[24,24]});
   }
 }
 
 /** 같은 조회의 대중교통 구간만 그린다. 누락 구간은 연결하지 않고 출발·도착 위치를 별도로 표시한다. */
 function showTransitMap(step = null) {
-  if (!window.L) {
+  if (!LabMap.ready) {
     document.querySelector("#route-map-status").textContent = "지도를 불러오지 못했어요. 텍스트 안내로 확인해 주세요.";
     return;
   }
@@ -232,25 +232,20 @@ function showTransitMap(step = null) {
   const segments = routeData.steps.filter(item => item.path?.length >= 2);
   const bounds = [...routeData.endpoints, ...segments.flatMap(item => item.path)];
   if (!routeMap) {
-    routeMap = L.map(routeMapBox);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', maxZoom:19
-    }).on("tileerror", () => {
+    routeMap = LabMap.create(routeMapBox, () => {
       document.querySelector("#route-map-status").textContent = "지도 배경을 불러오지 못했어요. 텍스트 안내를 이용해 주세요.";
-    }).addTo(routeMap);
+    });
     const colors = {WALKING:"#606970", BUS:"#007385", SUBWAY:"#6741a5"};
     for (const [index, item] of routeData.steps.entries()) {
       if (!item.path?.length) continue;
-      L.polyline(item.path, {color:colors[item.mode], weight:5,
-        dashArray:item.mode === "WALKING" ? "7 7" : null}).addTo(routeMap);
+      routeMap.line(item.path, {color:colors[item.mode], weight:5, dashed:item.mode === "WALKING"});
       for (const [point, label] of [[item.path[0],"시작"],[item.path.at(-1),"끝"]]) {
-        const description = document.createElement("span");
-        description.textContent = (index+1) + "번 구간 " + label + " · " + item.instruction;
-        L.circleMarker(point, {radius:6,color:colors[item.mode]}).bindPopup(description).addTo(routeMap);
+        const description = (index+1) + "번 구간 " + label + " · " + item.instruction;
+        routeMap.dot(point, {radius:6,color:colors[item.mode],title:description});
       }
     }
-    L.marker(routeData.endpoints[0], {title:"나들이 출발지"}).bindTooltip("출발지").addTo(routeMap);
-    L.marker(routeData.endpoints[1], {title:"행사 목적지"}).bindTooltip("목적지").addTo(routeMap);
+    routeMap.pin(routeData.endpoints[0], {title:"나들이 출발지"});
+    routeMap.pin(routeData.endpoints[1], {title:"행사 목적지"});
     document.querySelector("#route-map-status").textContent = segments.length ?
       "버스는 청록색, 지하철은 보라색, 도보는 회색 점선이에요. 좌표가 없는 구간은 표시하지 않아요. 출발·도착 주변의 도보 연결을 확인해 주세요." :
       "이 경로의 노선 좌표가 없어 출발지와 목적지만 표시했어요. 이동 방법은 텍스트 안내를 확인해 주세요.";
@@ -259,10 +254,10 @@ function showTransitMap(step = null) {
   routeHighlight?.remove();
   routeHighlight = null;
   if (step?.path?.length) {
-    routeHighlight = L.polyline(step.path, {color:"#aa5100",weight:8}).addTo(routeMap);
-    routeMap.fitBounds(L.latLngBounds(step.path), {padding:[24,24],maxZoom:17});
+    routeHighlight = routeMap.line(step.path, {color:"#aa5100",weight:8});
+    routeMap.fitBounds(step.path, {padding:[24,24],maxZoom:17});
   } else {
-    routeMap.fitBounds(L.latLngBounds(bounds), {padding:[24,24],maxZoom:17});
+    routeMap.fitBounds(bounds, {padding:[24,24],maxZoom:17});
   }
 }
 document.querySelector("#route-show-map").onclick = () => showRouteMap();
@@ -552,7 +547,6 @@ async function init() {
 }
 
 let map;
-let markerGroup;
 let latestCandidates = [];
 const walkFrom = document.querySelector("#walk-from");
 const walkTo = document.querySelector("#walk-to");
@@ -638,28 +632,21 @@ function selectEvent(item) {
 
 /** 현재 응답의 유효 좌표만 표시한다. 지도 장애에도 카드와 선택 상태를 보존한다. */
 function drawMap() {
+  for (const marker of markers.values()) marker.remove();
   markers.clear();
-  markerGroup?.clearLayers();
   const points = latestCandidates.filter(item => Number.isFinite(item.lat) && Number.isFinite(item.lng));
-  mapBox.hidden = !window.L || !points.length;
+  mapBox.hidden = !LabMap.ready || !points.length;
   mapNote.textContent = !points.length ? "표시할 좌표가 없습니다." :
-    !window.L ? "지도를 불러올 수 없으면 아래 행사 목록을 이용해 주세요." : "";
+    LabMap.notice;
   if (mapBox.hidden) return;
   if (!map) {
-    map = L.map(mapBox);
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>',
-      maxZoom:19
-    }).on("tileerror", () => { mapNote.textContent = "일부 지도 배경을 불러오지 못했습니다. 아래 목록에서 선택할 수 있습니다."; }).addTo(map);
-    markerGroup = L.layerGroup().addTo(map);
+    map = LabMap.create(mapBox, () => { mapNote.textContent = "일부 지도 배경을 불러오지 못했습니다. 아래 목록에서 선택할 수 있습니다."; });
   }
   map.invalidateSize();
   map.fitBounds(points.map(item => [item.lat,item.lng]), {padding:[28,28],maxZoom:15,animate:false});
   for (const item of points) {
     const number = latestCandidates.indexOf(item) + 1;
-    const icon = L.divIcon({className:"event-pin",html:String(number),iconSize:[26,26]});
-    const marker = L.marker([item.lat,item.lng],{icon,title:item.title,alt:item.title}).addTo(markerGroup);
-    marker.on("click", () => selectEvent(item));
+    const marker = map.pin([item.lat,item.lng], {number,title:item.title,onClick:() => selectEvent(item)});
     marker.getElement().classList.toggle("active", selection.dataset.id === item.id);
     markers.set(item.id, marker);
   }
@@ -1249,4 +1236,4 @@ document.querySelector("#back").onclick = () => {
 };
 init().catch(() => { statusText.textContent = "대표 요청을 읽지 못했습니다. 새로고침해 주세요."; });
 </script>
-<script async src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="anonymous" onload="if (!results.hidden) drawMap()"></script></html>
+<script>LabMap.load().then(() => { if (!results.hidden) drawMap(); });</script></html>

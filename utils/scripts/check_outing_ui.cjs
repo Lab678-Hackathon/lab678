@@ -10,6 +10,7 @@ async function main() {
   const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH, headless: true});
   try {
     const page = await browser.newPage({viewport: {width:390,height:844}});
+    await page.route("**/map-config",route=>route.fulfill({json:{provider:"leaflet",javascript_key:""}}));
     await page.goto("http://127.0.0.1:8765");
     await page.getByRole("button",{name:"전시 코스 예시 확인"}).click();
     await page.locator("#course-text").filter({hasText:"예상 일정입니다"}).waitFor();

@@ -12,6 +12,7 @@ from local_voice import file_voice_available, render_wave
 from course import build_course
 from walking import walk_between
 from transit import transit_between
+from map_config import map_config
 
 POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit"}
 
@@ -84,6 +85,10 @@ class Preview(BaseHTTPRequestHandler):
             self.reply(200, page.encode("utf-8"), "text/html")
         elif self.path == "/healthz":
             self.reply(200, dict(status="ok"))
+        elif self.path == "/map-config":
+            self.reply(200, map_config())
+        elif self.path == "/map-view.js":
+            self.reply(200, Path(__file__).with_name("map_view.js").read_bytes(), "text/javascript")
         elif self.path == "/example":
             self.reply(200, json.loads((EXAMPLES / "outing-request.json").read_bytes()))
         else:

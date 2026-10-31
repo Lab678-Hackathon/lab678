@@ -6,7 +6,7 @@
 
 | 심볼 | 정의 위치 | 개요 |
 |---|---|---|
-| `allowed_origins` | [backend/preview.py:19](../backend/preview.py#L19) | 환경변수의 명시적 HTTP(S) origin만 허용한다. 와일드카드·경로·자격정보는 제외한다. |
+| `allowed_origins` | [backend/preview.py:20](../backend/preview.py#L20) | 환경변수의 명시적 HTTP(S) origin만 허용한다. 와일드카드·경로·자격정보는 제외한다. |
 | `api_key` | [backend/transit.py:20](../backend/transit.py#L20) | 전용 환경변수 또는 로컬 제외 파일의 키 한 개만 읽는다. 값은 응답·로그에 출력하지 않는다. |
 | `broken_links` | [utils/scripts/harness.py:49](../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
 | `build_course` | [backend/course.py:102](../backend/course.py#L102) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
@@ -24,6 +24,7 @@
 | `CourseTests.test_consent_and_alternatives` | [backend/test_course.py:47](../backend/test_course.py#L47) | 동의 없이는 대안을 만들지 않고 종료·체류를 보존한 한 곳/이른 출발을 계산한다. |
 | `CourseTests.test_order_and_missing_routes` | [backend/test_course.py:36](../backend/test_course.py#L36) | 순서를 바꿔 가능한 일정만 선택하고 누락된 구간은 이동 0초로 쓰지 않는다. |
 | `CourseTests.test_unknown_and_wait` | [backend/test_course.py:26](../backend/test_course.py#L26) | 공연 시작 전 대기는 포함하고 종료 미상 또는 휴관 조건 미상은 확정하지 않는다. |
+| `create` | [backend/map_view.js:49](../backend/map_view.js#L49) | JS/TS 정규식 후보; AST 검증 아님 |
 | `decode_shape` | [backend/walking.py:50](../backend/walking.py#L50) | Valhalla polyline6를 위도·경도 배열로 변환한다. 손상·범위 초과는 ValueError다. |
 | `describe` | [utils/scripts/catalog.py:69](../utils/scripts/catalog.py#L69) | Extract file overview, fingerprint, imports and symbol locations statically. |
 | `describe.visit` | [utils/scripts/catalog.py:79](../utils/scripts/catalog.py#L79) | Walk definitions and keep qualified names for nested functions. |
@@ -36,6 +37,8 @@
 | `generated_paths` | [utils/scripts/catalog.py:150](../utils/scripts/catalog.py#L150) | Return the actual output paths, independent of optional configuration hints. |
 | `InputError` | [backend/outing.py:16](../backend/outing.py#L16) | 추천 입력 오류의 공개 코드·필드·안내문을 담는다. 원본 입력값은 포함하지 않는다. |
 | `InputError.__init__` | [backend/outing.py:19](../backend/outing.py#L19) | HTTP 오류 응답과 필드별 안내에 사용할 고정 메타데이터를 보관한다. |
+| `ll` | [backend/map_view.js:53](../backend/map_view.js#L53) | JS/TS 정규식 후보; AST 검증 아님 |
+| `load` | [backend/map_view.js:22](../backend/map_view.js#L22) | JS/TS 정규식 후보; AST 검증 아님 |
 | `main` | [utils/scripts/catalog.py:232](../utils/scripts/catalog.py#L232) | Write, validate, or search the catalog with bounded console output. |
 | `main` | [utils/scripts/commit_report.py:52](../utils/scripts/commit_report.py#L52) | Check by default; stage and commit only when --commit is explicitly given. |
 | `main` | [utils/scripts/context.py:48](../utils/scripts/context.py#L48) | Write, check, or print only the short restart brief. |
@@ -45,6 +48,10 @@
 | `main` | [utils/scripts/reuse.py:77](../utils/scripts/reuse.py#L77) | Compare two files or copy an explicitly selected local Git snapshot. |
 | `main` | [utils/scripts/verify_watch.py:32](../utils/scripts/verify_watch.py#L32) | Verify creation, symbol/overview changes and deletion; clean our probe. |
 | `main` | [utils/scripts/watch.py:39](../utils/scripts/watch.py#L39) | Watch in a cooperative single-process loop; retain errors in local status. |
+| `map_config` | [backend/map_config.py:9](../backend/map_config.py#L9) | 환경변수 우선으로 JS 키를 반환한다. 미설정은 기존 지도를 유지하며 값은 로그하지 않는다. |
+| `MapConfigTests` | [backend/test_map_config.py:8](../backend/test_map_config.py#L8) | 실제 로컬 키를 읽지 않고 환경·파일 우선순위와 공개 범위를 점검한다. |
+| `MapConfigTests.test_file_or_missing_key` | [backend/test_map_config.py:18](../backend/test_map_config.py#L18) | BOM 허용 파일의 정확한 변수만 읽고 미설정·부적절한 값은 기본 지도로 남긴다. |
+| `MapConfigTests.test_key_priority_and_public_scope` | [backend/test_map_config.py:11](../backend/test_map_config.py#L11) | 환경변수의 JS 키만 공개하고 REST 키나 로컬 파일은 조회하지 않는다. |
 | `markdown_files` | [utils/scripts/harness.py:39](../utils/scripts/harness.py#L39) | Select active documentation, excluding copied PRDs and historical snapshots. |
 | `metric` | [backend/transit.py:34](../backend/transit.py#L34) | 응답의 초·m·원 값을 유한한 음수 아닌 수로 제한한다. 미확인은 0으로 대체하지 않는다. |
 | `normalize_routes` | [backend/transit.py:66](../backend/transit.py#L66) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |
@@ -60,12 +67,12 @@
 | `OutingTests.test_minimum_duration_before_source` | [backend/test_outing.py:50](../backend/test_outing.py#L50) | 59분과 59분59초는 외부 조회 전에 거절하며 정확히 60분은 허용한다. |
 | `OutingTests.test_recording_scope` | [backend/test_outing.py:102](../backend/test_outing.py#L102) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
-| `Preview` | [backend/preview.py:38](../backend/preview.py#L38) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
-| `Preview.do_GET` | [backend/preview.py:78](../backend/preview.py#L78) | 점검 폼과 저장소의 대표 요청만 제공한다. |
-| `Preview.do_OPTIONS` | [backend/preview.py:49](../backend/preview.py#L49) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
-| `Preview.do_POST` | [backend/preview.py:92](../backend/preview.py#L92) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
-| `Preview.end_headers` | [backend/preview.py:41](../backend/preview.py#L41) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
-| `Preview.reply` | [backend/preview.py:67](../backend/preview.py#L67) | UTF-8 본문을 길이와 함께 응답한다. |
+| `Preview` | [backend/preview.py:39](../backend/preview.py#L39) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
+| `Preview.do_GET` | [backend/preview.py:79](../backend/preview.py#L79) | 점검 폼과 저장소의 대표 요청만 제공한다. |
+| `Preview.do_OPTIONS` | [backend/preview.py:50](../backend/preview.py#L50) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
+| `Preview.do_POST` | [backend/preview.py:97](../backend/preview.py#L97) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.end_headers` | [backend/preview.py:42](../backend/preview.py#L42) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
+| `Preview.reply` | [backend/preview.py:68](../backend/preview.py#L68) | UTF-8 본문을 길이와 함께 응답한다. |
 | `PreviewContractTests` | [backend/test_preview.py:12](../backend/test_preview.py#L12) | 실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다. |
 | `PreviewContractTests.request` | [backend/test_preview.py:15](../backend/test_preview.py#L15) | JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다. |
 | `PreviewContractTests.setUp` | [backend/test_preview.py:30](../backend/test_preview.py#L30) | 각 테스트가 사용할 독립적인 정상 요청을 읽는다. |
@@ -94,8 +101,9 @@
 | `run` | [utils/scripts/harness.py:63](../utils/scripts/harness.py#L63) | Execute finite static checks and optional isolated utility tests. |
 | `safe_target` | [utils/scripts/reuse.py:18](../utils/scripts/reuse.py#L18) | Resolve a relative destination without traversal, links or Git internals. |
 | `schedule_pair` | [backend/course.py:35](../backend/course.py#L35) | 두 구간과 당일 시간표를 합산해 가능·미확인·충돌 및 방문별 예상시각을 반환한다. |
+| `script` | [backend/map_view.js:9](../backend/map_view.js#L9) | JS/TS 정규식 후보; AST 검증 아님 |
 | `seoul_page` | [backend/outing.py:68](../backend/outing.py#L68) | 지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다. |
-| `server_options` | [backend/preview.py:151](../backend/preview.py#L151) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
+| `server_options` | [backend/preview.py:156](../backend/preview.py#L156) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
 | `short_text` | [backend/transit.py:41](../backend/transit.py#L41) | 이동 안내 원문을 길이 제한된 텍스트로 받아 HTML 실행 없이 표시하도록 반환한다. |
 | `signature` | [utils/scripts/watch.py:18](../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |
@@ -133,6 +141,7 @@
 | `ToolsTest.test_watcher_detects_add_modify_delete` | [utils/tests/test_tools.py:215](../utils/tests/test_tools.py#L215) | Source additions, content changes and deletion alter the watcher signature. |
 | `ToolsTest.test_watcher_excludes_its_outputs` | [utils/tests/test_tools.py:207](../utils/tests/test_tools.py#L207) | Generated outputs do not trigger another watcher cycle even without config hints. |
 | `ToolsTest.write` | [utils/tests/test_tools.py:39](../utils/tests/test_tools.py#L39) | Write a temporary UTF-8 test file and return its location. |
+| `track` | [backend/map_view.js:62](../backend/map_view.js#L62) | JS/TS 정규식 후보; AST 검증 아님 |
 | `transit_between` | [backend/transit.py:114](../backend/transit.py#L114) | 좌표 두 개로 사용자 요청당 1회 조회한다. 미설정/인증/한도/빈 결과/실패를 구별한다. |
 | `TransitTests` | [backend/test_transit.py:19](../backend/test_transit.py#L19) | 비밀값 비노출·단위·미연결·잘못된 좌표·HTTP200 오류·한도를 독립적으로 검사한다. |
 | `TransitTests.setUp` | [backend/test_transit.py:22](../backend/test_transit.py#L22) | 실제 사용자 위치와 무관한 공개 장소 좌표를 준비한다. |

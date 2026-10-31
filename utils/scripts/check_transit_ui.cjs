@@ -10,6 +10,7 @@ async function main() {
   try {
     const page = await browser.newPage({viewport:{width:390,height:844}});
     const pageErrors = [];
+    await page.route("**/map-config",route=>route.fulfill({json:{provider:"leaflet",javascript_key:""}}));
     page.on("pageerror", error => pageErrors.push(error.message));
     await page.goto("http://127.0.0.1:8765");
     await page.getByRole("button",{name:"나들이 찾기",exact:true}).click();
@@ -80,9 +81,9 @@ async function main() {
     assert.equal(await page.locator("#route-map").isVisible(),true);
     assert.equal(await page.locator("#route-steps").isVisible(),false);
     assert.match(await page.locator("#route-map-status").textContent(),/좌표가 없는 구간/);
-    assert.equal(await page.evaluate(() => routeMap.hasLayer(routeHighlight)),true);
+    assert.equal(await page.locator('#route-map path[stroke="#aa5100"][fill="none"]').count(),1);
     // 누락된 접근 도보를 직선으로 채우지 않고 제공된 지하철 선 하나만 그린다.
-    assert.equal(await page.evaluate(() => Object.values(routeMap._layers).filter(layer => layer instanceof L.Polyline && layer !== routeHighlight).length),1);
+    assert.equal(await page.locator('#route-map path.leaflet-interactive[fill="none"]').count(),2);
     await page.locator("#transit-choices button").nth(1).click();
     assert.match(await page.locator("#route-summary").textContent(),/35분.*환승 1회/);
     assert.match(await page.locator("#route-status").textContent(),/요금 미확인/);
