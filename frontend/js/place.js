@@ -146,11 +146,13 @@ async function getEngine() {
     await loadKakao();
     const k = window.kakao.maps;
     engine = { kind: 'kakao', map: new k.Map(box, { center: new k.LatLng(37.5665, 126.978), level: 6 }), layers: [] };
+    k.event.addListener(engine.map, 'click', () => { if (!$('#s08-mapwrap').classList.contains('is-full')) setBig(true); });
   } catch {
     if (!window.L) throw new Error('no map');
     const map = L.map(box, { zoomControl: false });
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '© OpenStreetMap' }).addTo(map);
     engine = { kind: 'osm', map, layers: [] };
+    map.on('click', () => { if (!$('#s08-mapwrap').classList.contains('is-full')) setBig(true); });
   }
   return engine;
 }
@@ -161,6 +163,7 @@ function draw(from, to, lines = []) {
   engine.layers.forEach((l) => (engine.kind === 'kakao' ? l.setMap(null) : l.remove()));
   engine.layers = [];
   const pts = [[to.lat, to.lng], ...(from ? [[from.lat, from.lng]] : []), ...lines.flatMap((l) => l.path)];
+  engine.pts = pts;
   if (engine.kind === 'kakao') {
     const k = window.kakao.maps;
     const pin = (p, label, cls) => new k.CustomOverlay({ position: new k.LatLng(p.lat, p.lng), content: `<div class="kpin ${cls}">${label}</div>`, yAnchor: 1.2, map: engine.map });
@@ -170,22 +173,53 @@ function draw(from, to, lines = []) {
       strokeWeight: 6, strokeColor: l.color, strokeOpacity: 0.9, strokeStyle: l.dashed ? 'shortdash' : 'solid' })));
     const bounds = new k.LatLngBounds();
     pts.forEach(([a, b]) => bounds.extend(new k.LatLng(a, b)));
-    setTimeout(() => { engine.map.relayout(); engine.map.setBounds(bounds, 40, 40, 40, 40); }, 60);
+    setTimeout(refit, 60);
     $('#s08-credit').dataset.map = '지도 © Kakao';
   } else {
     const icon = (label, cls) => L.divIcon({ className: `pin ${cls}`, html: `<span>${label}</span>`, iconSize: [56, 32], iconAnchor: [28, 16] });
     engine.layers.push(L.marker([to.lat, to.lng], { icon: icon('도착', 'pin--to') }).addTo(engine.map));
     if (from) engine.layers.push(L.marker([from.lat, from.lng], { icon: icon('출발', 'pin--from') }).addTo(engine.map));
     lines.forEach((l) => engine.layers.push(L.polyline(l.path, { color: l.color, weight: 6, opacity: 0.85, dashArray: l.dashed ? '6 8' : null }).addTo(engine.map)));
-    setTimeout(() => { engine.map.invalidateSize(); engine.map.fitBounds(pts, { padding: [40, 40], maxZoom: 16 }); }, 60);
+    setTimeout(refit, 60);
     $('#s08-credit').dataset.map = '지도 © OpenStreetMap';
   }
 }
 
-function credit(text) { $('#s08-credit').textContent = [text, $('#s08-credit').dataset.map].filter(Boolean).join(' · '); }
+/** 지도 크기가 바뀐 뒤 다시 맞추기 (출발·도착·경로가 다 보이게) */
+function refit() {
+  if (!engine?.pts?.length) return;
+  if (engine.kind === 'kakao') {
+    const k = window.kakao.maps;
+    const b = new k.LatLngBounds();
+    engine.pts.forEach(([a, c]) => b.extend(new k.LatLng(a, c)));
+    engine.map.relayout();
+    engine.map.setBounds(b, 40, 40, 40, 40);
+  } else {
+    engine.map.invalidateSize();
+    engine.map.fitBounds(engine.pts, { padding: [40, 40], maxZoom: 16 });
+  }
+}
+
+/** 지도 크게 보기: 위 상단바는 그대로 두고, 그 아래를 지도로 가득 채워요 (앱 밖으로 나가지 않아요) */
+function setBig(on) {
+  $('#s08-mapwrap').classList.toggle('is-full', on);
+  document.body.classList.toggle('map-full-open', on);
+  const info = currentMode === 'transit' && route?.transit?.kind === 'ready'
+    ? (() => { const r = route.transit.routes[route.pick] || route.transit.routes[0]; return `대중교통 약 ${Math.round(r.duration_s / 60)}분 · 환승 ${r.transfers}회`; })()
+    : $('#s08-result').textContent;
+  $('#s08-fullinfo').textContent = [$('#s08-title').textContent, info].filter(Boolean).join('  ·  ');
+  setTimeout(refit, 80);
+}
+
+/** 출처 표시: 경로 출처만 작고 희미하게. 카카오 지도는 지도 위 로고로 출처가 표시돼서 여기서는 빼요 */
+function credit(text) {
+  const map = $('#s08-credit').dataset.map;
+  $('#s08-credit').textContent = [text, map && !map.includes('Kakao') ? map : ''].filter(Boolean).join(' · ');
+}
 
 /** S08 */
 export async function renderMap(id) {
+  setBig(false);
   const c = placeById(id);
   const from = state.lastRequest?.start_location || null;
   $('#s08-title').textContent = c ? `${from?.label || '출발지'} → ${c.venue || c.title}` : '장소를 찾을 수 없어요';
@@ -229,7 +263,7 @@ async function loadWalk(c) {
 function showWalk() {
   const r = route?.walk;
   draw(route.from, route.to, r?.path?.length > 1 ? [{ path: r.path, color: COLORS.walk }] : []);
-  credit(r ? `도보 경로 ${r.provider || 'Valhalla / FOSSGIS'}` : '');
+  credit(r ? `도보 경로 © OpenStreetMap · ${r.provider || 'Valhalla / FOSSGIS'}` : '');
 }
 
 const fmtMin = (s) => `${Math.round(s / 60)}분`;
@@ -293,7 +327,7 @@ let currentMode = 'walk';
 function setMode(mode) {
   currentMode = mode;
   document.querySelectorAll('#s08 [data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
-  $('#s08-kakao').textContent = mode === 'transit' ? '카카오맵 앱으로 대중교통 길찾기 ↗' : '카카오맵 앱으로 도보 길찾기 ↗';
+  $('#s08-kakao').title = mode === 'transit' ? '카카오맵 앱에서 대중교통 실시간 경로 보기' : '카카오맵 앱에서 도보 실시간 경로 보기';
   $('#s08-walk').hidden = mode !== 'walk';
   $('#s08-transit').hidden = mode !== 'transit';
   if (!route) return;
@@ -321,6 +355,15 @@ export function initPlace() {
   $('#sheet-cancel').addEventListener('click', () => { pendingSave = null; closeSheet(); note('저장하지 않았어요. 언제든 다시 누르면 돼요.'); });
   $('#sheet-save').addEventListener('click', (e) => { if (e.target.id === 'sheet-save') { pendingSave = null; closeSheet(); } });
   document.querySelectorAll('#s08 [data-mode]').forEach((b) => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  $('#s08-big').addEventListener('click', () => setBig(true));
+  // 지도를 크게 본 상태에서 상단바 뒤로가기는 먼저 지도를 작게 해요
+  $('#s08-back').addEventListener('click', (e) => {
+    if (!$('#s08-mapwrap').classList.contains('is-full')) return;
+    e.stopPropagation();
+    setBig(false);
+  }, true);
+  $('#s08-small').addEventListener('click', () => setBig(false));
+  window.addEventListener('hashchange', () => { if (!location.hash.startsWith('#/map/')) setBig(false); });
   $('#s08-retry').addEventListener('click', () => { const id = decodeURIComponent(location.hash.split('/')[2] || ''); renderMap(id); });
 }
 
