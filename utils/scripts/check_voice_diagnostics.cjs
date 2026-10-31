@@ -1,4 +1,4 @@
-/** 단발 직접 인식·항상 보이는 실시간 로그·원문 미포함·무결과/오류 표시를 모의 장치로 확인한다. */
+/** 간결한 기본 화면·펼쳐 보는 진단 로그·단발 인식·무결과/오류를 모의 장치로 확인한다. */
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -12,6 +12,7 @@ async function ready(browser, config) {
   page.on('pageerror', error => stats.errors.push(error.message));
   page.on('request', r => { if (r.url().endsWith('/preview/chat')) stats.ai++; });
   await page.goto('http://127.0.0.1:8765/');
+  await page.locator('#chat-diagnostics > summary').click();
   await page.locator('#chat-listen-once').waitFor();
   assert.equal(await page.locator('#chat-voice-log').isVisible(), true);
   return { page, stats };
@@ -28,10 +29,41 @@ async function main() {
     console.log(`${name}: ${report.cases.at(-1).passed ? 'PASS' : 'FAIL'}`);
   }
   try {
+    await check('compact_default_hides_diagnostics_and_keeps_primary_actions', async () => {
+      const { page, stats } = await ready(browser, {});
+      await page.locator('#chat-diagnostics > summary').click();
+      for (const width of [320, 390]) {
+        await page.setViewportSize({ width, height: 844 });
+        assert.equal(await page.locator('#chat-voice-log').isVisible(), false);
+        assert.equal(await page.locator('#chat-mic-meter').isVisible(), false);
+        assert.equal(await page.locator('#chat-listen-once').isVisible(), false);
+        assert.equal(await page.locator('#chat-mic').isVisible(), true);
+        assert.equal(await page.locator('#chat-send').isVisible(), true);
+        const size = await page.locator('#dj-chat').boundingBox();
+        assert.ok(size.height < 700, `panel too tall: ${size.height}`);
+        assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      }
+      await fs.mkdir('.local/voice-diagnostics', { recursive: true });
+      await page.locator('#dj-chat').screenshot({ path: '.local/voice-diagnostics/compact-panel.png' });
+      assert.equal(stats.ai, 0); assert.deepEqual(stats.errors, []); await page.close();
+    });
+    await check('diagnostic_text_and_png_downloads_without_transcript', async () => {
+      const { page, stats } = await ready(browser, {});
+      for (const [selector, suffix] of [['#chat-log-save', '.txt'], ['#chat-log-image', '.png']]) {
+        const pending = page.waitForEvent('download'); await page.locator(selector).click();
+        const download = await pending;
+        assert.ok(download.suggestedFilename().endsWith(suffix));
+        const content = await fs.readFile(await download.path());
+        if (suffix === '.png') assert.equal(content.subarray(0, 8).toString('hex'), '89504e470d0a1a0a');
+        else assert.match(content.toString('utf8'), /오늘 나들이 음성 진단/);
+      }
+      assert.equal(stats.ai, 0); assert.deepEqual(stats.errors, []); await page.close();
+    });
     await check('original_checks_one_shot_button_logs_and_transcribes', async () => {
       const { page, stats } = await ready(browser, { texts: ['국악을 듣고 싶어요'] });
       await page.goto('http://127.0.0.1:8765/checks');
       await page.locator('#begin').click();
+      await page.locator('#preview-diagnostics > summary').click();
       assert.equal(await page.locator('#voice-debug').isVisible(), true);
       await page.locator('#listen').click();
       await page.waitForFunction(() => document.querySelector('[name="note"]').value.includes('국악'));

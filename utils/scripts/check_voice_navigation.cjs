@@ -56,14 +56,42 @@ async function main() {
     console.log(`${name}: ${report.cases.at(-1).passed ? 'PASS' : 'FAIL'}`);
   }
   try {
-    await check('home_greeting_two_turns_auto_search', async () => {
-      const { page, stats } = await ready(browser, ['음악을 듣고 싶어요', '국악이 좋아요']);
+    await check('home_greeting_followup_then_original_menu_with_known_need', async () => {
+      const { page, stats } = await ready(browser, ['음악을 듣고 싶어요']);
+      await page.unroute('**/preview/chat');
+      await page.route('**/preview/chat', route => {
+        stats.calls++;
+        const body = route.request().postDataJSON();
+        return route.fulfill({ json: response(body, { updated_condition_draft: { ...body.condition_draft,
+          ...(stats.calls === 1 ? { music_followup: true } : { category: '국악', categories: ['국악'], music_followup: false, free_only: true, budget_krw: 10000 }) } }) });
+      });
       assert.equal(await page.evaluate(() => voiceTest.starts), 0);
-      await runTurns(page, 2);
-      assert.match(page.url(), /#\/search$/);
-      assert.deepEqual(await page.evaluate(() => [voiceTest.greetings, voiceTest.starts, voiceTest.speaks]), [1, 2, 2]);
-      assert.match(await page.evaluate(() => voiceTest.spoken[0]), /어떤 나들이/);
+      await page.locator('#chat-mic').click();
+      await page.waitForFunction(() => voiceTest.starts === 2);
+      assert.match(page.url(), /#\/home$/);
+      assert.equal(await page.evaluate(() => voiceTest.spoken[0]), '안녕하세요.');
+      await page.evaluate(() => {
+        const engine = voiceTest.sessions[1].engine;
+        const result = [{ transcript: '국악이 좋아요' }]; result.isFinal = true;
+        engine.onspeechstart(); engine.onresult({ results: [result] }); engine.onend();
+      });
+      await page.waitForURL('**/checks?from=conversation');
+      await page.locator('#form:not([hidden]) #fields:not([disabled])').waitFor();
+      assert.equal(await page.locator('[name="category"]').inputValue(), '국악');
+      assert.equal(await page.locator('[name="lat"]').inputValue(), '');
+      assert.equal(await page.locator('[name="lng"]').inputValue(), '');
+      assert.equal(await page.locator('[name="start"]').inputValue(), '');
+      assert.match(await page.locator('#conversation-summary').textContent(), /국악/);
       assert.equal(stats.calls, 2); assert.equal(stats.recommend, 0);
+      await page.locator('[name="label"]').fill('모의 출발지');
+      await page.locator('[name="lat"]').fill('37.58'); await page.locator('[name="lng"]').fill('127.04');
+      await page.locator('[name="start"]').fill('2026-10-31T10:00'); await page.locator('[name="end"]').fill('2026-10-31T12:00');
+      await page.locator('[name="category"]').selectOption('전시');
+      await page.route('**/preview/recommend', route => route.fulfill({ status: 502, json: { message: '모의 추천 오류' } }));
+      const request = page.waitForRequest(r => r.url().endsWith('/preview/recommend'));
+      await page.locator('#fields > button.primary').click();
+      const payload = (await request).postDataJSON();
+      assert.deepEqual(payload.categories, ['전시']); assert.equal(payload.free_only, true); assert.equal(payload.budget_krw, 10000);
       assert.deepEqual(stats.errors, []);
       await page.screenshot({ path: '.local/voice-navigation/automatic-chat.png', fullPage: true });
       await page.close();
@@ -81,7 +109,7 @@ async function main() {
     await check('missing_candidate_and_course_do_not_navigate', async () => {
       const { page, stats } = await ready(browser, ['9번째 장소 보여줘', '길찾기 화면 보여줘']);
       await runTurns(page, 2);
-      assert.match(page.url(), /#\/search$/);
+      assert.match(page.url(), /#\/home$/);
       const spoken = await page.evaluate(() => voiceTest.spoken.join(' '));
       assert.match(spoken, /그 번호.*없어요/); assert.match(spoken, /아직 연결 중/);
       assert.equal(stats.calls, 0); assert.deepEqual(stats.errors, []); await page.close();
@@ -127,7 +155,7 @@ async function main() {
     if (process.argv.includes('--live')) await check('real_naito_home_music_followup_mock_audio', async () => {
       const { page, stats } = await ready(browser, ['음악을 듣고 싶어요'], '/home', true);
       await runTurns(page, 1);
-      assert.match(page.url(), /#\/search$/);
+      assert.match(page.url(), /#\/home$/);
       assert.match(await page.locator('#chat-status').textContent(), /어떤 음악/);
       assert.deepEqual(stats.errors, []); await page.close();
     });

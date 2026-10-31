@@ -28,7 +28,8 @@ async function ready(browser, mode = 'tone', checks = false) {
   await page.addInitScript(devices, { realMeter: true });
   await page.addInitScript(syntheticInput, mode);
   await page.goto('http://127.0.0.1:8765/' + (checks ? 'checks' : ''));
-  if (checks) await page.locator('#begin').click();
+  if (checks) { await page.locator('#begin').click(); await page.locator('#preview-diagnostics > summary').click(); }
+  else await page.locator('#chat-diagnostics > summary').click();
   const meter = page.locator(checks ? '#preview-mic-meter' : '#chat-mic-meter');
   await meter.locator('.meter-test').waitFor();
   return { page, meter, errors };
@@ -72,7 +73,7 @@ async function main() {
       const calls = await page.evaluate(() => meterFixture.calls);
       await page.locator('#chat-mic').click();
       await page.waitForFunction(() => voiceTest.starts === 1);
-      assert.match(page.url(), /#\/search$/);
+      assert.match(page.url(), /#\/home$/);
       assert.equal(await page.evaluate(() => meterFixture.calls), calls);
       assert.equal(await page.evaluate(() => meterFixture.tracks.every(track => track.readyState === 'ended')), true);
       assert.equal(await meter.locator('.meter-test').isDisabled(), true);

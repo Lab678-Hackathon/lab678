@@ -254,6 +254,17 @@
       "utils/scripts/check_culture_ui.cjs",
       "docs/development/service-key-status.md"
     ],
+    "자동 음성 시작 지연·첫 안내 선택·시간 진단": [
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_session.cjs",
+      "utils/scripts/check_voice_navigation.cjs",
+      "docs/development/voice-start-latency.md",
+      "backend/team_voice_actions.js",
+      "backend/preview.html",
+      "utils/scripts/check_voice_diagnostics.cjs",
+      "utils/scripts/check_microphone_meter.cjs"
+    ],
     "자동 음성 대화·횟수/무응답 종료": [
       "backend/voice_session.js",
       "backend/team_chat.js",

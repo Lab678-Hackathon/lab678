@@ -1,20 +1,20 @@
 /** 횟수와 무응답 시간으로 제한된 브라우저 음성 대화. 시작 클릭 없이 재생/녹음하지 않는다. */
 
-/** 한 응답을 기다린다. no-speech로 엔진이 일찍 끝나도 설정한 무응답 기한은 유지한다. */
+/** 최종 전사를 기다린다. promptAfterSeconds까지 발화/결과가 없으면 빈 문자열로 유도 질문을 요청한다. */
 export function listenForReply(signal, silenceSeconds, onTranscript, onListening = () => {}, options = {}) {
   return new Promise((resolve, reject) => {
     const log = options.log || (() => {});
     const Engine = window.SpeechRecognition || window.webkitSpeechRecognition;
     log(`engine=${window.SpeechRecognition ? 'SpeechRecognition' : window.webkitSpeechRecognition ? 'webkitSpeechRecognition' : 'unsupported'} · online=${navigator.onLine} · secure=${window.isSecureContext}`);
     if (!Engine) { reject(new Error('이 브라우저는 음성 인식을 지원하지 않아요. 같은 입력칸에 직접 입력하거나 기기의 키보드 받아쓰기로 대화를 이어갈 수 있어요.')); return; }
-    let engine, retry, quietTimer, speechTimer, done = false, text = '', failed = false, speaking = false;
+    let engine, retry, quietTimer, speechTimer, promptTimer, done = false, text = '', failed = false, speaking = false;
     /** 타이머·이벤트를 정리하고 현재 녹음만 중단한다. 늦은 콜백은 적용하지 않는다. */
     function finish(error, value) {
       if (done) return;
       done = true;
       log(error ? `finish error=${error.name}: ${error.message}` : `finish final_chars=${value?.length || 0}`);
       onListening(false);
-      clearTimeout(retry); clearTimeout(quietTimer); clearTimeout(speechTimer);
+      clearTimeout(retry); clearTimeout(quietTimer); clearTimeout(speechTimer); clearTimeout(promptTimer);
       signal.removeEventListener('abort', cancel);
       if (engine) {
         engine.onend = engine.onerror = engine.onresult = engine.onspeechstart = engine.onspeechend = engine.onaudiostart = engine.onaudioend = engine.onstart = engine.onnomatch = engine.onsoundstart = engine.onsoundend = null;
@@ -27,19 +27,21 @@ export function listenForReply(signal, silenceSeconds, onTranscript, onListening
     /** 말하지 않는 동안만 타이머를 적용한다. 발화 중에는 별도 60초 상한을 쓴다. */
     function waitForSpeech() {
       clearTimeout(quietTimer);
-      quietTimer = setTimeout(() => finish(new Error(`${silenceSeconds}초 동안 인식된 답변이 없어 음성 대화를 마쳤어요. 직접 입력으로 이어갈 수 있어요.`)), silenceSeconds * 1000);
+      quietTimer = setTimeout(() => finish(new Error(`${options.totalSilenceSeconds || silenceSeconds}초 동안 인식된 답변이 없어 음성 대화를 마쳤어요. 직접 입력으로 이어갈 수 있어요.`)), silenceSeconds * 1000);
     }
     /** 브라우저가 no-speech로 일찍 닫으면 전체 무응답 타이머 안에서 다시 듣는다. */
     function begin() {
       if (done || signal.aborted) { cancel(); return; }
       engine = new Engine(); engine.lang = 'ko-KR'; engine.interimResults = options.interimResults !== false; engine.continuous = false;
       const attempt = engine;
+      const requestedAt = performance.now();
       for (const name of ['start', 'nomatch', 'soundstart', 'soundend']) engine['on' + name] = () => { if (!done && attempt === engine) log(name); };
-      engine.onaudiostart = () => { if (!done && !signal.aborted && attempt === engine) { log('audiostart'); onListening(true); } };
+      engine.onaudiostart = () => { if (!done && !signal.aborted && attempt === engine) { log(`audiostart · start_to_audio_ms=${Math.round(performance.now() - requestedAt)}`); onListening(true); } };
       engine.onaudioend = () => { if (!done && !signal.aborted && attempt === engine) { log('audioend'); onListening(false); } };
       engine.onspeechstart = () => {
         if (done || attempt !== engine) return;
         speaking = true;
+        clearTimeout(promptTimer);
         log('speechstart');
         onListening(true);
         clearTimeout(quietTimer);
@@ -49,6 +51,7 @@ export function listenForReply(signal, silenceSeconds, onTranscript, onListening
       engine.onresult = event => {
         if (done || signal.aborted || attempt !== engine) return;
         const items = Array.from(event.results);
+        clearTimeout(promptTimer);
         text = items.filter(item => item.isFinal).map(item => item[0].transcript).join(' ').trim().slice(0, 1000);
         const interim = items.filter(item => !item.isFinal).map(item => item[0].transcript).join(' ').trim().slice(0, 1000);
         log(`result final_chars=${text.length} interim_chars=${interim.length} (내용 제외)`);
@@ -78,34 +81,45 @@ export function listenForReply(signal, silenceSeconds, onTranscript, onListening
     }
     signal.addEventListener('abort', cancel, { once: true });
     if (signal.aborted) { cancel(); return; }
-    waitForSpeech(); begin();
+    waitForSpeech();
+    if (options.promptAfterSeconds > 0 && options.promptAfterSeconds < silenceSeconds) {
+      promptTimer = setTimeout(() => { log('initial silence · short prompt due'); finish(null, ''); }, options.promptAfterSeconds * 1000);
+    }
+    begin();
   });
 }
 
-/** AI 답변 낭독이 끝난 뒤에만 다음 마이크를 열 수 있도록 종료를 기다린다. */
-export function readVoiceReply(text, signal) {
+/** AI 낭독 종료를 기다리고 본문 없이 요청/출력 시작/종료 시간을 기록한다. 중지 시 출력과 대기를 해제한다. */
+export function readVoiceReply(text, signal, log = () => {}) {
   return new Promise((resolve, reject) => {
     if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
       reject(new Error('이 브라우저에서 답변을 읽을 수 없어 음성 대화를 멈췄어요. 텍스트로 이어가 주세요.')); return;
     }
     const speech = new SpeechSynthesisUtterance(text); speech.lang = 'ko-KR';
-    let done = false;
+    const requestedAt = performance.now();
+    let done = false, startedAt = null;
     /** 늦은 TTS 이벤트와 중복 종료를 차단한다. */
     function finish(error) {
       if (done) return;
       done = true; clearTimeout(timer); signal.removeEventListener('abort', cancel);
-      speech.onend = speech.onerror = null;
+      speech.onstart = speech.onend = speech.onerror = null;
+      log(`tts ${error ? 'stopped' : 'end'} · total_ms=${Math.round(performance.now() - requestedAt)} · playback_ms=${startedAt === null ? 'unknown' : Math.round(performance.now() - startedAt)}`);
       if (error) { speechSynthesis.cancel(); reject(error); } else resolve();
     }
     /** 중지 시 읽기도 함께 멈춘다. */
     function cancel() { finish(new DOMException('Stopped', 'AbortError')); }
     const timer = setTimeout(() => finish(new Error('답변 읽기가 끝나지 않아 대화를 멈췄어요. 화면의 안내를 확인해 주세요.')), 60000);
     signal.addEventListener('abort', cancel, { once: true });
+    speech.onstart = () => {
+      if (done || signal.aborted) return;
+      startedAt = performance.now();
+      log(`tts start · request_to_start_ms=${Math.round(startedAt - requestedAt)}`);
+    };
     speech.onend = () => finish();
     speech.onerror = () => finish(new Error('답변을 읽지 못해 음성 대화를 멈췄어요. 텍스트로 이어가 주세요.'));
     if (signal.aborted) { cancel(); return; }
     speechSynthesis.cancel();
-    try { speechSynthesis.speak(speech); } catch { finish(new Error('답변 읽기를 시작하지 못했어요.')); }
+    try { log(`tts request · chars=${text.length} (내용 제외)`); speechSynthesis.speak(speech); } catch { finish(new Error('답변 읽기를 시작하지 못했어요.')); }
   });
 }
 
@@ -137,20 +151,30 @@ export class VoiceSession {
     const phase = (name, message) => { this.onLog(`phase=${name}`); this.onState({ active: true, phase: name, turns: this.turns, limit: maxTurns, message }); };
     try {
       if (initialPrompt) {
-        phase('speaking', 'AI가 먼저 질문해요. 안내가 끝나면 말씀해 주세요.');
-        await readVoiceReply(initialPrompt, signal);
+        phase('speaking', '인사하고 있어요. 소리가 안 들리면 스피커를 켜 주세요. ‘듣는 중’이 표시되면 말씀해 주세요.');
+        await readVoiceReply(initialPrompt, signal, this.onLog);
         if (signal.aborted) return;
       }
       while (this.controller === controller && this.turns < maxTurns) {
         phase('starting', '마이크 연결을 기다려요. 권한 안내가 나오면 허용해 주세요.');
         this.onInterim('', '');
-        const text = await listenForReply(signal, silenceSeconds, this.onTranscript, (listening, reason) => {
+        /** 첫 무응답 유도와 일반 듣기가 같은 결과/중지 경계를 사용한다. */
+        const listen = (seconds, options = {}) => listenForReply(signal, seconds, this.onTranscript, (listening, reason) => {
           if (this.controller !== controller || signal.aborted) return;
           phase(listening ? 'listening' : 'starting', listening ? `듣고 있어요. 지금 말씀해 주세요. ${silenceSeconds}초 동안 답변이 없으면 마칩니다.`
             : reason === 'no-result' ? '인식된 문장이 없어 다시 듣습니다. 직접 입력으로도 대화할 수 있어요.' : '마이크 연결을 기다리고 있어요.');
-        }, { log: this.onLog, onInterim: (interim, confirmed) => {
+        }, { ...options, totalSilenceSeconds: silenceSeconds, log: this.onLog, onInterim: (interim, confirmed) => {
           if (this.controller === controller && !signal.aborted) this.onInterim(interim, confirmed);
         } });
+        let text = await listen(silenceSeconds, this.turns === 0 ? { promptAfterSeconds: 3 } : {});
+        if (signal.aborted) return;
+        if (!text) {
+          phase('speaking', '어떤 나들이를 원하세요?');
+          await readVoiceReply('어떤 나들이를 원하세요?', signal, this.onLog);
+          if (signal.aborted) return;
+          phase('starting', '답변을 기다려요. ‘듣는 중’이 표시되면 말씀해 주세요.');
+          text = await listen(silenceSeconds - 3);
+        }
         if (signal.aborted) return;
         phase('thinking', '말씀하신 조건을 확인하고 있어요…');
         const result = await this.submit(text, signal);
@@ -158,7 +182,7 @@ export class VoiceSession {
         if (!result?.assistant_text) throw new Error('대화 응답을 확인하지 못해 자동 대화를 멈췄어요. 화면 안내를 확인해 주세요.');
         this.turns++;
         phase('speaking', '답변을 읽고 있어요. 읽기가 끝나면 다시 듣습니다.');
-        await readVoiceReply(result.assistant_text, signal);
+        await readVoiceReply(result.assistant_text, signal, this.onLog);
         if (signal.aborted) return;
         if (result.end_session) { this.stop('요청하신 대화를 마쳤어요.'); return; }
         if (result.conflicts?.length) { this.stop('변경할 조건을 화면에서 확인해 주세요. 자동 대화를 멈췄어요.'); return; }

@@ -29,45 +29,47 @@ const box = document.createElement('section');
 box.id = 'dj-chat';
 box.className = 'field';
 box.setAttribute('aria-label', 'AI와 나들이 조건 정하기');
-box.innerHTML = `<h2>말하거나 입력해서 나들이 찾기</h2>
- <p id="chat-device-status" class="caption"></p>
- <p id="chat-screen" class="caption"></p>
- <p class="muted">시작 한 번이면 AI 질문 → 내 답변 듣기 → 다음 질문이 자동으로 이어져요.</p>
+box.innerHTML = `<h2>AI와 대화하기</h2>
+ <p id="chat-status" role="status" aria-live="polite"></p>
  <label for="chat-text">하고 싶은 말씀</label>
- <textarea id="chat-text" rows="3" maxlength="1000" placeholder="국악을 듣고 싶어요"></textarea>
- <p id="chat-mic-state">자동 대화 꺼짐</p>
+ <textarea id="chat-text" rows="2" maxlength="1000" placeholder="말하거나 직접 입력해 주세요"></textarea>
+ <p id="chat-mic-state" hidden>자동 대화 꺼짐</p>
  <div class="chat-actions"><button type="button" class="btn btn--primary" id="chat-mic" data-phase="idle" aria-pressed="false" aria-label="자동 음성 대화 켜기" aria-describedby="chat-mic-state chat-voice-status"><span class="mic-visual" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/><path class="mic-off-slash" d="m3 3 18 18"/></svg></span><span id="chat-mic-label">자동 음성 대화 시작</span></button>
- <button type="button" class="btn btn--outline" id="chat-voice-stop" disabled>대화 중지</button>
- <button type="button" class="btn btn--outline" id="chat-listen-once" aria-pressed="false">한 번 말하기</button>
+ <button type="button" class="btn btn--outline" id="chat-voice-stop" disabled hidden>대화 중지</button>
  <button type="button" class="btn btn--primary" id="chat-send">보내기</button></div>
- <p id="chat-voice-status" role="status" aria-live="polite" data-phase="idle">마이크 버튼을 누르면 AI가 먼저 질문해요. 다시 누르면 대화와 마이크가 꺼져요.</p>
- <p id="chat-live-transcript" role="status" aria-live="polite" data-state="idle">인식된 말이 여기에 표시됩니다.</p>
- <div id="chat-mic-meter"></div>
- <section id="chat-voice-debug"><h3>음성 이벤트·오류 로그</h3><div class="chat-actions"><button type="button" id="chat-log-copy">로그 복사</button><button type="button" id="chat-log-clear">로그 지우기</button></div><pre id="chat-voice-log" tabindex="0" aria-label="음성 이벤트 및 오류 로그"></pre><p id="chat-log-copy-status" role="status"></p></section>
- <p class="caption muted">“음악을 듣고 싶어요”, “조건 바꿔”, “두 번째 장소 자세히 보여줘”처럼 말해 보세요.</p>
+ <p id="chat-voice-status" role="status" aria-live="polite" data-phase="idle">시작을 누르면 인사 후 대화를 시작해요.</p>
+ <p id="chat-live-transcript" role="status" aria-live="polite" data-state="idle" hidden></p>
+ <p id="chat-preferences"></p><div id="chat-conflicts" hidden></div>
  <details id="chat-voice-settings"><summary>음성 대화 설정</summary>
  <label>최대 대화 횟수 <input id="chat-max-turns" type="number" min="1" max="10" step="1">회</label>
  <label>무응답 자동 종료 <input id="chat-silence-seconds" type="number" min="5" max="60" step="1">초</label>
- <p class="caption muted">내 말과 AI 답변을 합쳐 1회예요. 답변 읽기 중에는 무응답 시간을 세지 않아요. 조건이 준비되면 먼저 멈추며, 추천은 직접 확인 후 진행해요.</p></details>
- <p id="chat-status" role="status" aria-live="polite"></p><p id="chat-preferences"></p>
- <div id="chat-conflicts" hidden></div><details><summary>대화 기록</summary><div id="chat-history"></div></details>
+ <label><input id="chat-read-opening" type="checkbox"> 시작할 때 인사 먼저 듣기</label>
+ <p class="caption muted">기본은 짧은 인사를 들은 뒤 말하기예요. 스피커를 켜 주세요. 인사 듣기를 끄면 바로 듣기를 준비해요.</p>
+ <p class="caption muted">말이 없으면 3초 뒤 한 번만 질문해요. 답변 읽기 시간은 무응답 시간에 포함하지 않아요.</p>
  <div class="chat-actions"><button type="button" class="link-btn" id="chat-read">답변 읽기</button>
  <button type="button" class="link-btn" id="chat-stop">읽기 중지</button>
- <label><input id="chat-auto-read" type="checkbox"> 텍스트 대화 답변도 읽기</label></div>`;
+ <label><input id="chat-auto-read" type="checkbox"> 텍스트 대화 답변도 읽기</label></div></details>
+ <details><summary>대화 기록</summary><div id="chat-history"></div></details>
+ <details id="chat-diagnostics"><summary>마이크 점검·로그</summary>
+ <p id="chat-device-status" class="caption"></p><p id="chat-screen" class="caption"></p>
+ <button type="button" class="btn btn--outline" id="chat-listen-once" aria-pressed="false">한 번 말하기</button>
+ <div id="chat-mic-meter"></div>
+ <section id="chat-voice-debug"><h3>음성 이벤트·오류 로그</h3><div class="chat-actions"><button type="button" id="chat-log-copy">로그 복사</button><button type="button" id="chat-log-save">텍스트 저장</button><button type="button" id="chat-log-image">로그 이미지 저장</button><button type="button" id="chat-log-clear">로그 지우기</button></div><pre id="chat-voice-log" tabindex="0" aria-label="음성 이벤트 및 오류 로그"></pre><p id="chat-log-copy-status" role="status"></p></section></details>`;
 const style = document.createElement('style');
 style.textContent = '#dj-chat textarea{width:100%;box-sizing:border-box;font:inherit;padding:12px;border:1px solid #687c71;border-radius:12px}#dj-chat .chat-actions{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0}#dj-chat .btn{flex:1;min-width:120px}#dj-chat [hidden]{display:none!important}#chat-history p{white-space:pre-wrap;overflow-wrap:anywhere}#chat-conflicts{padding:16px;border:2px solid #8b632a;border-radius:12px;margin:12px 0}#chat-conflicts p{overflow-wrap:anywhere}';
 document.head.append(style);
-style.textContent += '#chat-voice-settings{border:1px solid #687c71;border-radius:12px;padding:12px;margin:12px 0}#chat-voice-settings summary{font-weight:700;cursor:pointer;padding:6px 0}#chat-voice-settings label{display:block;margin:12px 0}#chat-voice-settings input{font:inherit;width:90px;min-height:44px;padding:6px;box-sizing:border-box;margin:0 6px}#chat-voice-status{white-space:pre-wrap}';
+style.textContent += '#chat-voice-settings{border:1px solid #687c71;border-radius:12px;padding:12px;margin:12px 0}#chat-voice-settings summary{font-weight:700;cursor:pointer;padding:6px 0}#chat-voice-settings label{display:block;margin:12px 0}#chat-voice-settings input[type="number"]{font:inherit;width:90px;min-height:44px;padding:6px;box-sizing:border-box;margin:0 6px}#chat-voice-settings input[type="checkbox"]{width:24px;height:24px;vertical-align:middle;margin-right:8px}#chat-voice-status{white-space:pre-wrap}';
 style.textContent += '#dj-chat{padding:20px;border:2px solid #547562;border-radius:16px;background:#fff;margin:16px 0}#dj-chat h2{font-size:1.35rem;margin:0 0 12px}#dj-chat p{overflow-wrap:anywhere}';
 style.textContent += '#dj-chat #chat-mic{display:flex;align-items:center;justify-content:center;gap:12px;flex-basis:100%;min-height:64px;padding:16px;font-size:19px;line-height:1.5;border:2px solid #245e48;background:#fff;color:#245e48}#dj-chat #chat-mic svg{width:30px;height:30px;flex-shrink:0}#dj-chat #chat-mic[aria-pressed="true"]{background:#205d46;color:#fff;border-color:#205d46;box-shadow:0 0 0 4px #d9eee2}#chat-mic[aria-pressed="true"] .mic-off-slash{display:none}#chat-mic-state{font-size:18px;font-weight:750;padding:10px 12px;border-radius:10px;background:#edf1ee;color:#43564a}#chat-mic-state[data-active="true"]{background:#d9eee2;color:#164c36}';
 style.textContent += '#chat-mic .mic-visual{position:relative;display:grid;place-items:center;width:44px;height:44px;flex-shrink:0}#chat-mic .mic-visual svg{position:relative;z-index:1}#chat-mic .mic-visual::before,#chat-mic .mic-visual::after{content:"";position:absolute;inset:0;border:2px solid currentColor;border-radius:50%;opacity:0;pointer-events:none}#chat-mic[data-phase="listening"] .mic-visual::before,#chat-mic[data-phase="listening"] .mic-visual::after{animation:lab678-mic-ripple 1.8s ease-out infinite}#chat-mic[data-phase="listening"] .mic-visual::after{animation-delay:.9s}#chat-mic-state[data-phase="listening"]{border-left:5px solid #205d46}#chat-mic-state[data-phase="starting"]{background:#fff3d9;color:#6a4b12}@keyframes lab678-mic-ripple{0%{transform:scale(.65);opacity:.75}100%{transform:scale(1.65);opacity:0}}@media(prefers-reduced-motion:reduce){#chat-mic[data-phase="listening"] .mic-visual::before,#chat-mic[data-phase="listening"] .mic-visual::after{animation:none;transform:scale(1.1);opacity:.6}#chat-mic[data-phase="listening"] .mic-visual::after{display:none}}';
 style.textContent += '#chat-voice-debug{padding:14px;border:1px solid #9faeb0;border-radius:12px;margin:14px 0}#chat-voice-debug h3{font-size:19px;margin:0 0 10px}#chat-voice-log{white-space:pre-wrap;overflow-wrap:anywhere;max-height:280px;overflow:auto;font:15px/1.6 ui-monospace,monospace;background:#f0f3f4;padding:12px;border-radius:8px}';
 style.textContent += '#chat-live-transcript{padding:14px;border:2px solid #79978a;border-radius:12px;background:#f2f7f4;font-size:20px;line-height:1.7;white-space:pre-wrap}#chat-live-transcript[data-state="interim"]{border-style:dashed}';
+style.textContent += '#dj-chat{display:block;padding:16px}#dj-chat details{margin:4px 0}#dj-chat summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:650}#dj-chat p:empty{display:none}#chat-voice-status{font-size:16px;line-height:1.5;margin:8px 0}#chat-status{font-size:19px;line-height:1.6;margin-bottom:12px}#chat-voice-settings{padding:0 10px}#s01 .home__hero,#s01 [data-tip]{display:none}#chat-mic[data-phase="speaking"] .mic-visual svg{display:none}#chat-mic[data-phase="speaking"] .mic-visual::before{content:"🔊";border:0;opacity:1;font-size:32px;display:grid;place-items:center}#chat-mic[data-phase="thinking"] .mic-visual svg,#chat-mic[data-phase="starting"] .mic-visual svg{display:none}#chat-mic[data-phase="thinking"] .mic-visual::before,#chat-mic[data-phase="starting"] .mic-visual::before{content:"⏳";border:0;opacity:1;font-size:30px;display:grid;place-items:center}';
 root.querySelector('[data-field="start"]').before(box);
 const $ = (selector) => box.querySelector(selector);
 const inputMeter = mountInputMeter($('#chat-mic-meter'));
 
-/** 전사 내용 없이 실제 엔진 이벤트/오류/환경 정보를 화면에 항상 남긴다. 로그는 메모리에만 둔다. */
+/** 전사 내용 없이 엔진 이벤트를 기록한다. 접힌 점검 메뉴에서도 메모리 로그를 계속 갱신한다. */
 function logVoice(message) {
   diagnosticLines.push(`+${Math.round(performance.now() - diagnosticStart)}ms ${message}`);
   if (diagnosticLines.length > 200) diagnosticLines.shift();
@@ -78,6 +80,7 @@ function logVoice(message) {
 /** 중간 결과는 화면에서만 갱신한다. 확정 전에는 AI 전송·대화 저장·조건 변경을 하지 않는다. */
 function showLiveTranscript(interim, confirmed = '') {
   const target = $('#chat-live-transcript');
+  target.hidden = !interim && !confirmed;
   target.dataset.state = interim ? 'interim' : confirmed ? 'final' : 'waiting';
   target.textContent = interim ? `듣는 중(임시): ${[confirmed, interim].filter(Boolean).join(' ')}`
     : confirmed ? `인식 확정: ${confirmed}` : '말씀해 주세요. 인식되는 문장을 여기에 표시해요.';
@@ -116,10 +119,38 @@ $('#chat-log-copy').addEventListener('click', async () => {
   catch { $('#chat-log-copy-status').textContent = '로그 내용을 선택해 직접 복사해 주세요.'; }
 });
 $('#chat-log-clear').addEventListener('click', () => { diagnosticLines.length = 0; logVoice('로그 지움'); });
+/** 현재 메모리 로그를 로컬 파일로 저장한다. 이미지에는 화면 전체나 전사/AI 본문을 넣지 않는다. */
+async function saveVoiceLog(asImage) {
+  try {
+    const content = ['오늘 나들이 음성 진단', new Date().toISOString(), ...diagnosticLines].join('\n');
+    let blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    if (asImage) {
+      const rows = content.split('\n').flatMap(line => {
+        const chars = Array.from(line), parts = [];
+        do { parts.push(chars.splice(0, 90).join('')); } while (chars.length);
+        return parts;
+      });
+      const canvas = document.createElement('canvas'); canvas.width = 1280; canvas.height = 48 + rows.length * 25;
+      const context = canvas.getContext('2d');
+      context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height);
+      context.fillStyle = '#17363b'; context.font = '18px monospace';
+      rows.forEach((line, index) => context.fillText(line, 24, 32 + index * 25));
+      blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('이미지 생성 실패');
+    }
+    const url = URL.createObjectURL(blob), link = document.createElement('a');
+    link.href = url; link.download = `voice-log-${Date.now()}.${asImage ? 'png' : 'txt'}`;
+    link.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+    $('#chat-log-copy-status').textContent = asImage ? '로그 이미지를 저장했어요.' : '로그 텍스트를 저장했어요.';
+  } catch { $('#chat-log-copy-status').textContent = '저장하지 못했어요. 로그 복사로 보관해 주세요.'; }
+}
+$('#chat-log-save').addEventListener('click', () => saveVoiceLog(false));
+$('#chat-log-image').addEventListener('click', () => saveVoiceLog(true));
 $('#chat-text').value = state.chat.text || '';
 const savedVoice = state.chat.voiceSettings || {};
 $('#chat-max-turns').value = Number.isInteger(savedVoice.maxTurns) && savedVoice.maxTurns >= 1 && savedVoice.maxTurns <= 10 ? savedVoice.maxTurns : 5;
 $('#chat-silence-seconds').value = Number.isInteger(savedVoice.silenceSeconds) && savedVoice.silenceSeconds >= 5 && savedVoice.silenceSeconds <= 60 ? savedVoice.silenceSeconds : 15;
+$('#chat-read-opening').checked = savedVoice.readOpening !== false;
 
 /** 현재 팀 입력을 조건 초안으로 만든다. 미선택 출발지에 기본 좌표를 채우지 않는다. */
 function draft() {
@@ -156,8 +187,20 @@ function mountConversation() {
     else target.prepend(box);
   }
   $('#chat-screen').textContent = `현재 화면 · ${screen.name}`;
-  const manual = document.querySelector('#s01 button[data-go="/search"]');
-  if (manual) manual.textContent = '직접 입력으로 찾기';
+  const manual = document.querySelector('#chat-manual-entry, #s01 button[data-go="/search"]');
+  if (manual) {
+    manual.id = 'chat-manual-entry'; manual.removeAttribute('data-go'); manual.textContent = '직접 설정하기';
+    manual.onclick = () => openOriginalMenu(draft(), $('#chat-text').value);
+  }
+}
+
+/** 같은 출처의 기존 메뉴로 검증된 초안을 한 번 전달한다. URL에 대화/좌표를 넣거나 추천을 실행하지 않는다. */
+function openOriginalMenu(need, message) {
+  try {
+    sessionStorage.setItem('lab678_need_handoff', JSON.stringify({ version: 1, draft: need, message, createdAt: Date.now() }));
+    voiceSession?.stop('원하는 활동을 확인했어요. 처음 나들이 설정 메뉴로 이동해요.');
+    location.assign('/checks?from=conversation');
+  } catch { note('설정 메뉴를 열지 못했어요. 다시 시도해 주세요.'); }
 }
 
 /** 음성이 요청한 알려진 화면으로 이동할 때만 대화를 이어간다. 수동 이동은 중지한다. */
@@ -352,7 +395,7 @@ async function send(voiceSignal = null) {
     if (!voiceSignal && $('#chat-auto-read').checked) speak();
     return result;
   }
-  await navigateVoice('/search');
+  if (screenContext().kind !== 'home') await navigateVoice('/search');
   if (voiceSignal?.aborted) return;
   const mine = ++state.chat.revision;
   const current = draft();
@@ -391,6 +434,12 @@ async function send(voiceSignal = null) {
       if (el) { el.textContent = error.message; el.hidden = false; }
     }
     searchOrigin();
+    const need = result.updated_condition_draft;
+    const hasNeed = !need.music_followup && !result.conflicts?.length && !need.unsupported_requirements?.length
+      && (need.categories?.some(value => value !== '전체') || (need.category && need.category !== '전체') || need.keywords?.length);
+    if (screenContext().kind === 'home' && hasNeed) {
+      openOriginalMenu(need, message);
+    }
     if (!voiceSignal && $('#chat-auto-read').checked) speak();
     return result;
   } catch (error) {
@@ -407,7 +456,7 @@ async function send(voiceSignal = null) {
   }
 }
 
-/** 설정 범위를 검증하고 현재 브라우저 세션에 저장한다. 자동 대화는 저장·재개하지 않는다. */
+/** 횟수/무응답과 시작 안내 선택을 세션에 저장한다. 예전 설정은 기존처럼 첫 안내를 읽는다. */
 function voiceSettings() {
   const maxTurns = Number($('#chat-max-turns').value);
   const silenceSeconds = Number($('#chat-silence-seconds').value);
@@ -415,7 +464,7 @@ function voiceSettings() {
     $('#chat-voice-status').textContent = '대화 횟수는 1~10회, 무응답 시간은 5~60초로 설정해 주세요.';
     return null;
   }
-  state.chat.voiceSettings = { maxTurns, silenceSeconds }; save();
+  state.chat.voiceSettings = { maxTurns, silenceSeconds, readOpening: $('#chat-read-opening').checked }; save();
   return state.chat.voiceSettings;
 }
 /** 자동/단발 인식 상태를 표시하고 독립 미터의 동시 마이크 캡처를 막는다. */
@@ -426,7 +475,9 @@ function renderVoiceState({ active, phase, turns, limit, message }, mode = 'auto
     }
     inputMeter.stop(active ? '인식 중에는 입력 미터를 따로 열지 않아요.' : '입력 미터 꺼짐');
     $('#chat-mic-meter .meter-test').disabled = active;
-    $('#chat-mic-label').textContent = active ? (mode === 'once' ? '음성 입력 중지' : '자동 음성 대화 중지') : '자동 음성 대화 시작';
+    const phaseLabels = { speaking: 'AI가 말하는 중', listening: '듣는 중', starting: '마이크 연결 중', thinking: '답변 생각하는 중' };
+    $('#chat-mic-label').textContent = active ? `${phaseLabels[phase] || '대화 중'} · 중지` : '자동 음성 대화 시작';
+    $('#chat-mic .mic-visual').setAttribute('data-state', active ? phase : 'idle');
     $('#chat-mic').setAttribute('aria-pressed', String(active));
     $('#chat-mic').dataset.phase = phase;
     $('#chat-mic').setAttribute('aria-label', active ? (mode === 'once' ? '음성 입력 테스트 중지' : '자동 음성 대화 끄기') : '자동 음성 대화 켜기');
@@ -435,6 +486,7 @@ function renderVoiceState({ active, phase, turns, limit, message }, mode = 'auto
     $('#chat-mic-state').dataset.phase = phase;
     $('#chat-mic-state').textContent = active ? `${mode === 'once' ? '음성 입력 테스트 중' : '자동 대화 켜짐'} · ${phases[phase] || '준비 중'}` : '자동 대화 꺼짐';
     $('#chat-voice-stop').disabled = !active;
+    $('#chat-voice-stop').hidden = !active;
     $('#chat-listen-once').textContent = mode === 'once' && active ? '음성 입력 중지' : '한 번 말하기';
     $('#chat-listen-once').setAttribute('aria-pressed', String(mode === 'once' && active));
     $('#chat-max-turns').disabled = $('#chat-silence-seconds').disabled = active;
@@ -482,6 +534,7 @@ voiceSession = new VoiceSession({
 });
 $('#chat-max-turns').addEventListener('change', voiceSettings);
 $('#chat-silence-seconds').addEventListener('change', voiceSettings);
+$('#chat-read-opening').addEventListener('change', voiceSettings);
 $('#chat-send').addEventListener('click', () => send());
 $('#chat-mic').addEventListener('click', () => {
   if (singleRecognition) { stopSingleRecognition(); return; }
@@ -490,9 +543,9 @@ $('#chat-mic').addEventListener('click', () => {
   if (!settings) return;
   invalidate(false, true); window.speechSynthesis?.cancel();
   inputMeter.dispose(); beginVoiceDiagnostics('automatic conversation');
-  if (screenContext().kind === 'home') void navigateVoice('/search');
   lastReply = openingQuestion(); remember('assistant', lastReply); note(lastReply);
-  voiceSession.start({ ...settings, initialPrompt: lastReply });
+  logVoice(`opening=${settings.readOpening ? 'read_before_listening' : 'screen_only_immediate_listening'}`);
+  voiceSession.start({ ...settings, initialPrompt: settings.readOpening ? lastReply : '' });
 });
 $('#chat-voice-stop').addEventListener('click', () => { stopSingleRecognition(); voiceSession.stop(); });
 $('#chat-listen-once').addEventListener('click', singleInput);

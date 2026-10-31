@@ -6,7 +6,7 @@
 
 | 환경/항목 | 확인 범위 | 남은 확인 |
 |---|---|---|
-| Windows Chrome | 이전 사용자 단발 STT·TTS 성공, 자동반복/취소/파동은 모의 장치 검사 | 최신 자동 대화 실제 왕복 |
+| Windows Chrome | 최신 사용자 로그에서 단발 최종 전사·자동 5턴 전사/AI HTTP200 확인. 시작 대기는 첫 낭독, 스피커 꺼짐 사용자 확인 | 시작 방식 수정 후 재측정·음성부터 추천/상세까지 통합 |
 | MacBook Chrome | 표준 SpeechRecognition 또는 webkit 접두어 대응 | 실제 권한·한국어 STT·연속 TTS/재시작 |
 | MacBook Safari | webkitSpeechRecognition 경로 모의 검사 | Siri/마이크 설정 영향 및 실제 음성 왕복 |
 | Android Chrome | 모바일320/390px 화면 검사 | 실제 음성·TTS 재시작·키보드/지도 |

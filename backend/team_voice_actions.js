@@ -9,13 +9,9 @@ export function screenContext() {
     '/results': { name: '추천 결과', kind: 'results' }, '/me': { name: '내 정보', kind: 'me' } }[path] || { name: '시작', kind: 'landing' }) };
 }
 
-/** 시작 클릭 후 AI가 먼저 읽을 질문. 현재 확인된 입력만 참고하고 필수값을 임의로 채우지 않는다. */
+/** 시작에는 짧은 인사만 읽는다. 무응답 후속 질문은 음성 세션이 한 번만 처리한다. */
 export function openingQuestion() {
-  const screen = screenContext();
-  if (screen.kind === 'results') return '추천 결과를 보고 있어요. 몇 번째 장소를 자세히 볼까요? 조건을 바꾸고 싶다고 말씀하셔도 돼요.';
-  if (screen.kind === 'detail') return '장소 상세를 보고 있어요. 이 장소를 읽어 드릴까요? 추천 목록으로 돌아가거나 조건을 바꿀 수도 있어요.';
-  if (state.chat?.pending) return '바꿀 조건을 화면에 표시했어요. 변경 모두 반영, 또는 기존 조건 유지라고 말씀해 주세요.';
-  return '어떤 나들이를 하고 싶으세요? 음악, 전시처럼 편하게 말씀해 주세요. 필요한 내용은 하나씩 여쭤볼게요.';
+  return '안녕하세요.';
 }
 
 /** 번호 발화를 현재 추천 순서로만 변환한다. 화면에 없는 후보를 생성하지 않는다. */

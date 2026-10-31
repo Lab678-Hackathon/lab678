@@ -146,6 +146,12 @@ lab678/
         live-ai-check.json
         manifest.json
         mock-checks.json
+      qa-voice-start/
+        diagnostic-checks.json
+        meter-checks.json
+        navigation-checks.json
+        summary.json
+        voice-checks.json
       qa-voice-wave/
         mock-checks.json
       qa01-team-connection.md
@@ -209,6 +215,7 @@ lab678/
         2026-10-31-transit-map.md
         2026-10-31-transit-provider-factcheck.md
         2026-10-31-two-stop-course.md
+        2026-10-31-voice-compact-entry.md
         2026-10-31-voice-diagnostics-handoff.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
@@ -248,6 +255,7 @@ lab678/
       transit-progress.md
       unified-chat-and-meter.md
       voice-browser-compatibility.md
+      voice-start-latency.md
     meetings/
       2026-10-28.md
     planning/

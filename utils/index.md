@@ -23,10 +23,10 @@
 | [backend/preview.py](../backend/preview.py) | 동조 개인용 로컬 추천 점검 화면. python backend/preview.py로 시작한다. | `f3be59610e63` |
 | [backend/preview_meter.js](../backend/preview_meter.js) | 기존 점검 화면에서도 실제 마이크 입력만 독립적으로 점검한다. STT 성공으로 표시하지 않는다. | `06c9bcb7f632` |
 | [backend/team_app.py](../backend/team_app.py) | 검증한 로컬 팀 프론트를 /app/에서 제공한다. 선택 파일·비밀값·저장소 전체를 공개하지 않는다. | `9647b1b1bd53` |
-| [backend/team_chat.js](../backend/team_chat.js) | 팀 프론트 164cd40의 공통 자동 대화 모듈. 최종 반영 전 담당 확인용이다. | `47a25cfb0b1f` |
+| [backend/team_chat.js](../backend/team_chat.js) | 팀 프론트 164cd40의 공통 자동 대화 모듈. 최종 반영 전 담당 확인용이다. | `0ebc20dbca35` |
 | [backend/team_culture.js](../backend/team_culture.js) | 문화정보 출처 선택·표시. 팀 복사본과 인계 패키지에서 사용하는 독립 모듈. | `f1729cf148be` |
 | [backend/team_preferences.js](../backend/team_preferences.js) | 로컬 팀 화면의 대화 선호를 최종 확인·실제 추천 요청에 연결한다. 담당 원본에는 미반영. | `8491e8e7aa0e` |
-| [backend/team_voice_actions.js](../backend/team_voice_actions.js) | 공통 음성 조작. 앱에 이미 있는 화면과 현재 후보 ID만 사용하며 URL/행사 사실을 만들지 않는다. | `539b93a6a2b8` |
+| [backend/team_voice_actions.js](../backend/team_voice_actions.js) | 공통 음성 조작. 앱에 이미 있는 화면과 현재 후보 ID만 사용하며 URL/행사 사실을 만들지 않는다. | `33857760a8c8` |
 | [backend/test_chat_conditions.py](../backend/test_chat_conditions.py) | 실제 AI를 호출하지 않는 조건 병합 테스트. 동의·최신 입력·사실 경계를 검증한다. | `60320d646d8d` |
 | [backend/test_course.py](../backend/test_course.py) | 두 곳 도보 일정의 마감 경계·휴관 원문·결측·방문 순서를 검사한다. | `94dbe388fa2a` |
 | [backend/test_culture_sources.py](../backend/test_culture_sources.py) | 문화정보 키/조회 범위와 국문 장소의 사실·오류 경계를 모의 응답으로 검사한다. | `289aa98498f3` |
@@ -41,7 +41,7 @@
 | [backend/test_walking.py](../backend/test_walking.py) | 한국어 경로 단계와 지도 좌표가 같은 응답을 사용하는지 검증한다. | `c93d16baf2e1` |
 | [backend/tour_places.py](../backend/tour_places.py) | 국문 TourAPI 문화시설 조회. 상설 장소를 특정 날짜의 공연/전시로 간주하지 않는다. | `312d34a26f38` |
 | [backend/transit.py](../backend/transit.py) | 개인 점검용 카카오 대중교통 텍스트 안내. 키는 서버에서만 읽고 원문 응답은 저장하지 않는다. | `e64929bf1612` |
-| [backend/voice_session.js](../backend/voice_session.js) | 횟수와 무응답 시간으로 제한된 브라우저 음성 대화. 시작 클릭 없이 재생/녹음하지 않는다. | `a12755eb37bc` |
+| [backend/voice_session.js](../backend/voice_session.js) | 횟수와 무응답 시간으로 제한된 브라우저 음성 대화. 시작 클릭 없이 재생/녹음하지 않는다. | `1a351a34a7c6` |
 | [backend/walking.py](../backend/walking.py) | 개인 점검 화면에서 선택한 행사장 두 곳의 Valhalla 보행 경로를 조회한다. | `fedc1567e347` |
 | [utils/scripts/catalog.py](../utils/scripts/catalog.py) | Build deterministic code indexes without importing source modules. | `ecb99cd9ca5b` |
 | [utils/scripts/check_chat_api.py](../utils/scripts/check_chat_api.py) | 임시 로컬 서버에서 대화 API 정상·입력·미설정·CORS를 검사한다. 외부 AI 호출은 모의다. | `5f716576a3a5` |

@@ -105,6 +105,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <small>청량리역 · 10월 31일 10:00~19:00 · 전시당 30분</small></section>
 <form id="form" class="panel" hidden>
 <p class="kicker">01 · 나들이 조건</p><h2 id="input-title" tabindex="-1">언제, 어디서 출발하세요?</h2>
+<p id="conversation-summary" hidden></p>
 <fieldset id="fields" disabled aria-labelledby="input-title">
 <label>무엇을 추천받을까요? <select name="kind"><option value="place">행사 찾기</option><option value="course">두 곳 문화코스</option></select></label>
 <div class="group" id="course-fields" hidden><label>전시 한 곳에서 머물 시간(분)
@@ -124,11 +125,11 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
 <p class="muted" id="voice-help">“국악을 듣고 싶어”, “전시 두 곳 코스로”처럼 말하거나 적어 보세요. 추천 전에 분류와 코스 조건을 바꿀 수 있어요.</p>
 <p id="voice-status" role="status"></p>
-<div id="preview-mic-meter"></div>
+<details id="preview-diagnostics"><summary>마이크 점검·로그</summary><div id="preview-mic-meter"></div>
 <section id="voice-debug"><h3>한 번 말하기 · 실시간 이벤트·오류 로그</h3>
 <textarea id="voice-log" aria-label="음성 진단 기록" readonly rows="10" style="width:100%;box-sizing:border-box;font:15px/1.6 monospace">대기 중 · 한 번 말하기를 누르면 원래 인식 방식의 이벤트가 바로 표시됩니다.</textarea>
 <button type="button" id="copy-voice">진단 복사</button><span id="copy-status" role="status"></span>
-</section></div>
+</section></details></div>
 <div class="group"><label>문화정보 조회 방식 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label></div>
 <button class="primary">추천받기</button></fieldset></form>
 <p id="status" role="status"></p>
@@ -192,6 +193,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <script>
 /** 같은 PC의 최신 대화 화면으로 안내한다. 공개 배포에서는 개발용 주소를 노출하지 않는다. */
 async function showAutomaticChatEntry() {
+  if (new URLSearchParams(location.search).get('from') === 'conversation') return;
   try {
     const response = await fetch('/app-config');
     const config = await response.json();
@@ -203,6 +205,7 @@ async function showAutomaticChatEntry() {
 showAutomaticChatEntry();
 const form = document.querySelector("#form");
 const fields = form.elements;
+let conversationPreferences = {};
 fields.kind.onchange = () => {
   const course = fields.kind.value === "course";
   document.querySelector("#course-fields").hidden = !course;
@@ -633,7 +636,7 @@ function stepCard(direction) {
 prev.onclick = () => stepCard(-1);
 next.onclick = () => stepCard(1);
 
-/** 저장된 대표 입력으로 폼을 초기화한다. */
+/** 일반 진입은 대표 입력, 대화 진입은 일회 초안을 읽는다. 대화에서 모르는 좌표/시각은 비운다. */
 async function init() {
   const request = await (await fetch("/example")).json();
   for (const name of ["label","lat","lng"]) fields.namedItem(name).value = request.start_location[name];
@@ -641,6 +644,37 @@ async function init() {
   fields.end.value = request.end_at.slice(0,16);
   fields.category.value = request.category;
   fields.fields.disabled = false;
+  if (new URLSearchParams(location.search).get('from') === 'conversation') {
+    try {
+      const transfer = JSON.parse(sessionStorage.getItem('lab678_need_handoff') || 'null');
+      sessionStorage.removeItem('lab678_need_handoff');
+      const draft = transfer?.version === 1 && Date.now() - transfer.createdAt < 30 * 60 * 1000 ? transfer.draft : null;
+      for (const name of ['label', 'lat', 'lng', 'start', 'end']) fields.namedItem(name).value = '';
+      fields.category.value = '';
+      if (draft && typeof draft === 'object') {
+        const origin = draft.start_location;
+        if (origin && Number.isFinite(origin.lat) && Number.isFinite(origin.lng)) {
+          fields.label.value = origin.label || ''; fields.lat.value = origin.lat; fields.lng.value = origin.lng;
+        } else fields.label.value = draft.start_query || '';
+        if (draft.start_at) fields.start.value = draft.start_at.slice(0, 16);
+        if (draft.end_at) fields.end.value = draft.end_at.slice(0, 16);
+        if (draft.category) fields.category.value = draft.category;
+        fields.note.value = typeof transfer.message === 'string' ? transfer.message.slice(0, 1000) : '';
+        for (const key of ['categories','free_only','budget_krw','keywords','exclude_terms','walking_preference','indoor_outdoor']) {
+          if (draft[key] !== undefined) conversationPreferences[key] = draft[key];
+        }
+        const summary = document.querySelector('#conversation-summary');
+        summary.textContent = ['대화에서 확인한 조건', draft.categories?.join(' · ') || draft.category,
+          draft.free_only ? '무료만' : '', draft.budget_krw != null ? `예산 ${draft.budget_krw}원` : '',
+          draft.keywords?.join(' · '), draft.exclude_terms?.length ? `제외: ${draft.exclude_terms.join(' · ')}` : '',
+          draft.walking_preference, draft.indoor_outdoor].filter(Boolean).join(' / ');
+        summary.hidden = false;
+      }
+      fields.mode.value = 'live';
+      document.querySelector('#automatic-chat-entry').hidden = true;
+      document.querySelector('#begin').click();
+    } catch { statusText.textContent = '대화 조건을 읽지 못했어요. 직접 설정해 주세요.'; }
+  }
   const example = document.querySelector("#course-example");
   example.disabled = false;
   example.onclick = () => {
@@ -1083,7 +1117,9 @@ function resetAlternatives() {
 
 /** 기존 요청과 동의한 대안 요청이 같은 개인용 입력 형식을 사용한다. */
 function recommendationRequest(data) {
-  return {request_kind:data.kind, stay_minutes:Number(data.stay), exclude_ids:[...excludedIds],
+  const preferences = {...conversationPreferences};
+  if (preferences.categories && !preferences.categories.includes(data.category)) preferences.categories = [data.category];
+  return {...preferences, request_kind:data.kind, stay_minutes:Number(data.stay), exclude_ids:[...excludedIds],
     start_location:{label:data.label,lat:data.lat,lng:data.lng}, start_at:data.start + ":00+09:00",
     end_at:data.end + ":00+09:00", category:data.category, mode:data.mode, culture_source:data.culture_source || "seoul"};
 }
@@ -1316,6 +1352,9 @@ async function search(event, rebuilding = false) {
 }
 
 form.onsubmit = search;
+fields.category.addEventListener('change', () => {
+  if (Object.keys(conversationPreferences).length) conversationPreferences.categories = [fields.category.value];
+});
 const coords = document.querySelector("#coords");
 const locationStatus = document.querySelector("#location-status");
 let locationVersion = 0;
