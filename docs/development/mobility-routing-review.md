@@ -174,3 +174,7 @@ ODsay 공식 가이드는 `searchPubTransPathT` 경로 조회와 `loadLane` 노�
 ## 10월 31일 경로안내 연결 결과
 
 카카오맵 공식 HTTPS link/by의 walk·traffic을 카드 선택과 코스 구간에 연결했다. 이름은 인코딩하며 경로 구분용 쉼표·슬래시는 이름에서 공백으로 바꾼다. 좌표 누락 시 링크를 만들지 않는다. 원래 결과 탭을 유지하며 새 탭을 열어 복귀 시 선택을 보존한다. 데스크톱 Edge에서 목적지 입력 및 출발·도착·수단 적용을 확인했다. 모바일 앱 연결은 구간별 시연 확인에 포함한다. [공식 URL 안내](https://apis.map.kakao.com/web/guide/).
+
+## 내부 경로 안내 표시
+
+10/31 실제 Valhalla 응답에서 language ko-KR과 한국어 instruction을 확인했다. directions_type instructions로 단계별 length(km), begin/end_shape_index와 polyline6 경로선을 받고 서버에서 단위·좌표·인덱스를 검증한다. 기존 요약 조회와 상세 조회는 같은 walk 엔드포인트의 details 필드로 구분한다. 한국어가 아닌 대체 응답이나 손상된 경로는 안내 성공으로 표시하지 않는다. [제공자 API 문서](https://valhalla.github.io/valhalla/api/route/api-reference/).

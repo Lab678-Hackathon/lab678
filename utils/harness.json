@@ -7,6 +7,7 @@
   "state_file": "docs/development/state.json",
   "repo_indexes": ["docs/development/repo_index.md", "docs/development/repo_reverse_index.md", "docs/development/repo_tree.md"],
   "features": {
+    "앱 내부 한국어 도보 안내·경로 지도 전환": ["backend/walking.py", "backend/test_walking.py", "backend/preview.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md"],
     "선택·코스 구간별 외부 경로안내": ["backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md", "docs/development/mobility-routing-review.md"],
     "두 곳 도보 문화코스": ["backend/course.py", "backend/test_course.py", "backend/walking.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md"],
     "행사장 사이 도보 거리·시간": ["backend/walking.py", "backend/preview.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/mobility-routing-review.md"],

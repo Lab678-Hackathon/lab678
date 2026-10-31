@@ -23,6 +23,17 @@ button,input,select {font:inherit; min-height:46px; border-radius:12px; max-widt
 button,summary {cursor:pointer} button {padding:8px 16px; background:white; border:1px solid #88a7a9; color:var(--ink); font-weight:650}
 button:disabled {opacity:.55; cursor:default}.primary {background:var(--teal); color:white; border:0; width:100%}
 .route-link {display:inline-block; padding:10px 16px; border:1px solid #88a7a9; border-radius:12px; font-weight:650; text-decoration:none}
+dialog {width:min(94vw,760px); max-height:90vh; border:1px solid var(--line); border-radius:18px; padding:20px; color:var(--ink)}
+dialog::backdrop {background:#17363b88}
+#route-dialog > .actions {position:sticky; top:-20px; background:white; z-index:1001; padding-block:10px; margin-top:0}
+#route-summary {font-size:24px; font-weight:750}
+#route-steps {padding-left:30px; margin:12px 0}
+#route-steps li {border-bottom:1px solid var(--line); padding:12px 4px}
+#route-steps li::marker {color:var(--teal); font-weight:750}
+#route-steps button {display:block; width:100%; text-align:left; border:0; padding:8px; font-weight:500}
+#route-steps button span {display:block; color:var(--sub); font-size:15px}
+#route-map {height:clamp(260px,52vh,460px); border-radius:12px}
+[aria-pressed=true] {background:var(--teal); color:white}
 :focus-visible {outline:3px solid #aa5100; outline-offset:2px}
 fieldset {border:0; margin:0; padding:0; min-width:0}
 .group {margin:20px 0; padding-top:16px; border-top:1px solid var(--line)}
@@ -89,7 +100,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <section class="panel" id="directions" hidden aria-labelledby="directions-title">
 <h3 id="directions-title" tabindex="-1">선택한 행사로 경로안내</h3>
 <div id="event-directions"></div>
-<p class="muted">카카오맵을 새 탭으로 열어요. 이 탭으로 돌아오면 선택한 행사와 조건을 계속 볼 수 있어요. 이동 날짜·시각은 카카오맵에서 확인해 주세요.</p></section>
+<p class="muted">도보 안내는 이 화면에서 볼 수 있어요. 대중교통은 외부 지도의 날짜·시각을 확인해 주세요.</p></section>
 <button type="button" id="read" disabled>선택한 행사 읽기</button>
 <button type="button" id="file-read" disabled>음성 파일로 듣기</button>
 <audio id="player" controls hidden aria-label="선택한 행사의 한국어 음성" style="width:100%;margin-top:10px"></audio>
@@ -102,6 +113,19 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <div id="walk-directions"></div>
 <small>도보 경로 제공 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a></small></section></section>
 <footer><small>문화정보 제공 · 서울특별시 서울문화포털</small></footer></main>
+<dialog id="route-dialog" aria-labelledby="route-title">
+<div class="actions"><h2 id="route-title">도보 경로안내</h2><button id="route-close" type="button">닫기</button></div>
+<p id="route-endpoints"></p><p id="route-status" role="status"></p>
+<button id="route-retry" type="button" hidden>다시 조회</button>
+<div id="route-content" hidden>
+<p id="route-summary"></p>
+<div class="actions"><button id="route-text" type="button" aria-pressed="true">텍스트 안내</button>
+<button id="route-show-map" type="button" aria-pressed="false">지도 보기</button></div>
+<ol id="route-steps" aria-label="도보 이동 순서"></ol>
+<div id="route-map" hidden aria-label="도보 경로 지도"></div>
+<p id="route-map-status" role="status"></p>
+<small>예상 도보 경로 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></small>
+</div></dialog>
 <script>
 const form = document.querySelector("#form");
 const fields = form.elements;
@@ -113,6 +137,118 @@ fields.kind.onchange = () => {
 let previousCourse = "";
 let excludedIds = [];
 let resultOrigin = null;
+const routeDialog = document.querySelector("#route-dialog");
+const routeStatus = document.querySelector("#route-status");
+const routeSteps = document.querySelector("#route-steps");
+const routeMapBox = document.querySelector("#route-map");
+let routeRequest = null;
+let routeVersion = 0;
+let routeData = null;
+let routeMap = null;
+let routeHighlight = null;
+
+/** 이전 경로 조회와 지도 인스턴스를 정리해 늦게 온 응답이 새 선택을 덮지 못하게 한다. */
+function clearRoute() {
+  routeVersion++;
+  routeRequest?.abort();
+  routeRequest = null;
+  routeData = null;
+  routeMap?.remove();
+  routeMap = routeHighlight = null;
+  routeMapBox.hidden = true;
+  routeSteps.replaceChildren();
+  document.querySelector("#route-content").hidden = true;
+  document.querySelector("#route-retry").hidden = true;
+  document.querySelector("#route-map-status").textContent = "";
+}
+document.querySelector("#route-close").onclick = () => routeDialog.close();
+routeDialog.onclose = clearRoute;
+
+/** 같은 조회의 경로선으로 지도를 그리고 선택한 안내 단계만 강조한다. */
+function showRouteMap(step = null) {
+  if (!routeData) return;
+  if (!window.L) {
+    document.querySelector("#route-map-status").textContent = "지도를 불러오지 못했어요. 텍스트 안내로 확인해 주세요.";
+    return;
+  }
+  routeSteps.hidden = true;
+  routeMapBox.hidden = false;
+  document.querySelector("#route-text").setAttribute("aria-pressed", "false");
+  document.querySelector("#route-show-map").setAttribute("aria-pressed", "true");
+  if (!routeMap) {
+    routeMap = L.map(routeMapBox);
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>', maxZoom:19
+    }).on("tileerror", () => {
+      document.querySelector("#route-map-status").textContent = "지도 배경을 불러오지 못했어요. 텍스트 안내를 이용해 주세요.";
+    }).addTo(routeMap);
+    L.polyline(routeData.path, {color:"#007385", weight:5}).addTo(routeMap);
+    L.marker(routeData.path[0], {title:"경로 출발"}).addTo(routeMap);
+    L.marker(routeData.path.at(-1), {title:"경로 도착"}).addTo(routeMap);
+  }
+  routeMap.invalidateSize();
+  routeHighlight?.remove();
+  routeHighlight = null;
+  if (step) {
+    routeHighlight = L.circleMarker(routeData.path[step.begin], {color:"#aa5100",radius:10}).addTo(routeMap);
+    routeMap.fitBounds(L.latLngBounds(routeData.path.slice(step.begin, step.end+1)), {padding:[24,24],maxZoom:17});
+  } else {
+    routeMap.fitBounds(L.latLngBounds(routeData.path), {padding:[24,24]});
+  }
+}
+document.querySelector("#route-show-map").onclick = () => showRouteMap();
+document.querySelector("#route-text").onclick = () => {
+  routeMapBox.hidden = true;
+  routeSteps.hidden = false;
+  document.querySelector("#route-text").setAttribute("aria-pressed", "true");
+  document.querySelector("#route-show-map").setAttribute("aria-pressed", "false");
+};
+
+/** 한국어 이동 순서와 그 좌표를 한 응답으로 받아 텍스트를 먼저 표시한다. */
+async function openWalking(origin, destination) {
+  clearRoute();
+  const version = routeVersion;
+  const controller = new AbortController();
+  routeRequest = controller;
+  document.querySelector("#route-endpoints").textContent =
+    (origin.label || origin.venue).trim() + " → " + destination.venue.trim();
+  routeStatus.textContent = "도보 경로를 확인하고 있어요.";
+  if (!routeDialog.open) routeDialog.showModal();
+  document.querySelector("#route-retry").onclick = () => openWalking(origin, destination);
+  try {
+    const response = await fetch("/preview/walk", {method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({points:[origin,destination].map(({lat,lng}) => ({lat,lng})), details:true}),
+      signal:controller.signal});
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.message);
+    if (version !== routeVersion || !routeDialog.open) return;
+    routeData = body;
+    document.querySelector("#route-summary").textContent = "약 " + Math.ceil(body.duration_s / 60) +
+      "분 · " + (body.distance_m / 1000).toFixed(2) + " km";
+    for (const [index, step] of body.steps.entries()) {
+      const li = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = step.instruction;
+      const detail = document.createElement("span");
+      detail.textContent = (step.distance_m ? step.distance_m + "m 이동 · " : "") + "지도에서 위치 보기";
+      button.append(detail);
+      button.setAttribute("aria-label", (index+1) + "번 " + step.instruction + " · 지도에서 위치 보기");
+      button.onclick = () => showRouteMap(step);
+      li.append(button);
+      routeSteps.append(li);
+    }
+    routeSteps.hidden = false;
+    document.querySelector("#route-text").setAttribute("aria-pressed", "true");
+    document.querySelector("#route-show-map").setAttribute("aria-pressed", "false");
+    document.querySelector("#route-content").hidden = false;
+    routeStatus.textContent = "단계를 누르면 해당 위치를 지도에서 볼 수 있어요.";
+  } catch (error) {
+    if (version !== routeVersion || error.name === "AbortError") return;
+    routeStatus.textContent = error.message || "경로 조회에 실패했어요.";
+    document.querySelector("#route-retry").hidden = false;
+  }
+}
 
 /** 확인한 두 좌표와 순서로 카카오맵 도보·대중교통 링크를 만든다. 클릭할 때 새 탭으로 이동한다. */
 function directionLinks(origin, destination) {
@@ -133,6 +269,15 @@ function directionLinks(origin, destination) {
     const name = (point.label || point.venue || "위치").trim().replace(/[,/]/g, " ");
     return encodeURIComponent(name) + "," + point.lat + "," + point.lng;
   }).join("/");
+  const inside = document.createElement("button");
+  inside.type = "button";
+  inside.textContent = "도보 안내 보기";
+  inside.onclick = () => openWalking(origin, destination);
+  group.append(inside);
+  const external = document.createElement("details");
+  const summary = document.createElement("summary");
+  summary.textContent = "외부 지도에서 열기";
+  external.append(summary);
   const links = document.createElement("div");
   links.className = "actions";
   for (const [mode, label] of [["walk","도보 길찾기"], ["traffic","대중교통 길찾기"]]) {
@@ -145,7 +290,8 @@ function directionLinks(origin, destination) {
     link.setAttribute("aria-label", title.textContent + " · 카카오맵 " + label + " (새 탭)");
     links.append(link);
   }
-  group.append(links);
+  external.append(links);
+  group.append(external);
   return group;
 }
 
@@ -158,7 +304,7 @@ function displayCourseDirections(course) {
   heading.textContent = "구간별 경로안내";
   const note = document.createElement("p");
   note.className = "muted";
-  note.textContent = "카카오맵에서 새 탭으로 열어요. 날짜·시각과 대중교통 소요시간을 확인해 주세요.";
+  note.textContent = "도보 이동 순서를 먼저 보고, 필요할 때 경로 지도로 전환할 수 있어요.";
   target.append(heading, directionLinks(resultOrigin, latestCandidates[0]),
     directionLinks(latestCandidates[0], latestCandidates[1]), note);
 }
@@ -368,8 +514,8 @@ function showCard(item) {
   directions.textContent = "경로안내";
   directions.onclick = () => {
     selectEvent(item);
-    document.querySelector("#directions").scrollIntoView({block:"start"});
-    document.querySelector("#directions-title").focus({preventScroll:true});
+    if (Number.isFinite(item.lat) && Number.isFinite(item.lng)) openWalking(resultOrigin, item);
+    else document.querySelector("#directions").scrollIntoView({block:"start"});
   };
   li.append(directions);
   if (fields.kind.value === "course") {
@@ -618,6 +764,7 @@ async function search(event) {
   fields.fields.disabled = true;
   statusText.textContent = "문화정보 조회 중…";
   list.replaceChildren();
+  clearRoute();
   document.querySelector("#directions").hidden = true;
   document.querySelector("#event-directions").replaceChildren();
   document.querySelector("#course-directions").replaceChildren();

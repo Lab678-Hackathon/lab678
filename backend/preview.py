@@ -50,7 +50,9 @@ class Preview(BaseHTTPRequestHandler):
                 raise ValueError("요청 형식을 확인해 주세요.")
             if self.path == "/preview/walk":
                 try:
-                    status, body = walk_between(data.get("points"))
+                    if "details" in data and type(data["details"]) is not bool:
+                        raise ValueError("경로 안내 요청 형식을 확인해 주세요.")
+                    status, body = walk_between(data.get("points"), data.get("details", False))
                 except ValueError as exc:
                     status, body = 400, dict(message=str(exc))
                 self.reply(status, body)

@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **앱 내부 한국어 도보 안내·경로 지도 전환**: [backend/walking.py](../../backend/walking.py), [backend/test_walking.py](../../backend/test_walking.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **선택·코스 구간별 외부 경로안내**: [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md), [docs/development/mobility-routing-review.md](../../docs/development/mobility-routing-review.md)
 - **두 곳 도보 문화코스**: [backend/course.py](../../backend/course.py), [backend/test_course.py](../../backend/test_course.py), [backend/walking.py](../../backend/walking.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **행사장 사이 도보 거리·시간**: [backend/walking.py](../../backend/walking.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/mobility-routing-review.md](../../docs/development/mobility-routing-review.md)
@@ -36,6 +37,7 @@
 | `CourseTests.test_boundary` | [backend/test_course.py:21](../../backend/test_course.py#L21) | 도보 두 구간과 관람이 마감에 딱 맞으면 허용하고 1초 초과하면 제외한다. |
 | `CourseTests.test_order_and_missing_routes` | [backend/test_course.py:36](../../backend/test_course.py#L36) | 순서를 바꿔 가능한 일정만 선택하고 누락된 구간은 이동 0초로 쓰지 않는다. |
 | `CourseTests.test_unknown_and_wait` | [backend/test_course.py:26](../../backend/test_course.py#L26) | 공연 시작 전 대기는 포함하고 종료 미상 또는 휴관 조건 미상은 확정하지 않는다. |
+| `decode_shape` | [backend/walking.py:50](../../backend/walking.py#L50) | Valhalla polyline6를 위도·경도 배열로 변환한다. 손상·범위 초과는 ValueError다. |
 | `describe` | [utils/scripts/catalog.py:69](../../utils/scripts/catalog.py#L69) | Extract file overview, fingerprint, imports and symbol locations statically. |
 | `describe.visit` | [utils/scripts/catalog.py:79](../../utils/scripts/catalog.py#L79) | Walk definitions and keep qualified names for nested functions. |
 | `distance_km` | [backend/outing.py:72](../../backend/outing.py#L72) | 두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다. |
@@ -67,7 +69,7 @@
 | `Preview.do_GET` | [backend/preview.py:27](../../backend/preview.py#L27) | 점검 폼과 저장소의 대표 요청만 제공한다. |
 | `Preview.do_POST` | [backend/preview.py:36](../../backend/preview.py#L36) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
 | `Preview.reply` | [backend/preview.py:16](../../backend/preview.py#L16) | UTF-8 본문을 길이와 함께 응답한다. |
-| `query_walking` | [backend/walking.py:15](../../backend/walking.py#L15) | 개인 화면의 도보 조회 간격을 제한하고 공급자의 JSON 또는 실패 상태를 반환한다. |
+| `query_walking` | [backend/walking.py:16](../../backend/walking.py#L16) | 개인 화면의 도보 조회 간격을 제한하고 공급자의 JSON 또는 실패 상태를 반환한다. |
 | `recommend` | [backend/outing.py:95](../../backend/outing.py#L95) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
 | `record` | [utils/scripts/loop.py:21](../../utils/scripts/loop.py#L21) | Append one evidenced attempt, rejecting terminal states and blind repeats. |
 | `refresh` | [utils/scripts/watch.py:30](../../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
@@ -122,5 +124,11 @@
 | `verify_message` | [utils/scripts/commit_report.py:17](../../utils/scripts/commit_report.py#L17) | Compare raw latest-commit message bytes to the complete report file. |
 | `visit_window` | [backend/course.py:11](../../backend/course.py#L11) | 행사 시간 원문에서 검증 가능한 당일 시작·종료와 고정 공연 여부를 얻는다. |
 | `wait_for` | [utils/scripts/verify_watch.py:14](../../utils/scripts/verify_watch.py#L14) | Wait a bounded period for generated evidence or report the failed phase. |
-| `walk_between` | [backend/walking.py:49](../../backend/walking.py#L49) | 두 행사 좌표로 도보 예상 초·m를 얻는다. 잘못된 입력과 조회 실패를 구분한다. |
+| `walk_between` | [backend/walking.py:98](../../backend/walking.py#L98) | 두 행사 좌표로 도보 예상 초·m를 얻는다. 잘못된 입력과 조회 실패를 구분한다. |
+| `walking_details` | [backend/walking.py:76](../../backend/walking.py#L76) | 같은 공급자 응답에서 한국어 단계·m·경로 인덱스·좌표를 검증해 반환한다. |
+| `WalkingTests` | [backend/test_walking.py:9](../../backend/test_walking.py#L9) | 경로선 정밀도와 손상된 단계 응답을 검증한다. |
+| `WalkingTests.setUp` | [backend/test_walking.py:12](../../backend/test_walking.py#L12) | 두 지점과 짧은 공급자 응답을 독립적으로 준비한다. |
+| `WalkingTests.test_bad_steps` | [backend/test_walking.py:38](../../backend/test_walking.py#L38) | 지도 밖 단계나 영어 대체 응답을 한국어 안내 성공으로 표시하지 않는다. |
+| `WalkingTests.test_detail_and_summary` | [backend/test_walking.py:28](../../backend/test_walking.py#L28) | 기존 요약 응답을 유지하고 상세 요청에만 단계와 경로선을 추가한다. |
+| `WalkingTests.test_polyline_precision` | [backend/test_walking.py:20](../../backend/test_walking.py#L20) | 공개 polyline 예제의 정수 값을 백만분의 일 도 단위로 해독한다. |
 | `write_indexes` | [utils/scripts/catalog.py:211](../../utils/scripts/catalog.py#L211) | Write changed outputs only, allowing repeated watcher runs to be quiet. |
