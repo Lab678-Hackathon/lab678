@@ -62,12 +62,49 @@ def schedule_pair(events, seconds, start, end, stay):
                           arrive=arrival.strftime("%H:%M"), begin=begin.strftime("%H:%M"), finish=cursor.strftime("%H:%M")))
     if missing:
         return dict(status="check", message="확인할 정보 · " + ", ".join(missing))
-    return dict(status="ready", message="입력한 시간 안에 두 곳을 관람할 수 있는 예상 일정입니다.", stops=stops)
+    count = "두 곳" if len(events) == 2 else "한 곳"
+    return dict(status="ready", message=f"입력한 시간 안에 {count}을 관람할 수 있는 예상 일정입니다.", stops=stops)
+
+
+def course_alternatives(events, matrix, origin, start, end, stay):
+    """동의 요청에만 같은 시간 한 곳·최대 두 시간 이른 두 곳의 검증된 대안을 반환한다."""
+    choices = []
+    for count, offsets, label in [(1, [0], "같은 시간 안에 한 곳 관람"),
+                                  (2, range(30, 121, 30), "출발을 앞당겨 두 곳 관람")]:
+        for offset in offsets:
+            proposed = start - timedelta(minutes=offset)
+            if proposed.date() != start.date():
+                continue
+            options = []
+            for indexes in permutations(range(len(events)), count):
+                selected = [events[i] for i in indexes]
+                locations = [(e["lat"], e["lng"]) for e in selected]
+                if len(set(locations)) != count or len({e["id"] for e in selected}) != count:
+                    continue
+                legs = [matrix[0][indexes[0]]]
+                if count == 2:
+                    legs.append(matrix[indexes[0] + 1][indexes[1]])
+                if any(n is None for n in legs) or (legs[0] == 0 and locations[0] != origin) or (count == 2 and legs[1] == 0):
+                    continue
+                course = schedule_pair(selected, legs, proposed, end, stay)
+                if course["status"] != "ready":
+                    continue
+                course.update(ids=[e["id"] for e in selected], venues=[e["venue"] for e in selected],
+                              walk_minutes=[math.ceil(n / 60) for n in legs])
+                options.append((sum(legs), indexes, course))
+            if options:
+                choices.append(dict(label=label, start_at=proposed.isoformat(), end_at=end.isoformat(),
+                                    course=min(options)[-1]))
+                break
+    return choices
 
 
 def build_course(data, candidates):
     """사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다."""
     start, end, lat, lng = validate(data)
+    consent = data.get("alternatives", False)
+    if type(consent) is not bool:
+        raise ValueError("대안 조회 동의를 확인해 주세요.")
     stay = data.get("stay_minutes")
     if type(stay) is not int or not 1 <= stay <= 240:
         raise ValueError("전시 한 곳의 관람시간을 1~240분으로 입력해 주세요.")
@@ -110,4 +147,6 @@ def build_course(data, candidates):
     result = min(options)[-1]
     if result["status"] == "conflict" and uncertain_route:
         result["message"] += " 다른 조합에는 확인되지 않은 도보 구간이 있어요."
+    if consent:
+        result["alternatives"] = course_alternatives(events, matrix, (lat, lng), start, end, stay)
     return result

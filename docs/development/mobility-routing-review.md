@@ -170,3 +170,21 @@ ODsay 공식 가이드는 `searchPubTransPathT` 경로 조회와 `loadLane` 노�
 개인 점검에서 Valhalla 공개 데모에 서울문화포털의 두 행사장 좌표로 pedestrian 경로를 요청했다. 서울돈화문국악당 → 국립중앙박물관 극장 용의 응답은 8.744km, 6641.441초였다. 이는 도로망 기반 예상치다. 14시부터 15시 공연까지 가능한 60분을 도보만으로 넘긴다. 시간 비교에는 원본 초를 쓰고 표시할 때만 분 단위로 올린다. 출발지 이동·체류·접근성·대중교통은 별도 검증 대상이다.
 
 로컬 개인 점검에서 버튼 클릭당 1회, 클라이언트 식별 헤더와 호출 간격 제한을 적용한다. 팀 배포 시 제공사와 이용 조건을 다시 확인한다. [공개 데모 운영 안내](https://valhalla.github.io/valhalla/start/introduction/) · [보행 경로 API](https://valhalla.github.io/valhalla/api/route/api-reference/).
+
+## 10월 31일 경로안내 연결 결과
+
+카카오맵 공식 HTTPS link/by의 walk·traffic을 카드 선택과 코스 구간에 연결했다. 이름은 인코딩하며 경로 구분용 쉼표·슬래시는 이름에서 공백으로 바꾼다. 좌표 누락 시 링크를 만들지 않는다. 원래 결과 탭을 유지하며 새 탭을 열어 복귀 시 선택을 보존한다. 데스크톱 Edge에서 목적지 입력 및 출발·도착·수단 적용을 확인했다. 모바일 앱 연결은 구간별 시연 확인에 포함한다. [공식 URL 안내](https://apis.map.kakao.com/web/guide/).
+
+## 내부 경로 안내 표시
+
+10/31 실제 Valhalla 응답에서 language ko-KR과 한국어 instruction을 확인했다. directions_type instructions로 단계별 length(km), begin/end_shape_index와 polyline6 경로선을 받고 서버에서 단위·좌표·인덱스를 검증한다. 기존 요약 조회와 상세 조회는 같은 walk 엔드포인트의 details 필드로 구분한다. 한국어가 아닌 대체 응답이나 손상된 경로는 안내 성공으로 표시하지 않는다. [제공자 API 문서](https://valhalla.github.io/valhalla/api/route/api-reference/).
+
+## 10월 31일 대중교통 구현 준비
+
+카카오 공개 `/v2/routing/publictraffic` 어댑터를 개인 서버에 추가했다. 경로별 총시간·거리·환승·요금과 단계의 안내·수단·시간·거리를 검증해 내부 텍스트로 표시한다. 위치는 사용자 조회 시 서버에서만 전송하고 키는 전용 환경변수/로컬 제외 파일에서 읽는다. 단계 좌표는 이번 구현에 이식하지 않고 지도는 카카오맵 링크를 사용한다.
+
+공식 명세에 출발 날짜·시각 입력이 없어 조회 시점 안내로 표시하며 미래 문화코스 시간에 합산하지 않는다. **실제 키 없음: 화면·정규화·오류 처리는 모의/미설정 검증, 실제 노선 성공은 미검증.** [공식 명세](https://developers.kakao.com/docs/ko/kakaomap/rest-api) · [진행표](transit-progress.md).
+
+## 키 없는 경로 방식 조사 후속
+
+[상세 검토](keyless-routing-review.md). 현재 도보 공개 서버의 서울 두 시험지점 transit_available=false, multimodal 경로400. OSM+GTFS 엔진은 키 없는 자체 대중교통이 가능하나 데이터 준비가 필요하다. 하버사인+평균속도와 정적 근처역 안내는 실제 대중교통 경로를 대신하지 않는다. 제한 시연 구간/목적지 접근 안내는 출처·확인일·추정 구분을 전제로 제안하며 아직 적용하지 않았다.
