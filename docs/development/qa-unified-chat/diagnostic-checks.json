@@ -1,0 +1,29 @@
+{
+  "mode": "mock STT/TTS; no real microphone or AI",
+  "cases": [
+    {
+      "name": "original_checks_one_shot_button_logs_and_transcribes",
+      "passed": true
+    },
+    {
+      "name": "single_direct_input_logs_result_without_tts_or_ai",
+      "passed": true
+    },
+    {
+      "name": "live_events_visible_before_result_and_end_without_result_is_error",
+      "passed": true
+    },
+    {
+      "name": "network_error_remains_visible_and_copied_log_button_exists",
+      "passed": true
+    },
+    {
+      "name": "automatic_interim_text_updates_before_end_and_only_final_is_sent",
+      "passed": true
+    },
+    {
+      "name": "stop_during_interim_does_not_send_or_apply_late_final",
+      "passed": true
+    }
+  ]
+}

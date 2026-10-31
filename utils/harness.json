@@ -1,30 +1,336 @@
 {
-  "source_roots": ["utils", "backend", "frontend"],
-  "skip_dirs": [".git", ".venv", "node_modules", "__pycache__", "dist", "vendor", ".local", "plan_dj", ".aws", ".codex", ".agents"],
-  "markdown_roots": ["utils", "backend", "frontend", "design", "docs/development"],
+  "source_roots": [
+    "utils",
+    "backend",
+    "frontend"
+  ],
+  "skip_dirs": [
+    ".git",
+    ".venv",
+    "node_modules",
+    "__pycache__",
+    "dist",
+    "vendor",
+    ".local",
+    "plan_dj",
+    ".aws",
+    ".codex",
+    ".agents"
+  ],
+  "markdown_roots": [
+    "utils",
+    "backend",
+    "frontend",
+    "design",
+    "docs/development"
+  ],
   "branch": "dj/develop",
   "commit_deadline": "2026-11-01T13:00:00+09:00",
   "state_file": "docs/development/state.json",
-  "repo_indexes": ["docs/development/repo_index.md", "docs/development/repo_reverse_index.md", "docs/development/repo_tree.md"],
+  "repo_indexes": [
+    "docs/development/repo_index.md",
+    "docs/development/repo_reverse_index.md",
+    "docs/development/repo_tree.md"
+  ],
   "features": {
-    "동료·LLM 백엔드 참조·실행 안내": ["docs/development/team-backend-guide.md", "docs/development/team-integration-checklist.md", "backend/README.md"],
-    "화면명세 수신·화면별 구현 차이 점검": ["docs/development/screen-spec-review.md"],
-    "대중교통 내부 텍스트·지도 안내·서버 키 연결": ["backend/transit.py", "backend/test_transit.py", "backend/preview.py", "backend/preview.html", "utils/scripts/check_transit_ui.cjs", "docs/development/transit-progress.md"],
-    "시간 충돌 동의·한 곳/이른 출발 대안": ["backend/course.py", "backend/test_course.py", "backend/preview.html", "utils/scripts/check_course_alternatives.cjs", "docs/development/course-alternatives-progress.md"],
-    "앱 내부 한국어 도보 안내·경로 지도 전환": ["backend/walking.py", "backend/test_walking.py", "backend/preview.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md"],
-    "선택·코스 구간별 외부 경로안내": ["backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md", "docs/development/mobility-routing-review.md"],
-    "두 곳 도보 문화코스": ["backend/course.py", "backend/test_course.py", "backend/walking.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md"],
-    "행사장 사이 도보 거리·시간": ["backend/walking.py", "backend/preview.py", "backend/preview.html", "utils/scripts/check_outing_ui.cjs", "docs/development/mobility-routing-review.md"],
-    "문화행사 추천·점검 화면": ["backend/outing.py", "backend/local_voice.py", "backend/preview.py", "backend/preview.html", "backend/test_outing.py", "utils/scripts/check_outing_ui.cjs", "docs/development/outing-handoff.md"],
-    "문화외출 MVP 실행계획·시연 검증": ["docs/development/mvp-plan.md", "docs/development/tasks.md"],
-    "작업 재개·대화 압축": ["docs/development/current-state.md", "utils/scripts/context.py"],
-    "자동 색인·코드 재사용": ["utils/scripts/catalog.py", "utils/scripts/watch.py", "utils/index.md"],
-    "검증·수정 루프": ["utils/scripts/harness.py", "utils/scripts/loop.py", "docs/development/engineering-loop.md"],
-    "원본 복사·검증": ["utils/scripts/reuse.py", "docs/reference/README.md"],
-    "작업별 전체 보고문 커밋": ["utils/scripts/commit_report.py", "docs/development/reports"],
-    "문화외출·이동 안내 검토": ["docs/development/tasks.md", "docs/development/mobility-routing-review.md"],
-    "무인증·체험 프로필·브라우저 저장": ["docs/development/demo-profile-design.md", "docs/development/examples/demo-users.sample.json"],
-    "해커톤 GPU 서버·매뉴얼": ["docs/development/hackathon-server-usage-review.md", "docs/reference/hackathon-server/README.md", "utils/scripts/read_pdf.py"],
-    "framework·KONNECT 분석 우선 재사용": ["docs/development/konnect-reuse-reading-guide.md"]
+    "정식 문화정보 조회 확대·국문 문화시설": [
+      "backend/culture_config.py",
+      "backend/culture.env.example",
+      "backend/tour_places.py",
+      "backend/test_culture_sources.py",
+      "utils/scripts/check_culture_sources.py",
+      "docs/development/culture-sources.md"
+    ],
+    "팀 프론트 실파일 적용 패키지·통합 검사": [
+      "utils/scripts/prepare_chat_handoff.py",
+      "docs/development/frontend-chat-package.md",
+      "docs/development/qa-handoff/manifest.json"
+    ],
+    "자연어 수정·조건 해제·추천 회복 검증": [
+      "utils/scripts/check_conversation_edges.py",
+      "utils/scripts/check_preference_recovery.cjs",
+      "docs/development/conversation-validation.md",
+      "docs/development/qa-conversation/edges.json",
+      "docs/development/qa-conversation/recovery.json"
+    ],
+    "자연어 선호 탐색·자동 설정·실제 후보 선별": [
+      "backend/preferences.py",
+      "backend/test_preferences.py",
+      "backend/team_preferences.js",
+      "utils/scripts/check_natural_flow.cjs",
+      "docs/development/natural-language-handoff.md",
+      "docs/development/qa-natural/result.json"
+    ],
+    "자연어 중심 추천·이전 구현 비교": [
+      "docs/development/natural-language-recommendation-review.md"
+    ],
+    "팀 화면 AI 채팅·조건 동기화·동의 UI": [
+      "backend/team_chat.js",
+      "utils/scripts/team_chat_preview.py",
+      "utils/scripts/check_chat_ui.cjs",
+      "docs/development/chat-ui-handoff.md",
+      "docs/development/qa-chat/result.json"
+    ],
+    "대화 조건 초안·변경 동의·최신 입력 보호": [
+      "backend/chat_conditions.py",
+      "backend/test_chat_conditions.py",
+      "docs/development/chat-conditions.md"
+    ],
+    "Naito 채팅·모델 설정·HTTP 검증": [
+      "backend/naito_chat.py",
+      "backend/test_naito_chat.py",
+      "utils/scripts/check_chat_api.py",
+      "utils/scripts/check_chat_live.py",
+      "docs/development/naito-usage.md",
+      "docs/development/examples/naito-chat.live.json"
+    ],
+    "QA-01 실제 팀 화면·추천·상세 ID 검증": [
+      "utils/scripts/check_team_flow.cjs",
+      "docs/development/qa01-team-connection.md",
+      "docs/development/examples/qa01-request.recorded.json"
+    ],
+    "출발지 장소·주소 검색과 프론트 연결": [
+      "backend/places.py",
+      "backend/test_places.py",
+      "backend/preview.py",
+      "utils/scripts/check_place_search.cjs",
+      "docs/development/place-search-api.md"
+    ],
+    "내 위치 표시·정확도·갱신·수집 중지": [
+      "backend/location_view.js",
+      "backend/map_view.js",
+      "backend/preview.html",
+      "utils/scripts/check_location_ui.cjs",
+      "docs/development/kakao-map-location.md"
+    ],
+    "카카오 지도 전환·번호핀·경로 표시": [
+      "backend/map_config.py",
+      "backend/map_view.js",
+      "backend/test_map_config.py",
+      "backend/preview.html",
+      "utils/scripts/check_kakao_map.cjs",
+      "docs/development/kakao-map-location.md"
+    ],
+    "단일 서비스 배포 준비·상태 확인·음성 지원 구분": [
+      "backend/preview.py",
+      "backend/local_voice.py",
+      "backend/test_preview.py",
+      "utils/scripts/check_deployment.cjs",
+      "docs/development/render-demo-guide.md"
+    ],
+    "코스 제외 예정·취소·명시적 재생성": [
+      "backend/preview.html",
+      "utils/scripts/check_course_edit.cjs",
+      "docs/development/outing-handoff.md"
+    ],
+    "추천 재요청·실패 복원·늦은 응답 방지": [
+      "backend/preview.html",
+      "utils/scripts/check_result_preservation.cjs",
+      "docs/development/outing-handoff.md"
+    ],
+    "별도 프론트 연결·CORS·상세 사실 필드": [
+      "backend/preview.py",
+      "backend/outing.py",
+      "backend/test_preview.py",
+      "backend/test_outing.py",
+      "utils/scripts/check_frontend_connection.cjs",
+      "docs/development/recommend-api.md"
+    ],
+    "추천 입력 60분·route 호환·오류 계약": [
+      "backend/outing.py",
+      "backend/preview.py",
+      "backend/preview.html",
+      "backend/test_outing.py",
+      "backend/test_preview.py",
+      "utils/scripts/check_input_contract.cjs",
+      "docs/development/recommend-api.md"
+    ],
+    "동료·LLM 백엔드 참조·실행 안내": [
+      "docs/development/team-backend-guide.md",
+      "docs/development/team-integration-checklist.md",
+      "backend/README.md"
+    ],
+    "화면명세 수신·화면별 구현 차이 점검": [
+      "docs/development/screen-spec-review.md"
+    ],
+    "대중교통 내부 텍스트·지도 안내·서버 키 연결": [
+      "backend/transit.py",
+      "backend/test_transit.py",
+      "backend/preview.py",
+      "backend/preview.html",
+      "utils/scripts/check_transit_ui.cjs",
+      "docs/development/transit-progress.md"
+    ],
+    "시간 충돌 동의·한 곳/이른 출발 대안": [
+      "backend/course.py",
+      "backend/test_course.py",
+      "backend/preview.html",
+      "utils/scripts/check_course_alternatives.cjs",
+      "docs/development/course-alternatives-progress.md"
+    ],
+    "앱 내부 한국어 도보 안내·경로 지도 전환": [
+      "backend/walking.py",
+      "backend/test_walking.py",
+      "backend/preview.py",
+      "backend/preview.html",
+      "utils/scripts/check_outing_ui.cjs",
+      "docs/development/outing-handoff.md"
+    ],
+    "선택·코스 구간별 외부 경로안내": [
+      "backend/preview.html",
+      "utils/scripts/check_outing_ui.cjs",
+      "docs/development/outing-handoff.md",
+      "docs/development/mobility-routing-review.md"
+    ],
+    "두 곳 도보 문화코스": [
+      "backend/course.py",
+      "backend/test_course.py",
+      "backend/walking.py",
+      "backend/preview.html",
+      "utils/scripts/check_outing_ui.cjs",
+      "docs/development/outing-handoff.md"
+    ],
+    "행사장 사이 도보 거리·시간": [
+      "backend/walking.py",
+      "backend/preview.py",
+      "backend/preview.html",
+      "utils/scripts/check_outing_ui.cjs",
+      "docs/development/mobility-routing-review.md"
+    ],
+    "문화행사 추천·점검 화면": [
+      "backend/outing.py",
+      "backend/local_voice.py",
+      "backend/preview.py",
+      "backend/preview.html",
+      "backend/test_outing.py",
+      "utils/scripts/check_outing_ui.cjs",
+      "docs/development/outing-handoff.md"
+    ],
+    "문화외출 MVP 실행계획·시연 검증": [
+      "docs/development/mvp-plan.md",
+      "docs/development/tasks.md"
+    ],
+    "작업 재개·대화 압축": [
+      "docs/development/current-state.md",
+      "utils/scripts/context.py"
+    ],
+    "자동 색인·코드 재사용": [
+      "utils/scripts/catalog.py",
+      "utils/scripts/watch.py",
+      "utils/index.md"
+    ],
+    "검증·수정 루프": [
+      "utils/scripts/harness.py",
+      "utils/scripts/loop.py",
+      "docs/development/engineering-loop.md"
+    ],
+    "원본 복사·검증": [
+      "utils/scripts/reuse.py",
+      "docs/reference/README.md"
+    ],
+    "작업별 전체 보고문 커밋": [
+      "utils/scripts/commit_report.py",
+      "docs/development/reports"
+    ],
+    "문화외출·이동 안내 검토": [
+      "docs/development/tasks.md",
+      "docs/development/mobility-routing-review.md"
+    ],
+    "무인증·체험 프로필·브라우저 저장": [
+      "docs/development/demo-profile-design.md",
+      "docs/development/examples/demo-users.sample.json"
+    ],
+    "해커톤 GPU 서버·매뉴얼": [
+      "docs/development/hackathon-server-usage-review.md",
+      "docs/reference/hackathon-server/README.md",
+      "utils/scripts/read_pdf.py"
+    ],
+    "framework·KONNECT 분석 우선 재사용": [
+      "docs/development/konnect-reuse-reading-guide.md"
+    ],
+    "키별 실동작·문화시설 추천화면 연결": [
+      "backend/team_culture.js",
+      "utils/scripts/check_service_keys.py",
+      "utils/scripts/check_culture_ui.cjs",
+      "docs/development/service-key-status.md"
+    ],
+    "자동 음성 시작 지연·첫 안내 선택·시간 진단": [
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_session.cjs",
+      "utils/scripts/check_voice_navigation.cjs",
+      "docs/development/voice-start-latency.md",
+      "backend/team_voice_actions.js",
+      "backend/preview.html",
+      "utils/scripts/check_voice_diagnostics.cjs",
+      "utils/scripts/check_microphone_meter.cjs"
+    ],
+    "자동 음성 대화·횟수/무응답 종료": [
+      "backend/voice_session.js",
+      "backend/team_chat.js",
+      "utils/scripts/check_voice_session.cjs",
+      "docs/development/automatic-voice.md"
+    ],
+    "공통 자동 대화·음성 화면 이동": [
+      "backend/team_voice_actions.js",
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_navigation.cjs",
+      "utils/scripts/check_voice_session.cjs",
+      "docs/development/automatic-voice.md"
+    ],
+    "마이크 자동 대화 켜기·끄기 표시": [
+      "backend/team_chat.js",
+      "utils/scripts/check_voice_session.cjs",
+      "docs/development/automatic-voice.md"
+    ],
+    "듣는 중 파동·브라우저 음성 호환": [
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_session.cjs",
+      "docs/development/voice-browser-compatibility.md"
+    ],
+    "기존 점검 화면→자동 대화 홈 진입": [
+      "backend/preview.html",
+      "utils/scripts/check_voice_entry.cjs",
+      "docs/development/automatic-voice.md"
+    ],
+    "단일 나들이 진입·실제 마이크 입력 미터": [
+      "backend/team_app.py",
+      "backend/microphone_meter.js",
+      "backend/preview_meter.js",
+      "backend/test_team_app.py",
+      "utils/scripts/check_unified_chat.cjs",
+      "utils/scripts/check_microphone_meter.cjs",
+      "docs/development/unified-chat-and-meter.md"
+    ],
+    "대중교통 노선·모바일 경로 카드": [
+      "backend/transit.py",
+      "backend/preview.html",
+      "backend/test_transit.py",
+      "utils/scripts/check_transit_details.py",
+      "utils/scripts/check_transit_mobile.cjs",
+      "docs/development/transit-mobile.md"
+    ],
+    "음성 진단·실시간 중간 글자·새 채팅 인계": [
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_diagnostics.cjs",
+      "docs/development/next-chat-handoff.md"
+    ],
+    "사진 지정 초기 설정 폼 복원·휴대폰 화면": [
+      "backend/team_chat.js",
+      "backend/team_culture.js",
+      "utils/scripts/check_voice_navigation.cjs",
+      "docs/development/qa-simple-settings"
+    ],
+    "진행 점검·공유·충돌 통합": [
+      "docs/development/release-checklist.md"
+    ],
+    "배포 키 환경변수·공공데이터·Naito": [
+      "backend/deploy.env.example",
+      "backend/test_deployment_keys.py",
+      "docs/development/deployment-keys.md"
+    ]
   }
 }

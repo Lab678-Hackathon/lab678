@@ -10,7 +10,8 @@ async function main() {
   const browser = await chromium.launch({executablePath: process.env.CHROMIUM_PATH, headless: true});
   try {
     const page = await browser.newPage({viewport: {width:390,height:844}});
-    await page.goto("http://127.0.0.1:8765");
+    await page.route("**/map-config",route=>route.fulfill({json:{provider:"leaflet",javascript_key:""}}));
+    await page.goto("http://127.0.0.1:8765/checks");
     await page.getByRole("button",{name:"전시 코스 예시 확인"}).click();
     await page.locator("#course-text").filter({hasText:"예상 일정입니다"}).waitFor();
     assert.match(await page.locator("#course-conditions").textContent(), /청량리역.*10:00~19:00.*전시당 30분/);
@@ -36,7 +37,8 @@ async function main() {
     assert.equal(await page.locator("#list li").count(), 2);
     console.log("live 전시 코스:", await itinerary.textContent());
     const excluded = await page.locator("#list li").first().getAttribute("data-id");
-    await page.getByRole("button",{name:"이 행사 빼고 다시 추천"}).first().click();
+    await page.getByRole("button",{name:"이 장소 제외"}).first().click();
+    await page.getByRole("button",{name:"코스 다시 만들기",exact:true}).click();
     await page.waitForFunction(id => !document.querySelector("#results").hidden &&
       [...document.querySelectorAll("#list li")].every(el => el.dataset.id !== id), excluded);
     assert.match(await itinerary.textContent(), /출발지부터 도보/);
@@ -158,7 +160,8 @@ async function main() {
     await page.getByRole("button",{name:"조건 바꾸기"}).click();
     await page.route("**/preview/recommend", route => route.fulfill({status:502,contentType:"application/json",body:JSON.stringify({status:"error",message:"조회 실패 검증"})}));
     await submit.click();
-    await page.getByText("조회 실패 검증",{exact:true}).waitFor();
+    await page.locator("#status").filter({hasText:"조회 실패 검증"}).waitFor();
+    assert.match(await page.locator("#status").textContent(), /이전 조건과 결과는 보관/);
     assert.equal(await submit.isVisible(), true);
     await page.unroute("**/preview/recommend");
     await page.route("**/leaflet.js", route => route.abort());

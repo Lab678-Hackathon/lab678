@@ -1,0 +1,30 @@
+{
+  "base": "http://127.0.0.1:8765/app",
+  "audio": "mock",
+  "cases": [
+    {
+      "name": "home_greeting_two_turns_auto_search",
+      "passed": true
+    },
+    {
+      "name": "results_detail_read_select_back_one_session",
+      "passed": true
+    },
+    {
+      "name": "missing_candidate_and_course_do_not_navigate",
+      "passed": true
+    },
+    {
+      "name": "detail_manual_selection_keeps_single_panel",
+      "passed": true
+    },
+    {
+      "name": "manual_navigation_stops_and_voice_stop_finishes",
+      "passed": true
+    },
+    {
+      "name": "spoken_conflict_decision_preserves_other_conditions",
+      "passed": true
+    }
+  ]
+}

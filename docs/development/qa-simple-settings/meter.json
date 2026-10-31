@@ -1,0 +1,29 @@
+{
+  "input": "synthetic 440Hz; native Web Audio analyser; mock STT/TTS",
+  "cases": [
+    {
+      "name": "home_meter_signal_silence_stop",
+      "passed": true
+    },
+    {
+      "name": "checks_meter_signal_silence_stop",
+      "passed": true
+    },
+    {
+      "name": "voice_recognition_has_no_parallel_meter_capture",
+      "passed": true
+    },
+    {
+      "name": "background_baseline_and_louder_signal_difference",
+      "passed": true
+    },
+    {
+      "name": "denied_input_shows_error_without_fake_level",
+      "passed": true
+    },
+    {
+      "name": "late_microphone_permission_after_stop_cannot_restart",
+      "passed": true
+    }
+  ]
+}

@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#F6F3EC">
+  <!-- API 주소: 비우면 같은 주소(dev_server.py 프록시). 배포 땐 Render https 주소 -->
+  <meta name="lab678-api" content="https://oneul-nadeuli-api.onrender.com">
+  <title>오늘 나들이</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="anonymous">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin="anonymous" defer></script>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+<div class="app">
+
+  <!-- S00 시작 화면 -->
+  <section class="screen" id="s00" aria-label="시작 화면">
+    <div class="wake" data-state="sleep">
+      <div class="leaves" aria-hidden="true"></div>
+      <p class="wake__logo">오늘 나들이</p>
+      <p class="wake__bubble" id="wake-bubble" hidden>안녕하세요! 나들이 친구 까치예요.<br>오늘 어디로 나들이 가 볼까요?</p>
+      <button class="wake__bird" type="button" data-wake aria-label="까치 깨우기">
+        <img id="wake-img" src="assets/kkachi-sleep.png" alt="빨간 목도리를 두른 까치가 단풍 가지에서 자고 있어요">
+      </button>
+      <div class="wake__panel" role="status" aria-live="polite">
+        <h2 id="wake-title">까치가 아직 자고 있어요</h2>
+        <p class="muted" id="wake-sub">톡 눌러서 깨워 주세요.<br>깨우면 오늘 나들이를 같이 찾아요.</p>
+        <span class="loading__dots" id="wake-dots" aria-hidden="true" hidden><i></i><i></i><i></i></span>
+        <div class="wake__actions">
+          <button class="btn btn--primary" type="button" data-wake id="wake-btn">까치 깨우기</button>
+          <button class="btn btn--primary" type="button" data-go="/home" data-talk="start" hidden>시작하기</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S01 홈: 까치가 먼저 인사 (H01) -->
+  <section class="screen" id="s01" aria-label="홈">
+    <div class="home">
+      <div class="home__header">
+        <div class="home__brand">
+          <span class="logo"><span class="logo__big">오늘 나들이</span></span>
+          <span class="badge badge--ok" data-signed-in hidden>체험 중</span>
+        </div>
+        <button class="chip" type="button" data-go="/me">내 나들이</button>
+      </div>
+      <p class="home__kicker">문화가 있는, 나의 하루</p>
+      <h1 class="home__title">가벼운 마음으로,<br>오늘 한 걸음.</h1>
+      <div class="home__greet">
+        <div class="home__bird" id="home-bird"><img src="assets/kkachi-hello.png" alt="날개를 흔들며 인사하는 까치"></div>
+        <div class="home__say">
+          <strong>함께 찾아볼까요?</strong>
+          <span class="muted">하고 싶은 나들이를<br>편하게 말해 주세요.</span>
+        </div>
+      </div>
+      <button class="btn btn--primary btn--icon" type="button" data-go="/chat?voice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>말로 대화 시작하기
+      </button>
+      <button class="btn btn--outline" type="button" data-go="/chat?text">글자로 이야기하기</button>
+      <p class="home__example muted">“내일 오후에 종로에서 전시 보고 싶어요.”</p>
+      <div id="home-saved" hidden>
+        <h2 class="home__section-title">내 나들이</h2>
+        <div id="home-saved-list"></div>
+      </div>
+      <button class="chip home__textsize" type="button" data-text-size aria-pressed="false">가A&nbsp; 글자 크게</button>
+    </div>
+  </section>
+
+  <!-- S02 까치와 대화 (S02a 확인 · S03 추천 카드가 이 안에 나와요) -->
+  <section class="screen" id="s02" aria-label="나들이 친구와 대화">
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="/home" aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+      <h1>나들이 친구</h1>
+      <button class="chip chip--small" type="button" id="chat-sound" aria-pressed="false">소리 끔</button>
+      <button class="chip chip--small" type="button" id="chat-new">새로</button>
+    </header>
+    <!-- 말로 대화: 까치와 듣기 상태가 위에, 대화는 아래로 이어져요 (06 · S02 음성 듣기) -->
+    <div class="voicehead" id="voice-head">
+      <p class="listen__status" id="listen-status">음성을 듣고 있어요</p>
+      <div class="listen__bird" id="listen-bird"><img src="assets/kkachi-hello.png" alt="귀 기울여 듣는 까치"></div>
+      <h2 class="listen__title">편하게 말씀해 주세요.</h2>
+    </div>
+    <p class="chat__cond" id="chat-cond" hidden></p>
+    <div class="chat__log" id="chat-log" aria-live="polite"></div>
+    <div class="chat__bottom">
+      <div class="chat__actions" id="chat-actions"></div>
+      <div class="voicebar">
+        <button class="btn btn--primary listen__stop" type="button" id="voice-main">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <span class="wave" id="voice-wave" aria-hidden="true" hidden><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          <span id="voice-main-label">말하기</span>
+        </button>
+        <button class="btn btn--outline" type="button" id="voice-to-text">글자로 입력하기</button>
+      </div>
+      <form class="chat__form" id="chat-form" autocomplete="off">
+        <button class="chat__mic" type="button" id="chat-mic" aria-label="말하기">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+        </button>
+        <label class="sr-only" for="chat-input">까치에게 말하기</label>
+        <input class="input chat__input" id="chat-input" type="text" placeholder="글자로 적어도 돼요" maxlength="300">
+        <button class="btn btn--primary chat__send" type="submit">보내기</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- S04 장소 상세 -->
+  <section class="screen" id="s04" aria-label="장소 정보">
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="/chat" aria-label="대화로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+      <h1>장소 정보</h1>
+    </header>
+    <div class="page page--with-bar" id="s04-body"></div>
+    <div class="bottombar" id="s04-actions">
+      <p class="note" id="s04-note" role="status" hidden></p>
+      <button class="btn btn--primary" type="button" id="s04-map">지도 보기</button>
+      <button class="btn btn--outline" type="button" id="s04-save">내 나들이에 저장</button>
+    </div>
+  </section>
+
+  <!-- S08 지도와 길찾기 -->
+  <section class="screen" id="s08" aria-label="지도와 길찾기">
+    <header class="topbar">
+      <button class="icon-btn" type="button" id="s08-back" data-go="/chat" aria-label="장소 정보로 돌아가기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+      <h1>지도와 길찾기</h1>
+    </header>
+    <div class="page page--with-bar">
+      <p class="muted" id="s08-title"></p>
+      <div class="segmented" role="group" aria-label="이동 방법">
+        <button type="button" data-mode="walk" aria-pressed="true">도보</button>
+        <button type="button" data-mode="transit" aria-pressed="false">대중교통</button>
+      </div>
+      <div id="s08-walk">
+        <h2 class="route__time" id="s08-result" aria-live="polite"></h2>
+        <p class="muted" id="s08-sub"></p>
+      </div>
+      <div id="s08-transit" hidden>
+        <p class="badge badge--warn">앱의 대중교통 연결 준비 중</p>
+        <h2 class="route__time">카카오맵에서<br>길을 확인해 주세요.</h2>
+        <p class="muted">대중교통 예상 시간·요금·경로는 카카오맵에서 확인해 주세요.</p>
+        <a class="btn btn--primary" id="s08-kakao-transit" target="_blank" rel="noopener">카카오맵에서 대중교통 길찾기</a>
+      </div>
+      <div class="map map--route" id="s08-mapbox"></div>
+      <p class="map-error" id="s08-maperr" hidden>지도를 불러오지 못했어요.</p>
+      <p class="caption muted" id="s08-credit">지도 © OpenStreetMap</p>
+      <div class="notice notice--warn" id="s08-error" hidden>
+        <p id="s08-errmsg"></p>
+        <button class="btn btn--outline btn--small" type="button" id="s08-retry">다시 찾기</button>
+      </div>
+      <a class="btn btn--outline" id="s08-kakao" target="_blank" rel="noopener">카카오맵에서 도보 길찾기</a>
+    </div>
+    <div class="bottombar">
+      <button class="btn btn--primary" type="button" data-go="/chat">기존 대화로 돌아가기</button>
+    </div>
+  </section>
+
+  <!-- S07 내 나들이 -->
+  <section class="screen" id="s07" aria-label="내 나들이">
+    <header class="topbar">
+      <button class="icon-btn" type="button" data-go="/home" aria-label="홈으로"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg></button>
+      <h1>내 나들이</h1>
+    </header>
+    <div class="page page--with-tabs">
+      <h2 class="me__title">다음 나들이도<br>여기에서 이어가요.</h2>
+      <p class="badge badge--ok" id="me-count"></p>
+      <div id="me-empty" class="empty">
+        <p id="me-empty-text"></p>
+        <button class="btn btn--primary" type="button" id="me-start">체험 시작하기</button>
+      </div>
+      <div class="me__list" id="me-list"></div>
+      <p class="note" id="me-note" role="status" hidden></p>
+      <button class="btn btn--primary" type="button" data-go="/chat?text">새 나들이 이야기하기</button>
+      <button class="btn btn--danger-outline" type="button" id="me-end" hidden>체험 끝내고 저장 지우기</button>
+      <p class="caption muted">로그인 없이 이 브라우저에만 저장돼요. 다른 기기에는 이어지지 않아요.</p>
+    </div>
+  </section>
+
+  <!-- S06 저장 시트 -->
+  <div class="sheet" id="sheet-save" hidden>
+    <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-save-title" tabindex="-1">
+      <h2 id="sheet-save-title">나들이를 저장해 둘까요?</h2>
+      <p class="muted">체험을 시작하면 이 브라우저에 장소를 저장할 수 있어요.</p>
+      <p class="badge badge--ok">가입 없이 한 번에 시작해요</p>
+      <button class="btn btn--primary" type="button" id="sheet-start">체험 시작하고 저장</button>
+      <button class="btn btn--outline" type="button" id="sheet-cancel">다음에 할게요</button>
+      <p class="caption muted">다른 기기에는 이어지지 않아요.</p>
+    </div>
+  </div>
+
+  <!-- S06 체험 종료 확인 -->
+  <div class="sheet" id="sheet-end" hidden>
+    <div class="sheet__panel" role="dialog" aria-modal="true" aria-labelledby="sheet-end-title" tabindex="-1">
+      <h2 id="sheet-end-title">체험을 끝낼까요?</h2>
+      <p class="muted">저장한 장소와 체험 기록이 이 브라우저에서 모두 지워져요. 되돌릴 수 없어요.</p>
+      <button class="btn btn--danger" type="button" id="end-confirm">끝내고 모두 지우기</button>
+      <button class="btn btn--outline" type="button" id="end-cancel">취소</button>
+    </div>
+  </div>
+
+  <nav class="tabbar" aria-label="아래 메뉴">
+    <button class="tab" type="button" data-go="/home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg>홈
+    </button>
+    <button class="tab" type="button" data-go="/chat">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5A8 8 0 1 1 21 12z"/></svg>대화
+    </button>
+    <button class="tab" type="button" data-go="/me">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>내 나들이
+    </button>
+  </nav>
+</div>
+</body>
+</html>

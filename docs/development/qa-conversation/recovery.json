@@ -1,0 +1,292 @@
+{
+  "modes": {
+    "initial_preferences": "fixture",
+    "chat": "Naito live",
+    "recommendation": "recorded",
+    "error": "mock 502"
+  },
+  "checks": [
+    "PASS: 제한 때문에 0건일 때 자동 완화/Mock 없음",
+    "PASS: 확정 선호 해제는 동의 후 반영, 새로고침 보존",
+    "PASS: 해제한 조건으로 재추천→새로고침→상세 ID 동일",
+    "PASS: 추천 502 후 조건/이전 결과 보존, 실패 화면 유지"
+  ],
+  "empty": {
+    "request": {
+      "request_kind": "place",
+      "start_location": {
+        "label": "청량리역",
+        "lat": 37.5805961,
+        "lng": 127.0482573
+      },
+      "start_at": "2026-10-31T14:00:00+09:00",
+      "end_at": "2026-10-31T17:00:00+09:00",
+      "category": "전시",
+      "categories": [
+        "전시"
+      ],
+      "exclude_terms": [
+        "전시"
+      ],
+      "free_only": true,
+      "budget_krw": 20000,
+      "mode": "recorded"
+    },
+    "result": {
+      "status": "no_results",
+      "mode": "recorded",
+      "source_checked_at": "2026-10-31T06:27:57+09:00",
+      "searched_count": 5,
+      "source_total": 8,
+      "candidates": [],
+      "applied_preferences": {
+        "exclude_terms": [
+          "전시"
+        ],
+        "budget_krw": 20000,
+        "free_only": true,
+        "categories": [
+          "전시"
+        ]
+      },
+      "queried_categories": [
+        "전시"
+      ],
+      "coverage_note": "선택한 분류마다 공개 샘플 최대 5건을 조회했습니다. 전체 행사 검색 결과가 아니며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다.",
+      "excluded_count": 5,
+      "unknown_price_count": 0,
+      "preference_notes": [
+        "제외 조건은 행사명·장소·분류·지역의 명시한 단어 일치로 검사했습니다."
+      ]
+    }
+  },
+  "chat": {
+    "status": "needs_confirmation",
+    "base_revision": 3,
+    "assistant_text": "이미 확인한 조건과 달라요. 변경 전후를 확인하고 반영할 항목을 선택해 주세요.",
+    "updated_condition_draft": {
+      "request_kind": "place",
+      "categories": [
+        "전시"
+      ],
+      "exclude_terms": [
+        "전시"
+      ],
+      "free_only": true,
+      "budget_krw": 20000,
+      "date": "2026-10-31",
+      "category": "전시",
+      "start_at": "2026-10-31T14:00:00+09:00",
+      "end_at": "2026-10-31T17:00:00+09:00",
+      "start_location": {
+        "label": "청량리역",
+        "lat": 37.5805961,
+        "lng": 127.0482573
+      }
+    },
+    "missing_fields": [],
+    "field_errors": [],
+    "conflicts": [
+      {
+        "field": "exclude_terms",
+        "before": [
+          "전시"
+        ],
+        "after": []
+      },
+      {
+        "field": "budget_krw",
+        "before": 20000,
+        "after": "any"
+      },
+      {
+        "field": "free_only",
+        "before": true,
+        "after": false
+      }
+    ],
+    "ready_to_search": false,
+    "requires_final_confirmation": true,
+    "source": "naito",
+    "model": "claude-sonnet-4"
+  },
+  "restored": {
+    "request": {
+      "request_kind": "place",
+      "start_location": {
+        "label": "청량리역",
+        "lat": 37.5805961,
+        "lng": 127.0482573
+      },
+      "start_at": "2026-10-31T14:00:00+09:00",
+      "end_at": "2026-10-31T17:00:00+09:00",
+      "category": "전시",
+      "categories": [
+        "전시"
+      ],
+      "free_only": false,
+      "budget_krw": "any",
+      "exclude_terms": [],
+      "mode": "recorded"
+    },
+    "result": {
+      "status": "ready",
+      "mode": "recorded",
+      "source_checked_at": "2026-10-31T06:27:57+09:00",
+      "searched_count": 5,
+      "source_total": 8,
+      "candidates": [
+        {
+          "id": "seoul:159578",
+          "title": "예고를 빛낸 사람 수상작가전: 첫 장면 Award-Winning Alumni Exhibition: The First Scene",
+          "venue": "서울아트센터 도암 3층 도암갤러리",
+          "lat": 37.60603328383823,
+          "event_start_date": "2026-10-01",
+          "event_end_date": "2026-10-31",
+          "district": "종로구",
+          "address": null,
+          "lng": 126.96904312496109,
+          "distance_km": 7.53,
+          "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159578&menuNo=200009",
+          "fixed_start_at": null,
+          "genre": "전시/미술",
+          "opening_info": "화-토, 오전10:00~18:00 (일, 월, 공휴일 휴관)",
+          "price_info": null,
+          "fee_type": "무료",
+          "audience": "누구나",
+          "status": "check",
+          "checks_required": [
+            "예약 가능 여부·실제 이동시간 확인",
+            "요일·휴관·회차별 시간 확인"
+          ],
+          "source_checked_at": "2026-10-31T06:27:57+09:00",
+          "preference_reasons": [],
+          "matched_keywords": []
+        },
+        {
+          "id": "seoul:159859",
+          "title": "[송파 청년아티스트센터] 3기 릴레이 개인전 [dot to dot] - 권봉균",
+          "venue": "송파 청년아티스트센터 지하1층 아트 스페이스",
+          "lat": 37.5340686405498,
+          "event_start_date": "2026-10-20",
+          "event_end_date": "2026-10-31",
+          "district": "송파구",
+          "address": null,
+          "lng": 127.115954729217,
+          "distance_km": 7.9,
+          "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159859&menuNo=200009",
+          "fixed_start_at": null,
+          "genre": "전시/미술",
+          "opening_info": "10:00~18:00, 일요일 및 공휴일 휴관",
+          "price_info": null,
+          "fee_type": "무료",
+          "audience": "누구나",
+          "status": "check",
+          "checks_required": [
+            "예약 가능 여부·실제 이동시간 확인",
+            "요일·휴관·회차별 시간 확인"
+          ],
+          "source_checked_at": "2026-10-31T06:27:57+09:00",
+          "preference_reasons": [],
+          "matched_keywords": []
+        },
+        {
+          "id": "seoul:159829",
+          "title": "전시 [IMPRINTS OF TIME]",
+          "venue": "갤러리 지하",
+          "lat": 37.5534782220949,
+          "event_start_date": "2026-10-28",
+          "event_end_date": "2026-10-31",
+          "district": "마포구",
+          "address": null,
+          "lng": 126.93267709449,
+          "distance_km": 10.62,
+          "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159829&menuNo=200009",
+          "fixed_start_at": null,
+          "genre": "전시/미술",
+          "opening_info": "12:00~19:00",
+          "price_info": null,
+          "fee_type": "무료",
+          "audience": "누구나",
+          "status": "check",
+          "checks_required": [
+            "예약 가능 여부·실제 이동시간 확인"
+          ],
+          "source_checked_at": "2026-10-31T06:27:57+09:00",
+          "preference_reasons": [],
+          "matched_keywords": []
+        },
+        {
+          "id": "seoul:159723",
+          "title": "[구립증산도서관] 10월 미니멀 북큐레이션 [달마다, 나를 아끼는 습관] 책과 가까워지는 시간",
+          "venue": "2층 종합자료실",
+          "lat": 37.5828094398328,
+          "event_start_date": "2026-10-06",
+          "event_end_date": "2026-10-31",
+          "district": "은평구",
+          "address": null,
+          "lng": 126.907671330325,
+          "distance_km": 12.39,
+          "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159723&menuNo=200009",
+          "fixed_start_at": null,
+          "genre": "전시/미술",
+          "opening_info": "주중 9:00~22:00 / 주말 09:00~18:00",
+          "price_info": null,
+          "fee_type": "무료",
+          "audience": "누구나",
+          "status": "check",
+          "checks_required": [
+            "예약 가능 여부·실제 이동시간 확인",
+            "요일·휴관·회차별 시간 확인"
+          ],
+          "source_checked_at": "2026-10-31T06:27:57+09:00",
+          "preference_reasons": [],
+          "matched_keywords": []
+        },
+        {
+          "id": "seoul:159808",
+          "title": "김영재 개인전 [Ashes to Bones]",
+          "venue": "아케이드 서울",
+          "lat": 37.5155167575219,
+          "event_start_date": "2026-10-04",
+          "event_end_date": "2026-10-31",
+          "district": "영등포구",
+          "address": null,
+          "lng": 126.894539872062,
+          "distance_km": 15.36,
+          "official_url": "https://culture.seoul.go.kr/culture/culture/cultureEvent/view.do?cultcode=159808&menuNo=200009",
+          "fixed_start_at": null,
+          "genre": "전시/미술",
+          "opening_info": "월-일요일 12:00~19:00",
+          "price_info": "0원",
+          "fee_type": "무료",
+          "audience": "누구나",
+          "status": "check",
+          "checks_required": [
+            "예약 가능 여부·실제 이동시간 확인",
+            "요일·휴관·회차별 시간 확인"
+          ],
+          "source_checked_at": "2026-10-31T06:27:57+09:00",
+          "preference_reasons": [],
+          "matched_keywords": []
+        }
+      ],
+      "applied_preferences": {
+        "exclude_terms": [],
+        "budget_krw": "any",
+        "free_only": false,
+        "categories": [
+          "전시"
+        ]
+      },
+      "queried_categories": [
+        "전시"
+      ],
+      "coverage_note": "선택한 분류마다 공개 샘플 최대 5건을 조회했습니다. 전체 행사 검색 결과가 아니며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다.",
+      "excluded_count": 0,
+      "unknown_price_count": 0,
+      "preference_notes": []
+    }
+  },
+  "status": "PASS"
+}
