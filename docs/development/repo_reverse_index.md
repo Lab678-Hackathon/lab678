@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **내 위치 표시·정확도·갱신·수집 중지**: [backend/location_view.js](../../backend/location_view.js), [backend/map_view.js](../../backend/map_view.js), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_location_ui.cjs](../../utils/scripts/check_location_ui.cjs), [docs/development/kakao-map-location.md](../../docs/development/kakao-map-location.md)
 - **카카오 지도 전환·번호핀·경로 표시**: [backend/map_config.py](../../backend/map_config.py), [backend/map_view.js](../../backend/map_view.js), [backend/test_map_config.py](../../backend/test_map_config.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_kakao_map.cjs](../../utils/scripts/check_kakao_map.cjs), [docs/development/kakao-map-location.md](../../docs/development/kakao-map-location.md)
 - **단일 서비스 배포 준비·상태 확인·음성 지원 구분**: [backend/preview.py](../../backend/preview.py), [backend/local_voice.py](../../backend/local_voice.py), [backend/test_preview.py](../../backend/test_preview.py), [utils/scripts/check_deployment.cjs](../../utils/scripts/check_deployment.cjs), [docs/development/render-demo-guide.md](../../docs/development/render-demo-guide.md)
 - **코스 제외 예정·취소·명시적 재생성**: [backend/preview.html](../../backend/preview.html), [utils/scripts/check_course_edit.cjs](../../utils/scripts/check_course_edit.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
@@ -39,6 +40,7 @@
 | `broken_links` | [utils/scripts/harness.py:49](../../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
 | `build_course` | [backend/course.py:102](../../backend/course.py#L102) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
 | `check` | [utils/scripts/catalog.py:225](../../utils/scripts/catalog.py#L225) | Return missing or stale generated indexes; tolerate Git line endings. |
+| `clearShapes` | [backend/location_view.js:9](../../backend/location_view.js#L9) | JS/TS 정규식 후보; AST 검증 아님 |
 | `code_checks` | [utils/scripts/harness.py:20](../../utils/scripts/harness.py#L20) | Parse Python statically and require module/function/class docstrings. |
 | `compact` | [utils/scripts/catalog.py:63](../../utils/scripts/catalog.py#L63) | Return one short Markdown-safe line from a docstring. |
 | `config` | [utils/scripts/catalog.py:21](../../utils/scripts/catalog.py#L21) | Read only the public harness configuration, never environment values. |
@@ -98,7 +100,7 @@
 | `Preview` | [backend/preview.py:39](../../backend/preview.py#L39) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
 | `Preview.do_GET` | [backend/preview.py:79](../../backend/preview.py#L79) | 점검 폼과 저장소의 대표 요청만 제공한다. |
 | `Preview.do_OPTIONS` | [backend/preview.py:50](../../backend/preview.py#L50) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
-| `Preview.do_POST` | [backend/preview.py:97](../../backend/preview.py#L97) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.do_POST` | [backend/preview.py:99](../../backend/preview.py#L99) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
 | `Preview.end_headers` | [backend/preview.py:42](../../backend/preview.py#L42) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
 | `Preview.reply` | [backend/preview.py:68](../../backend/preview.py#L68) | UTF-8 본문을 길이와 함께 응답한다. |
 | `PreviewContractTests` | [backend/test_preview.py:12](../../backend/test_preview.py#L12) | 실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다. |
@@ -117,6 +119,7 @@
 | `query_walking` | [backend/walking.py:16](../../backend/walking.py#L16) | 개인 화면의 도보 조회 간격을 제한하고 공급자의 JSON 또는 실패 상태를 반환한다. |
 | `recommend` | [backend/outing.py:122](../../backend/outing.py#L122) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |
 | `record` | [utils/scripts/loop.py:21](../../utils/scripts/loop.py#L21) | Append one evidenced attempt, rejecting terminal states and blind repeats. |
+| `refresh` | [backend/location_view.js:36](../../backend/location_view.js#L36) | JS/TS 정규식 후보; AST 검증 아님 |
 | `refresh` | [utils/scripts/watch.py:30](../../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
 | `render` | [utils/scripts/catalog.py:204](../../utils/scripts/catalog.py#L204) | Produce all utility and repository indexes without volatile timestamps. |
 | `render` | [utils/scripts/context.py:22](../../utils/scripts/context.py#L22) | Render bounded, human-curated lists while preserving their decision status. |
@@ -131,12 +134,15 @@
 | `schedule_pair` | [backend/course.py:35](../../backend/course.py#L35) | 두 구간과 당일 시간표를 합산해 가능·미확인·충돌 및 방문별 예상시각을 반환한다. |
 | `script` | [backend/map_view.js:9](../../backend/map_view.js#L9) | JS/TS 정규식 후보; AST 검증 아님 |
 | `seoul_page` | [backend/outing.py:68](../../backend/outing.py#L68) | 지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다. |
-| `server_options` | [backend/preview.py:156](../../backend/preview.py#L156) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
+| `server_options` | [backend/preview.py:158](../../backend/preview.py#L158) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
 | `short_text` | [backend/transit.py:41](../../backend/transit.py#L41) | 이동 안내 원문을 길이 제한된 텍스트로 받아 HTML 실행 없이 표시하도록 반환한다. |
 | `signature` | [utils/scripts/watch.py:18](../../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |
 | `source_files` | [utils/scripts/catalog.py:26](../../utils/scripts/catalog.py#L26) | List supported source files in configured roots, excluding symlinks. |
+| `start` | [backend/location_view.js:46](../../backend/location_view.js#L46) | JS/TS 정규식 후보; AST 검증 아님 |
 | `start` | [utils/scripts/loop.py:14](../../utils/scripts/loop.py#L14) | Create an explicit task state with at most ten verification attempts. |
+| `status` | [backend/location_view.js:15](../../backend/location_view.js#L15) | JS/TS 정규식 후보; AST 검증 아님 |
+| `stop` | [backend/location_view.js:25](../../backend/location_view.js#L25) | JS/TS 정규식 후보; AST 검증 아님 |
 | `time_match` | [backend/outing.py:106](../../backend/outing.py#L106) | 단순 전시 개방구간/공연 시작을 검사한다. 복합 운영규칙은 미확인(None)이다. |
 | `ToolsTest` | [utils/tests/test_tools.py:25](../../utils/tests/test_tools.py#L25) | Check behavior with independent fixtures rather than mirrored implementation. |
 | `ToolsTest.git_repo` | [utils/tests/test_tools.py:46](../../utils/tests/test_tools.py#L46) | Initialize only the disposable Git fixture; set fixture-local identity. |

@@ -21,8 +21,11 @@ function mockKakao() {
   class Line extends Overlay {
     constructor(options){super(options);this.element.dataset.line=JSON.stringify(options.path);this.element.dataset.color=options.strokeColor;}
   }
+  class Circle extends Overlay {
+    constructor(options){super(options);this.element.dataset.circle=String(options.radius);}
+  }
   window.kakao={maps:{load:callback=>callback(),LatLng,LatLngBounds:Bounds,Map:FakeMap,
-    ZoomControl:class {},ControlPosition:{RIGHT:1},CustomOverlay:Overlay,Polyline:Line,Circle:Overlay}};
+    ZoomControl:class {},ControlPosition:{RIGHT:1},CustomOverlay:Overlay,Polyline:Line,Circle}};
 }
 
 /** 같은 화면의 추천 핀 선택·경로 텍스트/지도 전환·미제공 좌표 생략을 확인한다. */
@@ -76,4 +79,5 @@ async function main() {
     }
   } finally {await browser.close();}
 }
-main().catch(error=>{console.error(error);process.exitCode=1;});
+module.exports={mockKakao};
+if (require.main===module) main().catch(error=>{console.error(error);process.exitCode=1;});

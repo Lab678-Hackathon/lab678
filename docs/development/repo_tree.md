@@ -21,6 +21,7 @@ lab678/
     README.md
     course.py
     local_voice.py
+    location_view.js
     map_config.py
     map_view.js
     outing.py
@@ -88,6 +89,7 @@ lab678/
         2026-10-31-kakao-map.md
         2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md
+        2026-10-31-live-location.md
         2026-10-31-local-plan-folder.md
         2026-10-31-mobility-review.md
         2026-10-31-mvp-plan.md
@@ -183,6 +185,7 @@ lab678/
       check_frontend_connection.cjs
       check_input_contract.cjs
       check_kakao_map.cjs
+      check_location_ui.cjs
       check_outing_ui.cjs
       check_result_preservation.cjs
       check_transit_ui.cjs

@@ -89,6 +89,8 @@ class Preview(BaseHTTPRequestHandler):
             self.reply(200, map_config())
         elif self.path == "/map-view.js":
             self.reply(200, Path(__file__).with_name("map_view.js").read_bytes(), "text/javascript")
+        elif self.path == "/location-view.js":
+            self.reply(200, Path(__file__).with_name("location_view.js").read_bytes(), "text/javascript")
         elif self.path == "/example":
             self.reply(200, json.loads((EXAMPLES / "outing-request.json").read_bytes()))
         else:

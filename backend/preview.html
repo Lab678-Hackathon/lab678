@@ -41,6 +41,7 @@ fieldset {border:0; margin:0; padding:0; min-width:0}
 label {display:block; font-weight:650} input,select {display:block; width:100%; margin-top:3px; padding:8px; min-width:0; border:1px solid #849d9f; background:white; color:var(--ink)}
 .grid {display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,225px),1fr)); gap:12px}
 .actions {display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-block:10px}
+.actions[hidden] {display:none}
 summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:16px}
 [role=status]:empty {display:none}
 #status:not(:empty),#voice-status:not(:empty) {padding:10px 14px; margin-top:12px; background:var(--wash); border-radius:10px}
@@ -109,6 +110,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <p id="alternatives-status" role="status"></p><div id="alternative-list"></div></section>
 <small>도보 예상 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright">© OpenStreetMap contributors</a> · 예약 가능 여부는 각 행사 상세에서 확인해 주세요.</small></section>
 <p id="map-note" role="status"></p><div id="map" hidden aria-label="추천 행사 지도"></div>
+<div id="result-location" class="actions" data-location-controls></div>
 <div class="actions"><h3>추천 행사</h3><button id="prev" aria-label="이전 행사">이전</button><button id="next" aria-label="다음 행사">다음</button></div>
 <ol id="list" aria-label="추천 행사 카드"></ol><p id="selection" role="status"></p>
 <section class="panel" id="directions" hidden aria-labelledby="directions-title">
@@ -141,10 +143,12 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <button id="route-show-map" type="button" aria-pressed="false">지도 보기</button></div>
 <ol id="route-steps" aria-label="도보 이동 순서"></ol>
 <div id="route-map" hidden aria-label="도보 경로 지도"></div>
+<div id="route-location" class="actions" data-location-controls hidden></div>
 <p id="route-map-status" role="status"></p>
 <small id="walk-credit">예상 도보 경로 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></small>
 </div></dialog>
 <script src="/map-view.js"></script>
+<script src="/location-view.js"></script>
 <script>
 const form = document.querySelector("#form");
 const fields = form.elements;
@@ -167,9 +171,12 @@ let routeData = null;
 let routeMap = null;
 let routeHighlight = null;
 let routeEndpoints = null;
+let locationControl;
 
 /** 이전 경로 조회와 지도 인스턴스를 정리해 늦게 온 응답이 새 선택을 덮지 못하게 한다. */
 function clearRoute() {
+  locationControl?.stop();
+  document.querySelector("#route-location").hidden = true;
   routeVersion++;
   routeRequest?.abort();
   routeRequest = null;
@@ -198,6 +205,7 @@ function showRouteMap(step = null) {
   }
   routeSteps.hidden = true;
   routeMapBox.hidden = false;
+  document.querySelector("#route-location").hidden = false;
   document.querySelector("#route-text").setAttribute("aria-pressed", "false");
   document.querySelector("#route-show-map").setAttribute("aria-pressed", "true");
   if (!routeMap) {
@@ -209,6 +217,7 @@ function showRouteMap(step = null) {
     routeMap.pin(routeData.path.at(-1), {title:"경로 도착"});
   }
   routeMap.invalidateSize();
+  locationControl?.refresh();
   routeHighlight?.remove();
   routeHighlight = null;
   if (step) {
@@ -227,6 +236,7 @@ function showTransitMap(step = null) {
   }
   routeSteps.hidden = true;
   routeMapBox.hidden = false;
+  document.querySelector("#route-location").hidden = false;
   document.querySelector("#route-text").setAttribute("aria-pressed", "false");
   document.querySelector("#route-show-map").setAttribute("aria-pressed", "true");
   const segments = routeData.steps.filter(item => item.path?.length >= 2);
@@ -251,6 +261,7 @@ function showTransitMap(step = null) {
       "이 경로의 노선 좌표가 없어 출발지와 목적지만 표시했어요. 이동 방법은 텍스트 안내를 확인해 주세요.";
   }
   routeMap.invalidateSize();
+  locationControl?.refresh();
   routeHighlight?.remove();
   routeHighlight = null;
   if (step?.path?.length) {
@@ -262,6 +273,8 @@ function showTransitMap(step = null) {
 }
 document.querySelector("#route-show-map").onclick = () => showRouteMap();
 document.querySelector("#route-text").onclick = () => {
+  locationControl?.stop();
+  document.querySelector("#route-location").hidden = true;
   routeMapBox.hidden = true;
   routeSteps.hidden = false;
   document.querySelector("#route-text").setAttribute("aria-pressed", "true");
@@ -643,6 +656,7 @@ function drawMap() {
     map = LabMap.create(mapBox, () => { mapNote.textContent = "일부 지도 배경을 불러오지 못했습니다. 아래 목록에서 선택할 수 있습니다."; });
   }
   map.invalidateSize();
+  locationControl?.refresh();
   map.fitBounds(points.map(item => [item.lat,item.lng]), {padding:[28,28],maxZoom:15,animate:false});
   for (const item of points) {
     const number = latestCandidates.indexOf(item) + 1;
@@ -1226,6 +1240,7 @@ document.querySelector("#locate").onclick = () => {
 };
 document.querySelector("#back").onclick = () => {
   cancelRecommendation();
+  locationControl?.stop();
   resetAlternatives();
   excludedIds = [];
   pendingExcludedIds.clear();
@@ -1234,6 +1249,8 @@ document.querySelector("#back").onclick = () => {
   stopReading(); results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
   document.querySelector("#restore-recommendation").hidden = !recommendationSnapshot;
 };
+locationControl = installLocationControls(() => [map, routeMap],
+  () => routeDialog.open ? (routeMapBox.hidden ? null : routeMap) : (results.hidden ? null : map));
 init().catch(() => { statusText.textContent = "대표 요청을 읽지 못했습니다. 새로고침해 주세요."; });
 </script>
 <script>LabMap.load().then(() => { if (!results.hidden) drawMap(); });</script></html>
