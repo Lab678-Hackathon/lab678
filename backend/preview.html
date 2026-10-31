@@ -25,7 +25,8 @@ button:disabled {opacity:.55; cursor:default}.primary {background:var(--teal); c
 .route-link {display:inline-block; padding:10px 16px; border:1px solid #88a7a9; border-radius:12px; font-weight:650; text-decoration:none}
 dialog {width:min(94vw,760px); max-height:90vh; border:1px solid var(--line); border-radius:18px; padding:20px; color:var(--ink)}
 dialog::backdrop {background:#17363b88}
-#route-dialog > .actions {position:sticky; top:-20px; background:white; z-index:1001; padding-block:10px; margin-top:0}
+#route-dialog > .actions:first-child {position:sticky; top:-20px; background:white; z-index:1001; padding-block:10px; margin-top:0}
+#transit-choices[hidden] {display:none}
 #route-summary {font-size:24px; font-weight:750}
 #route-steps {padding-left:30px; margin:12px 0}
 #route-steps li {border-bottom:1px solid var(--line); padding:12px 4px}
@@ -105,7 +106,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <section class="panel" id="directions" hidden aria-labelledby="directions-title">
 <h3 id="directions-title" tabindex="-1">선택한 행사로 경로안내</h3>
 <div id="event-directions"></div>
-<p class="muted">도보 안내는 이 화면에서 볼 수 있어요. 대중교통은 외부 지도의 날짜·시각을 확인해 주세요.</p></section>
+<p class="muted">도보·대중교통 안내를 선택할 수 있어요. 대중교통의 배차·막차는 별도 확인해 주세요.</p></section>
 <button type="button" id="read" disabled>선택한 행사 읽기</button>
 <button type="button" id="file-read" disabled>음성 파일로 듣기</button>
 <audio id="player" controls hidden aria-label="선택한 행사의 한국어 음성" style="width:100%;margin-top:10px"></audio>
@@ -120,7 +121,11 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <footer><small>문화정보 제공 · 서울특별시 서울문화포털</small></footer></main>
 <dialog id="route-dialog" aria-labelledby="route-title">
 <div class="actions"><h2 id="route-title">도보 경로안내</h2><button id="route-close" type="button">닫기</button></div>
+<div class="actions" aria-label="이동 수단"><button id="route-mode-walk" type="button">도보</button><button id="route-mode-transit" type="button">대중교통</button></div>
 <p id="route-endpoints"></p><p id="route-status" role="status"></p>
+<div id="transit-choices" class="actions" aria-label="대중교통 경로 선택" hidden></div>
+<p id="transit-note" hidden></p>
+<p id="transit-map" hidden><a id="transit-map-link" target="_blank" rel="noopener noreferrer">카카오맵에서 지도 보기 (새 탭)</a></p>
 <button id="route-retry" type="button" hidden>다시 조회</button>
 <div id="route-content" hidden>
 <p id="route-summary"></p>
@@ -129,7 +134,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <ol id="route-steps" aria-label="도보 이동 순서"></ol>
 <div id="route-map" hidden aria-label="도보 경로 지도"></div>
 <p id="route-map-status" role="status"></p>
-<small>예상 도보 경로 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></small>
+<small id="walk-credit">예상 도보 경로 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></small>
 </div></dialog>
 <script>
 const form = document.querySelector("#form");
@@ -165,6 +170,8 @@ function clearRoute() {
   document.querySelector("#route-content").hidden = true;
   document.querySelector("#route-retry").hidden = true;
   document.querySelector("#route-map-status").textContent = "";
+  document.querySelector("#transit-choices").replaceChildren();
+  for (const id of ["transit-choices", "transit-note", "transit-map"]) document.getElementById(id).hidden = true;
 }
 document.querySelector("#route-close").onclick = () => routeDialog.close();
 routeDialog.onclose = clearRoute;
@@ -212,6 +219,7 @@ document.querySelector("#route-text").onclick = () => {
 /** 한국어 이동 순서와 그 좌표를 한 응답으로 받아 텍스트를 먼저 표시한다. */
 async function openWalking(origin, destination) {
   clearRoute();
+  configureRouteMode(origin, destination, "walk");
   const version = routeVersion;
   const controller = new AbortController();
   routeRequest = controller;
@@ -255,6 +263,86 @@ async function openWalking(origin, destination) {
   }
 }
 
+/** 출발·도착 이름과 좌표로 공식 링크를 만들고 공급자 응답의 임의 URL은 사용하지 않는다. */
+function transitMapLink(origin, destination) {
+  return "https://map.kakao.com/link/by/traffic/" + [origin, destination].map(point =>
+    encodeURIComponent((point.label || point.venue || "위치").trim().replace(/[,/]/g," ")) + "," + point.lat + "," + point.lng).join("/");
+}
+
+/** 같은 출발·도착을 유지하며 도보/대중교통 보기와 출처를 전환한다. */
+function configureRouteMode(origin, destination, mode) {
+  const walking = mode === "walk";
+  document.querySelector("#route-title").textContent = walking ? "도보 경로안내" : "대중교통 경로안내";
+  document.querySelector("#route-mode-walk").setAttribute("aria-pressed", String(walking));
+  document.querySelector("#route-mode-transit").setAttribute("aria-pressed", String(!walking));
+  document.querySelector("#route-mode-walk").onclick = () => openWalking(origin, destination);
+  document.querySelector("#route-mode-transit").onclick = () => openTransit(origin, destination);
+  document.querySelector("#route-text").hidden = !walking;
+  document.querySelector("#route-show-map").hidden = !walking;
+  document.querySelector("#walk-credit").hidden = !walking;
+  document.querySelector("#transit-map").hidden = walking;
+  document.querySelector("#transit-map-link").href = transitMapLink(origin, destination);
+}
+
+/** 선택한 대중교통 경로의 실제 응답값만 요약하고 도보·승차·환승 안내를 순서대로 표시한다. */
+function displayTransitRoute(route, index) {
+  document.querySelector("#route-summary").textContent = "경로 " + (index+1) + " · 약 " + Math.ceil(route.duration_s / 60) +
+    "분 · 환승 " + route.transfers + "회 · 도보 " + Math.ceil(route.walk_duration_s / 60) + "분 (" + Math.round(route.walk_distance_m) + "m)";
+  const fare = route.fare_won === null ? "요금 미확인" : "안내 요금 " + route.fare_won.toLocaleString("ko-KR") + "원 · 우대 적용 여부 별도 확인";
+  routeStatus.textContent = fare;
+  routeSteps.replaceChildren();
+  const labels = {WALKING:"도보",BUS:"버스",SUBWAY:"지하철"};
+  for (const step of route.steps) {
+    const li = document.createElement("li");
+    li.textContent = labels[step.mode] + " · " + step.instruction + " · 약 " + Math.ceil(step.duration_s / 60) + "분 / " + Math.round(step.distance_m) + "m";
+    routeSteps.append(li);
+  }
+  document.querySelectorAll("#transit-choices button").forEach((button,i) => button.setAttribute("aria-pressed",String(i === index)));
+  routeSteps.hidden = false;
+  document.querySelector("#route-content").hidden = false;
+}
+
+/** 서버의 대중교통 조회 결과를 받되 미연결·0건·실패를 성공 경로로 대체하지 않는다. */
+async function openTransit(origin, destination) {
+  clearRoute();
+  configureRouteMode(origin, destination, "transit");
+  const version = routeVersion;
+  const controller = new AbortController();
+  routeRequest = controller;
+  document.querySelector("#route-endpoints").textContent = (origin.label || origin.venue).trim() + " → " + destination.venue.trim();
+  routeStatus.textContent = "대중교통 경로를 확인하고 있어요.";
+  if (!routeDialog.open) routeDialog.showModal();
+  document.querySelector("#route-retry").onclick = () => openTransit(origin,destination);
+  try {
+    const response = await fetch("/preview/transit", {method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({points:[origin,destination].map(({lat,lng}) => ({lat,lng}))}),signal:controller.signal});
+    const body = await response.json();
+    if (version !== routeVersion || !routeDialog.open) return;
+    if (!response.ok) {
+      routeStatus.textContent = body.message;
+      document.querySelector("#route-retry").hidden = ["unconfigured","unauthorized"].includes(body.status);
+      return;
+    }
+    if (body.status === "no_results") { routeStatus.textContent = body.message; return; }
+    const note = document.querySelector("#transit-note");
+    note.textContent = "대중교통 정보 제공 · 카카오맵 · " + new Date(body.checked_at).toLocaleString("ko-KR",{timeZone:"Asia/Seoul"}) + " 조회. " + body.time_basis;
+    note.hidden = false;
+    const choices = document.querySelector("#transit-choices");
+    body.routes.forEach((route,index) => {
+      const button = document.createElement("button"); button.type = "button";
+      button.textContent = "경로 " + (index+1) + " · " + Math.ceil(route.duration_s / 60) + "분 · 환승 " + route.transfers + "회";
+      button.onclick = () => displayTransitRoute(route,index);
+      choices.append(button);
+    });
+    choices.hidden = false;
+    displayTransitRoute(body.routes[0],0);
+  } catch (error) {
+    if (version !== routeVersion || error.name === "AbortError") return;
+    routeStatus.textContent = "대중교통 경로를 확인하지 못했어요. 다시 조회하거나 카카오맵에서 확인해 주세요.";
+    document.querySelector("#route-retry").hidden = false;
+  }
+}
+
 /** 확인한 두 좌표와 순서로 카카오맵 도보·대중교통 링크를 만든다. 클릭할 때 새 탭으로 이동한다. */
 function directionLinks(origin, destination) {
   const group = document.createElement("div");
@@ -279,6 +367,11 @@ function directionLinks(origin, destination) {
   inside.textContent = "도보 안내 보기";
   inside.onclick = () => openWalking(origin, destination);
   group.append(inside);
+  const transit = document.createElement("button");
+  transit.type = "button";
+  transit.textContent = "대중교통 안내 보기";
+  transit.onclick = () => openTransit(origin, destination);
+  group.append(transit);
   const external = document.createElement("details");
   const summary = document.createElement("summary");
   summary.textContent = "외부 지도에서 열기";

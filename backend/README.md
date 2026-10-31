@@ -1,2 +1,6 @@
 # backend
 저장소 루트에서 `python backend/preview.py`를 실행한 뒤 [로컬 나들이 찾기](http://127.0.0.1:8765/)를 연다. Python 표준 라이브러리와 서울시 공개 sample을 쓴다. `python -m unittest discover -s backend -v`로 오프라인 회귀를 실행한다. 실시간은 인터넷 접속이 필요하다. 10/31 기록 재생은 전시·전체를 지원한다. [요청·응답 예시와 UI 인계](../docs/development/outing-handoff.md)
+
+## 개인 대중교통 연결
+
+`.local/transit.env`(Git 제외)에 `LAB678_KAKAO_REST_API_KEY=값`을 로컬에서 직접 설정한다. 카카오맵 API 활성화와 해당 앱 쿼터를 확인한 REST API 키만 사용한다. 환경변수도 지원하며 파일은 요청마다 읽는다. 키는 클라이언트/로그/응답에 포함하지 않는다. 미설정은 503 unconfigured이며 외부 카카오맵으로 이어진다. 현재 실제 키 호출은 미검증이다. [진행·설정 안내](../docs/development/transit-progress.md)

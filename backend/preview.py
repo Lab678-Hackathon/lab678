@@ -8,6 +8,7 @@ from outing import EXAMPLES, recommend
 from local_voice import render_wave
 from course import build_course
 from walking import walk_between
+from transit import transit_between
 
 
 class Preview(BaseHTTPRequestHandler):
@@ -35,7 +36,7 @@ class Preview(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다."""
-        if self.path not in {"/preview/recommend", "/preview/voice", "/preview/walk"}:
+        if self.path not in {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit"}:
             self.send_error(404)
             return
         if self.headers.get_content_type() != "application/json":
@@ -48,6 +49,13 @@ class Preview(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("요청 형식을 확인해 주세요.")
+            if self.path == "/preview/transit":
+                try:
+                    status, body = transit_between(data.get("points"))
+                except (ValueError, TypeError, KeyError):
+                    status, body = 400, dict(status="need_input", message="출발지와 목적지 좌표를 확인해 주세요.")
+                self.reply(status, body)
+                return
             if self.path == "/preview/walk":
                 try:
                     if "details" in data and type(data["details"]) is not bool:

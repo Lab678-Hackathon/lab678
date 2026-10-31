@@ -26,7 +26,9 @@ lab678/
     preview.py
     test_course.py
     test_outing.py
+    test_transit.py
     test_walking.py
+    transit.py
     walking.py
   design/
     AGENTS.md
@@ -81,12 +83,14 @@ lab678/
         2026-10-31-speech-trace.md
         2026-10-31-spoken-category.md
         2026-10-31-tooling-setup.md
+        2026-10-31-transit-guide.md
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
       state.json
       tasks.md
       tooling-progress.md
+      transit-progress.md
     meetings/
       2026-10-28.md
     planning/
@@ -138,6 +142,7 @@ lab678/
       catalog.py
       check_course_alternatives.cjs
       check_outing_ui.cjs
+      check_transit_ui.cjs
       commit_report.py
       context.py
       harness.py

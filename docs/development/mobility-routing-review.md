@@ -178,3 +178,9 @@ ODsay 공식 가이드는 `searchPubTransPathT` 경로 조회와 `loadLane` 노�
 ## 내부 경로 안내 표시
 
 10/31 실제 Valhalla 응답에서 language ko-KR과 한국어 instruction을 확인했다. directions_type instructions로 단계별 length(km), begin/end_shape_index와 polyline6 경로선을 받고 서버에서 단위·좌표·인덱스를 검증한다. 기존 요약 조회와 상세 조회는 같은 walk 엔드포인트의 details 필드로 구분한다. 한국어가 아닌 대체 응답이나 손상된 경로는 안내 성공으로 표시하지 않는다. [제공자 API 문서](https://valhalla.github.io/valhalla/api/route/api-reference/).
+
+## 10월 31일 대중교통 구현 준비
+
+카카오 공개 `/v2/routing/publictraffic` 어댑터를 개인 서버에 추가했다. 경로별 총시간·거리·환승·요금과 단계의 안내·수단·시간·거리를 검증해 내부 텍스트로 표시한다. 위치는 사용자 조회 시 서버에서만 전송하고 키는 전용 환경변수/로컬 제외 파일에서 읽는다. 단계 좌표는 이번 구현에 이식하지 않고 지도는 카카오맵 링크를 사용한다.
+
+공식 명세에 출발 날짜·시각 입력이 없어 조회 시점 안내로 표시하며 미래 문화코스 시간에 합산하지 않는다. **실제 키 없음: 화면·정규화·오류 처리는 모의/미설정 검증, 실제 노선 성공은 미검증.** [공식 명세](https://developers.kakao.com/docs/ko/kakaomap/rest-api) · [진행표](transit-progress.md).
