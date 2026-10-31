@@ -61,6 +61,7 @@ lab678/
         2026-10-31-chrome-speech.md
         2026-10-31-course-demo-check.md
         2026-10-31-demo-server-reuse.md
+        2026-10-31-develop-sync.md
         2026-10-31-events.md
         2026-10-31-konnect-preview.md
         2026-10-31-mobility-review.md
