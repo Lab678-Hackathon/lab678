@@ -27,11 +27,24 @@ class TransitTests(unittest.TestCase):
         """초/m/환승/요금 및 미확인 요금을 보존한다."""
         raw = provider_response()
         route = normalize_routes(raw)["routes"][0]
-        self.assertEqual((route["duration_s"],route["walk_duration_s"],route["walk_distance_m"]),(1800,600,600))
+        self.assertEqual((route["duration_s"],route["listed_walk_duration_s"],route["listed_walk_distance_m"]),(1800,600,600))
+        self.assertIsNone(route["walk_duration_s"])
+        self.assertIsNone(route["walk_distance_m"])
         self.assertEqual(route["fare_won"],1550)
         raw["routes"][0]["properties"]["fare"] = {"min":1500,"max":2000}
         self.assertIsNone(normalize_routes(raw)["routes"][0]["fare_won"])
         self.assertIn("출발시각은 적용되지",normalize_routes(raw)["time_basis"])
+
+    def test_missing_access_walk(self):
+        """실응답처럼 지하철만 표시되어도 생략된 접근/마지막 도보를 0으로 확정하지 않는다."""
+        raw = provider_response()
+        raw["routes"][0]["steps"] = raw["routes"][0]["steps"][1:2]
+        route = normalize_routes(raw)["routes"][0]
+        self.assertEqual(route["duration_s"],1800)
+        self.assertIsNone(route["walk_duration_s"])
+        self.assertIsNone(route["listed_walk_duration_s"])
+        self.assertIsNone(route["listed_walk_distance_m"])
+        self.assertIn("전체 도보량은 확인되지",route["walk_note"])
 
     def test_bad_payloads(self):
         """음수·누락·잘못된 이동수단·손상된 성공 응답을 정상이 아닌 것으로 처리한다."""

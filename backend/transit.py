@@ -82,7 +82,11 @@ def normalize_routes(body):
         price = fare.get("value")
         routes.append(dict(duration_s=duration, distance_m=distance, transfers=transfers,
                            fare_won=metric(price, 1000000) if price is not None else None,
-                           walk_duration_s=walk_time, walk_distance_m=walk_distance, steps=steps))
+                           walk_duration_s=None, walk_distance_m=None,
+                           listed_walk_duration_s=walk_time if walk else None,
+                           listed_walk_distance_m=walk_distance if walk else None,
+                           walk_note="전체 도보량은 확인되지 않았어요. 출발지에서 승차 지점까지와 하차 후 목적지까지의 이동은 지도에서 확인해 주세요.",
+                           steps=steps))
     return dict(status="ready", routes=routes, provider="카카오맵",
                 checked_at=datetime.now(timezone.utc).isoformat(),
                 time_basis="조회 시점 경로예요. 나들이 날짜·출발시각은 적용되지 않으며 배차·막차는 별도 확인해 주세요.")
