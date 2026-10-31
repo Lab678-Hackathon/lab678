@@ -49,8 +49,9 @@ function response(request, extra = {}) {
 async function ready(browser, config = {}, handler) {
   const page = await browser.newPage({ viewport: { width: 412, height: 915 }, timezoneId: 'Asia/Seoul' });
   await page.addInitScript(devices, config);
-  const stats = { calls: 0, errors: [] };
+  const stats = { calls: 0, errors: [], chatUrls: [] };
   page.on('pageerror', e => stats.errors.push(e.message));
+  page.on('request', request => { if (request.url().endsWith('/preview/chat')) stats.chatUrls.push(request.url()); });
   if (handler !== 'live') await page.route('**/preview/chat', route => {
     stats.calls++;
     return handler ? handler(route) : route.fulfill({ json: response(route.request().postDataJSON()) });
@@ -83,11 +84,36 @@ async function main() {
     console.log(`${name}: ${report.cases.at(-1).passed ? 'PASS' : 'FAIL'}`);
   }
   try {
+    await check('same_mic_button_toggle_off_and_restart', async () => {
+      const { page, stats } = await ready(browser);
+      assert.equal(await page.locator('#chat-mic').isEnabled(), true);
+      assert.equal(await page.locator('#chat-mic').getAttribute('aria-pressed'), 'false');
+      assert.match(await page.locator('#chat-mic-state').textContent(), /꺼짐/);
+      assert.equal(await page.locator('#chat-mic svg').count(), 1);
+      await page.locator('#chat-mic').click();
+      await page.waitForFunction(() => voiceTest.starts === 1);
+      assert.equal(await page.locator('#chat-mic').getAttribute('aria-pressed'), 'true');
+      assert.match(await page.locator('#chat-mic-state').textContent(), /켜짐.*듣는 중/);
+      assert.equal(await page.locator('#chat-mic').isEnabled(), true);
+      await page.locator('#dj-chat').screenshot({ path: '.local/voice-session/microphone-on.png' });
+      await page.locator('#chat-mic').click();
+      await stopped(page, /멈췄/);
+      assert.equal(await page.locator('#chat-mic').getAttribute('aria-pressed'), 'false');
+      assert.match(await page.locator('#chat-mic-state').textContent(), /꺼짐/);
+      await page.waitForTimeout(200);
+      assert.equal(await page.evaluate(() => voiceTest.starts), 1);
+      await page.locator('#dj-chat').screenshot({ path: '.local/voice-session/microphone-off.png' });
+      await page.locator('#chat-mic').click();
+      await page.waitForFunction(() => voiceTest.starts === 2);
+      await page.locator('#chat-mic').click(); await stopped(page, /멈췄/);
+      assert.equal(stats.calls, 0); assert.deepEqual(stats.errors, []); await page.close();
+    });
     await check('two_turns_one_click_and_settings_restore', async () => {
       const { page, stats } = await ready(browser, { texts: ['음악', '국악'] });
       await page.locator('#chat-mic').click();
       await stopped(page, /2회 대화를 마쳤/);
       assert.equal(stats.calls, 2);
+      assert.deepEqual(stats.chatUrls, [base + '/preview/chat', base + '/preview/chat']);
       assert.deepEqual(await page.evaluate(() => [voiceTest.starts, voiceTest.speaks]), [2, 2]);
       await page.screenshot({ path: '.local/voice-session/settings.png', fullPage: true });
       await page.reload(); await page.locator('#chat-mic').waitFor();
@@ -134,7 +160,8 @@ async function main() {
       let capture; const pending = new Promise(resolve => { capture = resolve; });
       const { page } = await ready(browser, { texts: ['국악'] }, route => capture(route));
       await page.locator('#chat-mic').click(); const route = await pending;
-      await page.locator('#chat-voice-stop').click();
+      assert.equal(await page.locator('#chat-mic').isEnabled(), true);
+      await page.locator('#chat-mic').click();
       await route.fulfill({ json: response(route.request().postDataJSON(), { updated_condition_draft: { category: '국악' } }) }).catch(() => {});
       await stopped(page, /멈췄/);
       await page.waitForTimeout(150);
@@ -188,7 +215,7 @@ async function main() {
       const { page, stats } = await ready(browser, { texts: ['음악', '국악'], autoRead: false });
       await page.locator('#chat-mic').click(); await page.waitForFunction(() => voiceTest.speaks === 1);
       await page.evaluate(() => { window.lateTtsEnd = voiceTest.speech.onend; });
-      await page.locator('#chat-voice-stop').click();
+      await page.locator('#chat-mic').click();
       await page.evaluate(() => window.lateTtsEnd());
       await stopped(page, /멈췄/); assert.equal(await page.evaluate(() => voiceTest.starts), 1);
       assert.equal(stats.calls, 1); await page.close();

@@ -9,7 +9,8 @@ import { VoiceSession } from './dj-voice.js';
 import { screenContext, openingQuestion, voiceAction, currentCandidate, candidateSpeech } from './dj-voice-actions.js';
 
 const root = document.querySelector('#s02');
-const api = (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
+const api = ['localhost', '127.0.0.1'].includes(location.hostname) ? ''
+  : (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
 const labels = { start_query: '출발지', start_at: '출발 시각', end_at: '종료 시각', category: '활동', request_kind: '추천 방식', stay_minutes: '체류시간',
   categories: '관심 활동', free_only: '무료만', budget_krw: '관람 예산', keywords: '관심어', exclude_terms: '제외 조건',
   walking_preference: '걷기 선호', indoor_outdoor: '실내·실외', unsupported_requirements: '필수 조건' };
@@ -28,10 +29,11 @@ box.innerHTML = `<h2>AI와 자동으로 대화하기</h2>
  <p class="muted">시작 한 번이면 AI 질문 → 내 답변 듣기 → 다음 질문이 자동으로 이어져요.</p>
  <label for="chat-text">하고 싶은 말씀</label>
  <textarea id="chat-text" rows="3" maxlength="1000" placeholder="국악을 듣고 싶어요"></textarea>
- <div class="chat-actions"><button type="button" class="btn btn--primary" id="chat-mic">자동 음성 대화 시작</button>
+ <p id="chat-mic-state">자동 대화 꺼짐</p>
+ <div class="chat-actions"><button type="button" class="btn btn--primary" id="chat-mic" aria-pressed="false" aria-label="자동 음성 대화 켜기" aria-describedby="chat-mic-state chat-voice-status"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/><path class="mic-off-slash" d="m3 3 18 18"/></svg><span id="chat-mic-label">자동 음성 대화 시작</span></button>
  <button type="button" class="btn btn--outline" id="chat-voice-stop" disabled>대화 중지</button>
  <button type="button" class="btn btn--primary" id="chat-send">보내기</button></div>
- <p id="chat-voice-status" role="status" aria-live="polite"></p>
+ <p id="chat-voice-status" role="status" aria-live="polite" data-phase="idle">마이크 버튼을 누르면 AI가 먼저 질문해요. 다시 누르면 대화와 마이크가 꺼져요.</p>
  <p class="caption muted">“음악을 듣고 싶어요”, “조건 바꿔”, “두 번째 장소 자세히 보여줘”처럼 말해 보세요.</p>
  <details id="chat-voice-settings"><summary>음성 대화 설정</summary>
  <label>최대 대화 횟수 <input id="chat-max-turns" type="number" min="1" max="10" step="1">회</label>
@@ -47,6 +49,7 @@ style.textContent = '#dj-chat textarea{width:100%;box-sizing:border-box;font:inh
 document.head.append(style);
 style.textContent += '#chat-voice-settings{border:1px solid #687c71;border-radius:12px;padding:12px;margin:12px 0}#chat-voice-settings summary{font-weight:700;cursor:pointer;padding:6px 0}#chat-voice-settings label{display:block;margin:12px 0}#chat-voice-settings input{font:inherit;width:90px;min-height:44px;padding:6px;box-sizing:border-box;margin:0 6px}#chat-voice-status{white-space:pre-wrap}';
 style.textContent += '#dj-chat{padding:20px;border:2px solid #547562;border-radius:16px;background:#fff;margin:16px 0}#dj-chat h2{font-size:1.35rem;margin:0 0 12px}#dj-chat p{overflow-wrap:anywhere}';
+style.textContent += '#dj-chat #chat-mic{display:flex;align-items:center;justify-content:center;gap:12px;flex-basis:100%;min-height:64px;padding:16px;font-size:19px;line-height:1.5;border:2px solid #245e48;background:#fff;color:#245e48}#dj-chat #chat-mic svg{width:30px;height:30px;flex-shrink:0}#dj-chat #chat-mic[aria-pressed="true"]{background:#205d46;color:#fff;border-color:#205d46;box-shadow:0 0 0 4px #d9eee2}#chat-mic[aria-pressed="true"] .mic-off-slash{display:none}#chat-mic-state{font-size:18px;font-weight:750;padding:10px 12px;border-radius:10px;background:#edf1ee;color:#43564a}#chat-mic-state[data-active="true"]{background:#d9eee2;color:#164c36}';
 root.querySelector('[data-field="start"]').before(box);
 const $ = (selector) => box.querySelector(selector);
 $('#chat-text').value = state.chat.text || '';
@@ -142,7 +145,7 @@ function note(text) {
   $('#chat-status').textContent = text;
   $('#chat-preferences').textContent = preferenceText(state.chat.preferences || {});
   $('#chat-send').disabled = busy || Boolean(voiceSession?.active);
-  $('#chat-mic').disabled = busy && !voiceSession?.active;
+  $('#chat-mic').disabled = false;
   document.querySelector('#btn-search').disabled = busy || Boolean(voiceSession?.active) || Boolean(state.chat.pending)
     || Boolean(state.chat.preferences?.music_followup) || Boolean(state.chat.preferences?.unsupported_requirements?.length);
 }
@@ -352,8 +355,12 @@ voiceSession = new VoiceSession({
   submit: async (text, signal) => { $('#chat-text').value = text; return send(signal); },
   onTranscript: text => { $('#chat-text').value = text; state.chat.text = text; save(); },
   onState: ({ active, phase, turns, limit, message }) => {
-    $('#chat-mic').textContent = active ? '자동 음성 대화 중지' : '자동 음성 대화 시작';
+    $('#chat-mic-label').textContent = active ? '자동 음성 대화 중지' : '자동 음성 대화 시작';
     $('#chat-mic').setAttribute('aria-pressed', String(active));
+    $('#chat-mic').setAttribute('aria-label', active ? '자동 음성 대화 끄기' : '자동 음성 대화 켜기');
+    const phases = { listening: '듣는 중', thinking: '답변 확인 중', speaking: 'AI 질문·답변 읽는 중' };
+    $('#chat-mic-state').dataset.active = String(active);
+    $('#chat-mic-state').textContent = active ? `자동 대화 켜짐 · ${phases[phase] || '준비 중'}` : '자동 대화 꺼짐';
     $('#chat-voice-stop').disabled = !active;
     $('#chat-max-turns').disabled = $('#chat-silence-seconds').disabled = active;
     $('#chat-voice-status').dataset.phase = phase;

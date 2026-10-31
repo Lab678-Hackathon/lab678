@@ -6,20 +6,20 @@
 
 | 심볼 | 정의 위치 | 개요 |
 |---|---|---|
-| `$` | [backend/team_chat.js:51](../backend/team_chat.js#L51) | JS/TS 정규식 후보; AST 검증 아님 |
+| `$` | [backend/team_chat.js:54](../backend/team_chat.js#L54) | JS/TS 정규식 후보; AST 검증 아님 |
 | `allowed_origins` | [backend/preview.py:23](../backend/preview.py#L23) | 환경변수의 명시적 HTTP(S) origin만 허용한다. 와일드카드·경로·자격정보는 제외한다. |
 | `api_key` | [backend/transit.py:20](../backend/transit.py#L20) | 전용 환경변수 또는 로컬 제외 파일의 키 한 개만 읽는다. 값은 응답·로그에 출력하지 않는다. |
 | `apply` | [backend/preferences.py:50](../backend/preferences.py#L50) | 무료/예산/명시 제외를 적용하고 관심 키워드·직선 근접성으로 정렬한다. 미확인은 숨기지 않는다. |
 | `apply.order` | [backend/preferences.py:78](../backend/preferences.py#L78) | 걷기 최소 선호 시 근접성 먼저, 그 외 관심어 먼저. 실제 도보 시간으로 간주하지 않는다. |
 | `apply_interpretation` | [backend/chat_conditions.py:106](../backend/chat_conditions.py#L106) | 해석 결과를 복사한 초안에 반영한다. 확정값 충돌·늦은 응답은 자동 반영하지 않는다. |
-| `applyDraft` | [backend/team_chat.js:178](../backend/team_chat.js#L178) | JS/TS 정규식 후보; AST 검증 아님 |
+| `applyDraft` | [backend/team_chat.js:181](../backend/team_chat.js#L181) | JS/TS 정규식 후보; AST 검증 아님 |
 | `begin` | [backend/voice_session.js:29](../backend/voice_session.js#L29) | JS/TS 정규식 후보; AST 검증 아님 |
 | `broken_links` | [utils/scripts/harness.py:49](../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
 | `build_course` | [backend/course.py:102](../backend/course.py#L102) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
 | `call` | [backend/tour_places.py:20](../backend/tour_places.py#L20) | 공식 고정 주소로 호출하며 응답 크기/형식을 제한한다. 원본 URL/키 포함 오류를 반환하지 않는다. |
 | `cancel` | [backend/voice_session.js:22](../backend/voice_session.js#L22) | JS/TS 정규식 후보; AST 검증 아님 |
 | `cancel` | [backend/voice_session.js:81](../backend/voice_session.js#L81) | JS/TS 정규식 후보; AST 검증 아님 |
-| `cancelVoiceRequest` | [backend/team_chat.js:296](../backend/team_chat.js#L296) | JS/TS 정규식 후보; AST 검증 아님 |
+| `cancelVoiceRequest` | [backend/team_chat.js:299](../backend/team_chat.js#L299) | JS/TS 정규식 후보; AST 검증 아님 |
 | `candidateIndex` | [backend/team_voice_actions.js:22](../backend/team_voice_actions.js#L22) | JS/TS 정규식 후보; AST 검증 아님 |
 | `candidateSpeech` | [backend/team_voice_actions.js:59](../backend/team_voice_actions.js#L59) | JS/TS 정규식 후보; AST 검증 아님 |
 | `chat` | [backend/naito_chat.py:101](../backend/naito_chat.py#L101) | 대화 API 결과를 (HTTP상태, 본문)으로 반환한다. 장애 시 가짜 해석/추천으로 대체하지 않는다. |
@@ -41,7 +41,7 @@
 | `clearShapes` | [backend/location_view.js:9](../backend/location_view.js#L9) | JS/TS 정규식 후보; AST 검증 아님 |
 | `code_checks` | [utils/scripts/harness.py:20](../utils/scripts/harness.py#L20) | Parse Python statically and require module/function/class docstrings. |
 | `compact` | [utils/scripts/catalog.py:63](../utils/scripts/catalog.py#L63) | Return one short Markdown-safe line from a docstring. |
-| `conditionLabel` | [backend/team_chat.js:223](../backend/team_chat.js#L223) | JS/TS 정규식 후보; AST 검증 아님 |
+| `conditionLabel` | [backend/team_chat.js:226](../backend/team_chat.js#L226) | JS/TS 정규식 후보; AST 검증 아님 |
 | `config` | [utils/scripts/catalog.py:21](../utils/scripts/catalog.py#L21) | Read only the public harness configuration, never environment values. |
 | `contents` | [utils/scripts/verify_watch.py:24](../utils/scripts/verify_watch.py#L24) | Read generated text, tolerating a brief replacement window. |
 | `coordinate` | [backend/outing.py:29](../backend/outing.py#L29) | 유한한 위경도 숫자를 검증하고 잘못된 입력은 ValueError로 알린다. |
@@ -73,12 +73,12 @@
 | `CultureSourceTests.test_tour_request_encoding_and_axis` | [backend/test_culture_sources.py:43](../backend/test_culture_sources.py#L43) | 국문 고정 주소·경도X/위도Y·인코딩키 1회 변환을 검사한다. |
 | `CultureSourceTests.test_tour_zero_vs_malformed` | [backend/test_culture_sources.py:53](../backend/test_culture_sources.py#L53) | 0건은 정상이며 누락 목록/오류코드/XML은 정상 빈 결과가 아니다. |
 | `currentCandidate` | [backend/team_voice_actions.js:51](../backend/team_voice_actions.js#L51) | JS/TS 정규식 후보; AST 검증 아님 |
-| `decide` | [backend/team_chat.js:231](../backend/team_chat.js#L231) | JS/TS 정규식 후보; AST 검증 아님 |
+| `decide` | [backend/team_chat.js:234](../backend/team_chat.js#L234) | JS/TS 정규식 후보; AST 검증 아님 |
 | `decode_shape` | [backend/walking.py:50](../backend/walking.py#L50) | Valhalla polyline6를 위도·경도 배열로 변환한다. 손상·범위 초과는 ValueError다. |
 | `describe` | [utils/scripts/catalog.py:69](../utils/scripts/catalog.py#L69) | Extract file overview, fingerprint, imports and symbol locations statically. |
 | `describe.visit` | [utils/scripts/catalog.py:79](../utils/scripts/catalog.py#L79) | Walk definitions and keep qualified names for nested functions. |
 | `distance_km` | [backend/outing.py:113](../backend/outing.py#L113) | 두 좌표의 대권거리(km)를 구한다. 보행·대중교통 이동시간을 뜻하지 않는다. |
-| `draft` | [backend/team_chat.js:58](../backend/team_chat.js#L58) | JS/TS 정규식 후보; AST 검증 아님 |
+| `draft` | [backend/team_chat.js:61](../backend/team_chat.js#L61) | JS/TS 정규식 후보; AST 검증 아님 |
 | `entries` | [utils/scripts/catalog.py:113](../utils/scripts/catalog.py#L113) | Describe every active code file once; do not scan historical snapshots. |
 | `expected` | [utils/scripts/context.py:42](../utils/scripts/context.py#L42) | Read the configured public state file and generate the brief. |
 | `extract_conditions` | [backend/naito_chat.py:78](../backend/naito_chat.py#L78) | 공식 사용자 제공 주소로 1회 호출한다. 좌표는 보내지 않고 응답 최대64KiB/20초로 제한한다. |
@@ -88,14 +88,14 @@
 | `finish` | [backend/voice_session.js:10](../backend/voice_session.js#L10) | JS/TS 정규식 후보; AST 검증 아님 |
 | `finish` | [backend/voice_session.js:74](../backend/voice_session.js#L74) | JS/TS 정규식 후보; AST 검증 아님 |
 | `generated_paths` | [utils/scripts/catalog.py:150](../utils/scripts/catalog.py#L150) | Return the actual output paths, independent of optional configuration hints. |
-| `handleAction` | [backend/team_chat.js:105](../backend/team_chat.js#L105) | JS/TS 정규식 후보; AST 검증 아님 |
+| `handleAction` | [backend/team_chat.js:108](../backend/team_chat.js#L108) | JS/TS 정규식 후보; AST 검증 아님 |
 | `initCulture` | [backend/team_culture.js:11](../backend/team_culture.js#L11) | JS/TS 정규식 후보; AST 검증 아님 |
 | `InputError` | [backend/outing.py:19](../backend/outing.py#L19) | 추천 입력 오류의 공개 코드·필드·안내문을 담는다. 원본 입력값은 포함하지 않는다. |
 | `InputError.__init__` | [backend/outing.py:22](../backend/outing.py#L22) | HTTP 오류 응답과 필드별 안내에 사용할 고정 메타데이터를 보관한다. |
 | `integrate_index` | [utils/scripts/prepare_chat_handoff.py:17](../utils/scripts/prepare_chat_handoff.py#L17) | 원본 HTML에 모듈을 한 번만 연결한다. 이미 연결되거나 구조가 다르면 거절한다. |
 | `integrate_results` | [utils/scripts/prepare_chat_handoff.py:38](../utils/scripts/prepare_chat_handoff.py#L38) | 추천·상세의 출처 표시만 확장하며 같은 후보 ID/지도/카드 흐름을 유지한다. |
 | `integrate_search` | [utils/scripts/prepare_chat_handoff.py:24](../utils/scripts/prepare_chat_handoff.py#L24) | 확정 요청과 S02a 요약의 두 지점만 확장한다. 다른 팀 변경을 추측해 덮어쓰지 않는다. |
-| `invalidate` | [backend/team_chat.js:258](../backend/team_chat.js#L258) | JS/TS 정규식 후보; AST 검증 아님 |
+| `invalidate` | [backend/team_chat.js:261](../backend/team_chat.js#L261) | JS/TS 정규식 후보; AST 검증 아님 |
 | `known_price` | [backend/preferences.py:39](../backend/preferences.py#L39) | 공식 무료 표시 또는 단일 원화 가격만 판독한다. 할인/복수 좌석/범위는 미확인이다. |
 | `listenForReply` | [backend/voice_session.js:4](../backend/voice_session.js#L4) | JS/TS 정규식 후보; AST 검증 아님 |
 | `ll` | [backend/map_view.js:53](../backend/map_view.js#L53) | JS/TS 정규식 후보; AST 검증 아님 |
@@ -126,7 +126,7 @@
 | `MapConfigTests.test_key_priority_and_public_scope` | [backend/test_map_config.py:11](../backend/test_map_config.py#L11) | 환경변수의 JS 키만 공개하고 REST 키나 로컬 파일은 조회하지 않는다. |
 | `markdown_files` | [utils/scripts/harness.py:39](../utils/scripts/harness.py#L39) | Select active documentation, excluding copied PRDs and historical snapshots. |
 | `metric` | [backend/transit.py:34](../backend/transit.py#L34) | 응답의 초·m·원 값을 유한한 음수 아닌 수로 제한한다. 미확인은 0으로 대체하지 않는다. |
-| `mountConversation` | [backend/team_chat.js:77](../backend/team_chat.js#L77) | JS/TS 정규식 후보; AST 검증 아님 |
+| `mountConversation` | [backend/team_chat.js:80](../backend/team_chat.js#L80) | JS/TS 정규식 후보; AST 검증 아님 |
 | `NaitoChatTests` | [backend/test_naito_chat.py:12](../backend/test_naito_chat.py#L12) | 서비스 키 없이 실행되는 공급자 어댑터 회귀다. |
 | `NaitoChatTests.setUp` | [backend/test_naito_chat.py:15](../backend/test_naito_chat.py#L15) | 최소 정상 대화 입력을 준비한다. |
 | `NaitoChatTests.test_empty_interpretation_not_reported_as_applied` | [backend/test_naito_chat.py:80](../backend/test_naito_chat.py#L80) | 지원하지 않는 발화를 반영 완료로 안내하지 않는다. |
@@ -136,13 +136,13 @@
 | `NaitoChatTests.test_response_size_and_json_boundary` | [backend/test_naito_chat.py:74](../backend/test_naito_chat.py#L74) | 과대 응답/일반 텍스트/잘못된 응답 구조를 파싱 성공으로 취급하지 않는다. |
 | `NaitoChatTests.test_success_and_no_recommendation` | [backend/test_naito_chat.py:49](../backend/test_naito_chat.py#L49) | 모의 국악 해석 뒤 출발지 질문으로 이어지며 추천은 실행하지 않는다. |
 | `NaitoChatTests.test_validate_before_provider` | [backend/test_naito_chat.py:25](../backend/test_naito_chat.py#L25) | 잘못된 요청은 공급자/키 조회 전에 거절한다. |
-| `navigateVoice` | [backend/team_chat.js:95](../backend/team_chat.js#L95) | JS/TS 정규식 후보; AST 검증 아님 |
+| `navigateVoice` | [backend/team_chat.js:98](../backend/team_chat.js#L98) | JS/TS 정규식 후보; AST 검증 아님 |
 | `normalize` | [backend/preferences.py:9](../backend/preferences.py#L9) | 선호 부분 갱신을 검증한다. 빈 목록/false/any는 명시적 해제이며 null은 변경 없음이다. |
 | `normalize_place` | [backend/tour_places.py:79](../backend/tour_places.py#L79) | 목록/상세 사실만 통합한다. 결측 좌표·운영·요금은 null, 관람 가능 여부는 check다. |
 | `normalize_places` | [backend/places.py:32](../backend/places.py#L32) | 공급자 x/y를 숫자 lng/lat로 바꾸고 선택 가능한 최대5건만 반환한다. 손상과0건을 구분한다. |
 | `normalize_proposal` | [backend/chat_conditions.py:24](../backend/chat_conditions.py#L24) | 허용된 조건만 정규화한다. null은 변경 없음, 좌표·잘못된 값은 ValueError다. |
 | `normalize_routes` | [backend/transit.py:91](../backend/transit.py#L91) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |
-| `note` | [backend/team_chat.js:141](../backend/team_chat.js#L141) | JS/TS 정규식 후보; AST 검증 아님 |
+| `note` | [backend/team_chat.js:144](../backend/team_chat.js#L144) | JS/TS 정규식 후보; AST 검증 아님 |
 | `official_link` | [backend/tour_places.py:54](../backend/tour_places.py#L54) | 공식 응답이 제공한 홈페이지만 허용한다. ID로 확인하지 않은 상세 URL을 만들어 내지 않는다. |
 | `openingQuestion` | [backend/team_voice_actions.js:13](../backend/team_voice_actions.js#L13) | JS/TS 정규식 후보; AST 검증 아님 |
 | `OutingTests` | [backend/test_outing.py:9](../backend/test_outing.py#L9) | 개인 추천의 의미가 바뀌는 경계 사례를 재현한다. |
@@ -214,7 +214,7 @@
 | `refresh` | [backend/location_view.js:36](../backend/location_view.js#L36) | JS/TS 정규식 후보; AST 검증 아님 |
 | `refresh` | [backend/team_culture.js:24](../backend/team_culture.js#L24) | JS/TS 정규식 후보; AST 검증 아님 |
 | `refresh` | [utils/scripts/watch.py:30](../utils/scripts/watch.py#L30) | Render state before indexing it; leave source and decisions untouched. |
-| `remember` | [backend/team_chat.js:151](../backend/team_chat.js#L151) | JS/TS 정규식 후보; AST 검증 아님 |
+| `remember` | [backend/team_chat.js:154](../backend/team_chat.js#L154) | JS/TS 정규식 후보; AST 검증 아님 |
 | `render` | [utils/scripts/catalog.py:204](../utils/scripts/catalog.py#L204) | Produce all utility and repository indexes without volatile timestamps. |
 | `render` | [utils/scripts/context.py:22](../utils/scripts/context.py#L22) | Render bounded, human-curated lists while preserving their decision status. |
 | `render_repo` | [utils/scripts/catalog.py:156](../utils/scripts/catalog.py#L156) | Index every eligible file plus code symbols, features and directory layout. |
@@ -234,19 +234,19 @@
 | `script` | [backend/map_view.js:9](../backend/map_view.js#L9) | JS/TS 정규식 후보; AST 검증 아님 |
 | `search_input` | [backend/places.py:16](../backend/places.py#L16) | 검색어 1~80자와 keyword/address를 검증한다. 요청값을 오류에 되돌려 쓰지 않는다. |
 | `search_places` | [backend/places.py:73](../backend/places.py#L73) | 카카오에 검색어를 보내 후보를 반환한다. HTTP 상태·권한/쿼터/시간초과를 구분하고 비밀값은 숨긴다. |
-| `searchOrigin` | [backend/team_chat.js:252](../backend/team_chat.js#L252) | JS/TS 정규식 후보; AST 검증 아님 |
-| `send` | [backend/team_chat.js:272](../backend/team_chat.js#L272) | JS/TS 정규식 후보; AST 검증 아님 |
+| `searchOrigin` | [backend/team_chat.js:255](../backend/team_chat.js#L255) | JS/TS 정규식 후보; AST 검증 아님 |
+| `send` | [backend/team_chat.js:275](../backend/team_chat.js#L275) | JS/TS 정규식 후보; AST 검증 아님 |
 | `seoul_page` | [backend/outing.py:80](../backend/outing.py#L80) | 지정일 키 없으면5건, 정식 키면100건을 조회한다. 인증 실패를 sample로 대체하지 않는다. |
 | `server_options` | [backend/preview.py:180](../backend/preview.py#L180) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
 | `settings` | [backend/naito_chat.py:43](../backend/naito_chat.py#L43) | 앱 전용 환경변수/무시된 로컬 파일에서 키와 모델을 읽는다. 실제 값은 출력하지 않는다. |
 | `short_text` | [backend/transit.py:41](../backend/transit.py#L41) | 이동 안내 원문을 길이 제한된 텍스트로 받아 HTML 실행 없이 표시하도록 반환한다. |
-| `showConflicts` | [backend/team_chat.js:203](../backend/team_chat.js#L203) | JS/TS 정규식 후보; AST 검증 아님 |
-| `showHistory` | [backend/team_chat.js:159](../backend/team_chat.js#L159) | JS/TS 정규식 후보; AST 검증 아님 |
+| `showConflicts` | [backend/team_chat.js:206](../backend/team_chat.js#L206) | JS/TS 정규식 후보; AST 검증 아님 |
+| `showHistory` | [backend/team_chat.js:162](../backend/team_chat.js#L162) | JS/TS 정규식 후보; AST 검증 아님 |
 | `signature` | [utils/scripts/watch.py:18](../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |
 | `snapshot` | [utils/scripts/team_chat_preview.py:20](../utils/scripts/team_chat_preview.py#L20) | 명시한 Git ref의 프론트만 해시별 경로에 복사한다. 기존 복사본은 덮어쓰지 않는다. |
 | `source_files` | [utils/scripts/catalog.py:26](../utils/scripts/catalog.py#L26) | List supported source files in configured roots, excluding symlinks. |
-| `speak` | [backend/team_chat.js:168](../backend/team_chat.js#L168) | JS/TS 정규식 후보; AST 검증 아님 |
+| `speak` | [backend/team_chat.js:171](../backend/team_chat.js#L171) | JS/TS 정규식 후보; AST 검증 아님 |
 | `start` | [backend/location_view.js:46](../backend/location_view.js#L46) | JS/TS 정규식 후보; AST 검증 아님 |
 | `start` | [utils/scripts/loop.py:14](../utils/scripts/loop.py#L14) | Create an explicit task state with at most ten verification attempts. |
 | `status` | [backend/location_view.js:15](../backend/location_view.js#L15) | JS/TS 정규식 후보; AST 검증 아님 |
@@ -305,7 +305,7 @@
 | `visit_window` | [backend/course.py:11](../backend/course.py#L11) | 행사 시간 원문에서 검증 가능한 당일 시작·종료와 고정 공연 여부를 얻는다. |
 | `voiceAction` | [backend/team_voice_actions.js:30](../backend/team_voice_actions.js#L30) | JS/TS 정규식 후보; AST 검증 아님 |
 | `VoiceSession` | [backend/voice_session.js:93](../backend/voice_session.js#L93) | JS/TS 정규식 후보; AST 검증 아님 |
-| `voiceSettings` | [backend/team_chat.js:341](../backend/team_chat.js#L341) | JS/TS 정규식 후보; AST 검증 아님 |
+| `voiceSettings` | [backend/team_chat.js:344](../backend/team_chat.js#L344) | JS/TS 정규식 후보; AST 검증 아님 |
 | `wait_for` | [utils/scripts/verify_watch.py:14](../utils/scripts/verify_watch.py#L14) | Wait a bounded period for generated evidence or report the failed phase. |
 | `waitForSpeech` | [backend/voice_session.js:24](../backend/voice_session.js#L24) | JS/TS 정규식 후보; AST 검증 아님 |
 | `walk_between` | [backend/walking.py:98](../backend/walking.py#L98) | 두 행사 좌표로 도보 예상 초·m를 얻는다. 잘못된 입력과 조회 실패를 구분한다. |

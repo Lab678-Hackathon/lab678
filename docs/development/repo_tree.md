@@ -113,6 +113,9 @@ lab678/
         manifest.json
         natural-flow.json
         recovery.json
+      qa-microphone-toggle/
+        navigation-checks.json
+        session-checks.json
       qa-natural/
         confirmation.png
         result.json
@@ -210,6 +213,7 @@ lab678/
         conversation-validation.md
         culture-source-preparation.md
         frontend-chat-package.md
+        microphone-toggle.md
         natural-language-recommendation.md
         seoul-live-and-tour-key.md
         service-key-ui-integration.md
