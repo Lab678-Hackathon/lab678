@@ -8,6 +8,7 @@ const base = process.env.LAB678_TEST_BASE || 'http://127.0.0.1:5175';
 
 /** 장치 이벤트를 통제하고 오래된 콜백도 재현한다. 실제 음성 녹음/출력은 하지 않는다. */
 function devices(config) {
+  if (!config.realMeter && navigator.mediaDevices) Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { configurable: true, value: async () => { throw new DOMException('Mock microphone denied', 'NotAllowedError'); } });
   const t = window.voiceTest = { starts: 0, aborts: 0, speaks: 0, greetings: 0, spoken: [], texts: [...(config.texts || [])], sessions: [], speech: null };
   window.SpeechRecognition = class {
     start() {
@@ -155,7 +156,7 @@ async function main() {
       await page.locator('#chat-mic').click();
       await stopped(page, /2회 대화를 마쳤/);
       assert.equal(stats.calls, 2);
-      assert.deepEqual(stats.chatUrls, [base + '/preview/chat', base + '/preview/chat']);
+      assert.deepEqual(stats.chatUrls, [new URL(base).origin + '/preview/chat', new URL(base).origin + '/preview/chat']);
       assert.deepEqual(await page.evaluate(() => [voiceTest.starts, voiceTest.speaks]), [2, 2]);
       await page.screenshot({ path: '.local/voice-session/settings.png', fullPage: true });
       await page.reload(); await page.locator('#chat-mic').waitFor();
@@ -167,7 +168,7 @@ async function main() {
     await check('no_speech_timeout_no_api_calls', async () => {
       const { page, stats } = await ready(browser, { noSpeech: true });
       await page.locator('#chat-mic').click();
-      await stopped(page, /5초 동안 답변이 없어/);
+      await stopped(page, /5초 동안 인식된 답변이 없어/);
       assert.equal(stats.calls, 0);
       const count = await page.evaluate(() => voiceTest.starts);
       await page.waitForTimeout(650);

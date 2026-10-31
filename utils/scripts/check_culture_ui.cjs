@@ -80,7 +80,7 @@ async function main() {
     assert.equal(await page.locator('#s03-found').isVisible(), false);
     report.checks.push({ name: 'Mock zero results distinct from failure', passed: true });
     const personal = await browser.newPage();
-    await personal.goto('http://127.0.0.1:8765/');
+    await personal.goto('http://127.0.0.1:8765/checks');
     await personal.getByRole('button', { name: '나들이 찾기', exact: true }).click();
     await personal.locator('[name="culture_source"]').selectOption('tour');
     await personal.locator('[name="start"]').fill('2026-11-01T14:00');

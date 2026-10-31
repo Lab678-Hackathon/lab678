@@ -27,7 +27,7 @@ async function ready(browser, texts, hash = '/home', live = false) {
 /** 현재 후보 두 개만 주입한다. 실제 문화데이터 호출 성공으로 간주하지 않는다. */
 async function candidates(page) {
   await page.evaluate(async () => {
-    const { state, save } = await import('/js/state.js');
+    const { state, save } = await import('./js/state.js');
     state.result = { status: 'ready', candidates: [
       { id: 'mock:one', title: '모의 첫 전시', venue: '모의 장소 하나', lat: 37.58, lng: 127.04, opening_info: null, price_info: null, checks_required: ['운영 확인 필요'] },
       { id: 'mock:two', title: '모의 두 번째 전시', venue: '모의 장소 둘', lat: 37.57, lng: 127.03, opening_info: '10:00~18:00', price_info: null, checks_required: [] },
@@ -73,7 +73,7 @@ async function main() {
       await candidates(page); await page.reload();
       await runTurns(page, 5);
       assert.match(page.url(), /#\/search$/);
-      const values = await page.evaluate(async () => ({ selected: (await import('/js/state.js')).state.selectedId, spoken: voiceTest.spoken, count: document.querySelectorAll('#dj-chat').length }));
+      const values = await page.evaluate(async () => ({ selected: (await import('./js/state.js')).state.selectedId, spoken: voiceTest.spoken, count: document.querySelectorAll('#dj-chat').length }));
       assert.equal(values.selected, 'mock:two'); assert.equal(values.count, 1);
       assert.match(values.spoken[2], /모의 두 번째 전시.*가격 확인 필요/);
       assert.equal(stats.calls, 0); assert.deepEqual(stats.errors, []); await page.close();
@@ -81,7 +81,7 @@ async function main() {
     await check('missing_candidate_and_course_do_not_navigate', async () => {
       const { page, stats } = await ready(browser, ['9번째 장소 보여줘', '길찾기 화면 보여줘']);
       await runTurns(page, 2);
-      assert.match(page.url(), /#\/home$/);
+      assert.match(page.url(), /#\/search$/);
       const spoken = await page.evaluate(() => voiceTest.spoken.join(' '));
       assert.match(spoken, /그 번호.*없어요/); assert.match(spoken, /아직 연결 중/);
       assert.equal(stats.calls, 0); assert.deepEqual(stats.errors, []); await page.close();
@@ -113,7 +113,7 @@ async function main() {
     await check('spoken_conflict_decision_preserves_other_conditions', async () => {
       const { page, stats } = await ready(browser, ['변경 모두 반영']);
       await page.evaluate(async () => {
-        const { state, save } = await import('/js/state.js');
+        const { state, save } = await import('./js/state.js');
         const draft = { request_kind: 'place', date: state.form.date, category: '전시' };
         state.form.category = '전시';
         state.chat.pending = { fingerprint: JSON.stringify(draft), conflicts: [{ field: 'category', before: '전시', after: '국악' }] }; save();

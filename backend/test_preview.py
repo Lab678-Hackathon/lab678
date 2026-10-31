@@ -142,7 +142,7 @@ class PreviewContractTests(unittest.TestCase):
         """파일 음성이 꺼진 서버에서는 버튼을 숨기고 합성 요청도 실행하지 않는다."""
         from local_voice import render_wave
         handler=Preview.__new__(Preview)
-        handler.path="/"
+        handler.path="/checks"
         handler.reply=Mock()
         with patch.dict("os.environ",{"LAB678_FILE_VOICE":"off"}), patch("local_voice.subprocess.run") as synth:
             handler.do_GET()
@@ -150,6 +150,16 @@ class PreviewContractTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 render_wave("음성 검증")
             synth.assert_not_called()
+
+    def test_home_uses_same_origin_app_when_prepared(self):
+        """대화 복사본을 준비했으면 기본 주소는 단일 앱 홈으로 이동한다."""
+        handler = Preview.__new__(Preview)
+        handler.path = "/"
+        handler.send_response = Mock(); handler.send_header = Mock(); handler.end_headers = Mock()
+        with patch("preview.app_directory", return_value=True):
+            handler.do_GET()
+        handler.send_response.assert_called_once_with(302)
+        handler.send_header.assert_any_call("Location", "/app/?#/home")
 
     def test_place_search_contract(self):
         """새 검색 경로에도 입력400·허용origin·공급자 상태 전달을 동일 적용한다."""

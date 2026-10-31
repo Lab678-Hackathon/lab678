@@ -79,3 +79,7 @@ git apply /패키지경로/team-chat.patch
 ## 최신 · 듣는 중 파동 표시
 
 `.local/chat-handoff-6accf0e-026a06b9ea/team-chat-handoff.zip` (8파일). 오디오 시작/끝으로 실제 듣기 상태를 표시하고 마이크에 파동을 추가했다. 연결 대기·TTS·처리·중지에서는 멈추고 움직임 줄이기 설정을 반영한다. 접두어 음성 API/미지원 텍스트 복귀 검사 포함. [실기기 미검증 범위](voice-browser-compatibility.md)를 함께 전달한다.
+
+## 최신 · 단일 진입과 실제 입력 미터
+
+현재는 `.local/chat-handoff-6accf0e-05d4299ba5/team-chat-handoff.zip` **9파일**이다. dj-meter.js를추가하고상대모듈경로로루트/하위경로에서모두실행한다. 로컬활성선택으로8765/app에서제공하며기본8765는앱홈으로연결. 음성/직접입력을같은S02로통일. [현재 실행·검증·한계](unified-chat-and-meter.md).

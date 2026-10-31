@@ -13,7 +13,7 @@ async function main() {
     page.on("request", request => {
       if (request.url().endsWith("/preview/recommend") && request.postDataJSON()?.alternatives) alternativeRequests++;
     });
-    await page.goto("http://127.0.0.1:8765");
+    await page.goto("http://127.0.0.1:8765/checks");
     await page.getByRole("button",{name:"나들이 찾기",exact:true}).click();
     await page.locator('[name="kind"]').selectOption("course");
     await page.locator('[name="category"]').selectOption("전시");

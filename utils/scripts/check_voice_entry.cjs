@@ -8,10 +8,13 @@ async function main() {
   try {
     const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await page.goto('http://127.0.0.1:8765/');
+    await page.waitForURL('http://127.0.0.1:8765/app/?#/home');
+    await page.locator('#s01 #chat-mic').waitFor();
+    await page.goto('http://127.0.0.1:8765/checks');
     await page.locator('#automatic-chat-entry').waitFor();
-    assert.equal(await page.locator('#automatic-chat-link').getAttribute('href'), 'http://127.0.0.1:5175/?#/home');
+    assert.equal(await page.locator('#automatic-chat-link').getAttribute('href'), '/app/?#/home');
     await page.locator('#automatic-chat-link').click();
-    await page.waitForURL('http://127.0.0.1:5175/?#/home');
+    await page.waitForURL('http://127.0.0.1:8765/app/?#/home');
     await page.locator('#s01 #chat-mic').waitFor();
     assert.equal(await page.locator('#chat-mic').isVisible(), true);
     assert.equal(await page.locator('#chat-mic svg').count(), 1);

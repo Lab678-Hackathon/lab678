@@ -1,7 +1,7 @@
 """팀 프론트에 적용할 최소 패치와 실행 복사본을 .local에 만든다. 작업 브랜치/팀 원본을 변경하지 않는다.
 
 Usage: python utils/scripts/prepare_chat_handoff.py --ref origin/feature/front
-변경 8파일만 포함한 ZIP, 버전/해시 manifest, 적용검사 결과를 생성한다. 키/환경 파일은 넣지 않는다.
+변경 9파일만 포함한 ZIP, 버전/해시 manifest, 적용검사 결과를 생성한다. 키/환경 파일은 넣지 않는다.
 """
 import argparse
 import difflib
@@ -18,7 +18,7 @@ def integrate_index(source):
     """원본 HTML에 모듈을 한 번만 연결한다. 이미 연결되거나 구조가 다르면 거절한다."""
     if source.count("</body>") != 1 or "dj-chat.js" in source:
         raise ValueError("HTML integration point changed; frontend review required")
-    return source.replace("</body>", '<script type="module" src="/js/dj-chat.js"></script>\n</body>')
+    return source.replace("</body>", '<script type="module" src="js/dj-chat.js"></script>\n</body>')
 
 
 def integrate_search(source):
@@ -61,6 +61,7 @@ def prepare(ref):
                "js/dj-culture.js": (ROOT / "backend/team_culture.js").read_text(encoding="utf-8"),
                "js/dj-voice.js": (ROOT / "backend/voice_session.js").read_text(encoding="utf-8"),
                "js/dj-voice-actions.js": (ROOT / "backend/team_voice_actions.js").read_text(encoding="utf-8"),
+               "js/dj-meter.js": (ROOT / "backend/microphone_meter.js").read_text(encoding="utf-8"),
                "js/dj-chat.js": (ROOT / "backend/team_chat.js").read_text(encoding="utf-8"),
                "js/dj-preferences.js": (ROOT / "backend/team_preferences.js").read_text(encoding="utf-8")}
     diff = "".join("".join(difflib.unified_diff(originals.get(name, "").splitlines(keepends=True), text.splitlines(keepends=True),
@@ -94,7 +95,7 @@ def prepare(ref):
 백엔드: {manifest['backend_ref']} 및 후속 호환 버전. 백엔드는 이 ZIP에 포함하지 않습니다.
 
 희영님 확인 후 최신 개인 프론트 브랜치의 깨끗한 작업 폴더에서 검토해 주세요.
-기존 팀 변경을 보존하려고 여덟 파일만 패치합니다. 다른 버전에서 실패하면 강제 적용하지 말고 차이를 확인해 주세요.
+기존 팀 변경을 보존하려고 아홉 파일만 패치합니다. 다른 버전에서 실패하면 강제 적용하지 말고 차이를 확인해 주세요.
 
 ```sh
 git apply --check /패키지경로/team-chat.patch
@@ -106,7 +107,7 @@ git apply /패키지경로/team-chat.patch
 프론트 PORT 환경변수로 포트를 변경할 수 있습니다. API 키는 백엔드에만 설정합니다.
 프로덕션은 별도 API 주소/CORS/키 설정 검증이 필요합니다. 이 패키지로 배포 완료를 뜻하지 않습니다.
 
-새 파일: frontend/js/dj-chat.js, frontend/js/dj-preferences.js, frontend/js/dj-culture.js, frontend/js/dj-voice.js, frontend/js/dj-voice-actions.js
+새 파일: frontend/js/dj-chat.js, frontend/js/dj-preferences.js, frontend/js/dj-culture.js, frontend/js/dj-voice.js, frontend/js/dj-voice-actions.js, frontend/js/dj-meter.js
 연결 수정: frontend/index.html, frontend/js/search.js, frontend/js/results.js
 코스 UI는 연결 중이며 현재 대화 화면은 place 흐름을 검증했습니다.
 원본 소스/최신 계약: docs/development/natural-language-handoff.md
@@ -124,8 +125,12 @@ def main():
     """명시한 로컬 Git ref로 인계 산출물을 생성한다. 네트워크/push/checkout/merge는 하지 않는다."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ref", default="origin/feature/front")
+    parser.add_argument("--activate", action="store_true", help="생성 복사본을 로컬8765/app/의 화면으로 선택")
     args = parser.parse_args()
-    prepare(args.ref)
+    target = prepare(args.ref)
+    if args.activate:
+        directory = (target / "project/frontend").relative_to(ROOT).as_posix()
+        (ROOT / ".local/active-team-frontend.json").write_text(json.dumps(dict(directory=directory)) + "\n", encoding="utf-8")
     return 0
 
 

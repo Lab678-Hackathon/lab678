@@ -27,7 +27,7 @@ async function main() {
       }});
       window.givePosition=(lat=37.58,accuracy=20,age=0)=>geo.ok({coords:{latitude:lat,longitude:127.02,accuracy},timestamp:Date.now()-age});
     });
-    await page.goto("http://127.0.0.1:8765");
+    await page.goto("http://127.0.0.1:8765/checks");
     if (live) await page.waitForFunction(()=>document.documentElement.dataset.mapProvider==="kakao");
     assert.equal(await page.evaluate(()=>geo.count),0);
     await page.getByRole("button",{name:"나들이 찾기",exact:true}).click();

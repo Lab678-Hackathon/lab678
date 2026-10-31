@@ -11,7 +11,7 @@ async function main() {
     const page=await browser.newPage({viewport:{width:390,height:844}});
     const errors=[];
     page.on("pageerror",error=>errors.push(error.message));
-    await page.goto("http://127.0.0.1:8765");
+    await page.goto("http://127.0.0.1:8765/checks");
     const request=await (await page.request.get("http://127.0.0.1:8765/example")).json();
     const original=await (await page.request.post("http://127.0.0.1:8765/preview/recommend",{data:{...request,mode:"recorded"}})).json();
     assert.ok(original.candidates.length>=3);

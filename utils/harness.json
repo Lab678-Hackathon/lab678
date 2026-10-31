@@ -284,6 +284,15 @@
       "utils/scripts/check_voice_entry.cjs",
       "docs/development/automatic-voice.md"
     ],
+    "단일 나들이 진입·실제 마이크 입력 미터": [
+      "backend/team_app.py",
+      "backend/microphone_meter.js",
+      "backend/preview_meter.js",
+      "backend/test_team_app.py",
+      "utils/scripts/check_unified_chat.cjs",
+      "utils/scripts/check_microphone_meter.cjs",
+      "docs/development/unified-chat-and-meter.md"
+    ],
     "대중교통 노선·모바일 경로 카드": [
       "backend/transit.py",
       "backend/preview.html",
@@ -291,6 +300,12 @@
       "utils/scripts/check_transit_details.py",
       "utils/scripts/check_transit_mobile.cjs",
       "docs/development/transit-mobile.md"
+    ],
+    "음성 진단·실시간 중간 글자·새 채팅 인계": [
+      "backend/team_chat.js",
+      "backend/voice_session.js",
+      "utils/scripts/check_voice_diagnostics.cjs",
+      "docs/development/next-chat-handoff.md"
     ]
   }
 }

@@ -93,7 +93,7 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <header><span class="brand">LAB<b>678</b></span><small>서울 문화나들이</small></header>
 <aside id="automatic-chat-entry" class="panel" hidden>
 <strong>마이크로 AI와 대화하려면</strong>
-<p>이곳은 행사·경로 점검 화면이에요. 자동 음성 대화와 마이크 파동은 아래 화면에서 확인해 주세요.</p>
+<p>AI와 질문·답변을 이어가는 자동 음성 대화를 같은 서버에서 열 수 있어요.</p>
 <a id="automatic-chat-link" class="route-link">마이크 · 자동 대화 화면 열기</a>
 </aside>
 <section id="home" class="panel">
@@ -124,10 +124,11 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <div class="actions"><button type="button" id="listen">한 번 말하기</button><button type="button" id="apply-note">분류 반영</button></div>
 <p class="muted" id="voice-help">“국악을 듣고 싶어”, “전시 두 곳 코스로”처럼 말하거나 적어 보세요. 추천 전에 분류와 코스 조건을 바꿀 수 있어요.</p>
 <p id="voice-status" role="status"></p>
-<details id="voice-debug" hidden><summary>음성 인식 진단</summary>
-<textarea id="voice-log" aria-label="음성 진단 기록" readonly rows="10" style="width:100%;box-sizing:border-box"></textarea>
+<div id="preview-mic-meter"></div>
+<section id="voice-debug"><h3>한 번 말하기 · 실시간 이벤트·오류 로그</h3>
+<textarea id="voice-log" aria-label="음성 진단 기록" readonly rows="10" style="width:100%;box-sizing:border-box;font:15px/1.6 monospace">대기 중 · 한 번 말하기를 누르면 원래 인식 방식의 이벤트가 바로 표시됩니다.</textarea>
 <button type="button" id="copy-voice">진단 복사</button><span id="copy-status" role="status"></span>
-</details></div>
+</section></div>
 <div class="group"><label>문화정보 조회 방식 <select name="mode"><option value="live">실시간</option><option value="recorded">10월 31일 기록 재생 (전시·전체)</option></select></label></div>
 <button class="primary">추천받기</button></fieldset></form>
 <p id="status" role="status"></p>
@@ -185,14 +186,19 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <p id="route-map-status" role="status"></p>
 <small id="walk-credit">예상 도보 경로 · Valhalla / FOSSGIS · <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OpenStreetMap contributors</a></small>
 </div></dialog>
+<script type="module" src="/preview-meter.js"></script>
 <script src="/map-view.js"></script>
 <script src="/location-view.js"></script>
 <script>
 /** 같은 PC의 최신 대화 화면으로 안내한다. 공개 배포에서는 개발용 주소를 노출하지 않는다. */
-function showAutomaticChatEntry() {
-  if (!['127.0.0.1', 'localhost'].includes(location.hostname)) return;
-  document.querySelector('#automatic-chat-link').href = 'http://127.0.0.1:5175/?#/home';
-  document.querySelector('#automatic-chat-entry').hidden = false;
+async function showAutomaticChatEntry() {
+  try {
+    const response = await fetch('/app-config');
+    const config = await response.json();
+    if (!response.ok || !config.available) return;
+    document.querySelector('#automatic-chat-link').href = '/app/?#/home';
+    document.querySelector('#automatic-chat-entry').hidden = false;
+  } catch { /* 연결 파일이 없는 환경에서는 기존 점검 기능 유지 */ }
 }
 showAutomaticChatEntry();
 const form = document.querySelector("#form");
@@ -845,6 +851,7 @@ function beginVoiceTrace() {
     if (attempt !== attemptNumber) return;
     lines.push("+" + Math.round(performance.now() - started) + " ms  " + message);
     voiceLog.value = lines.join("\n");
+    voiceLog.scrollTop = voiceLog.scrollHeight;
   };
   log("listen-click");
   if (navigator.permissions?.query) {
@@ -901,7 +908,6 @@ function showListenError(code) {
     ? "이 입력칸에서 Windows 키 + H로 받아쓰거나 직접 입력할 수 있어요."
     : "이 입력칸에 직접 입력할 수 있어요.";
   voiceStatus.textContent = (hints[code] || "음성 인식을 시작하지 못했어요.") + " (" + code + ") " + alternate;
-  voiceDebug.open = true;
   fields.note.focus();
 }
 
@@ -918,6 +924,8 @@ function listen() {
   try { recognition = new Recognition(); }
   catch (error) { log("constructor 예외 " + error.name); showListenError(error.name || "start-failed"); return; }
   session = recognition;
+  window.dispatchEvent(new Event('lab678-voice-test-start'));
+  log('독립 레벨미터 캡처 중단 · AI/TTS 없이 직접 인식');
   recognition.lang = "ko-KR";
   recognition.interimResults = false;
   listenButton.textContent = "듣기 종료";
@@ -942,6 +950,7 @@ function listen() {
     log("error " + (event.error || "unknown") + " · 엔진 메시지: " + (event.message?.slice(0,300) || "제공되지 않음"));
     if (session !== recognition) return;
     session = null;
+    window.dispatchEvent(new Event('lab678-voice-test-end'));
     listenButton.textContent = "한 번 말하기";
     showListenError(event.error || "unknown");
   };
@@ -949,6 +958,7 @@ function listen() {
     log("end");
     if (session !== recognition) return;
     session = null; listenButton.textContent = "한 번 말하기";
+    window.dispatchEvent(new Event('lab678-voice-test-end'));
     if (["말씀해 주세요.", "듣기를 시작하고 있어요."].includes(voiceStatus.textContent)) {
       showListenError("no-result");
     }
@@ -957,7 +967,7 @@ function listen() {
   try { recognition.start(); }
   catch (error) {
     log("start() 예외 " + error.name + " · " + error.message);
-    session = null; listenButton.textContent = "한 번 말하기"; showListenError(error.name || "start-failed");
+    session = null; window.dispatchEvent(new Event('lab678-voice-test-end')); listenButton.textContent = "한 번 말하기"; showListenError(error.name || "start-failed");
   }
 }
 

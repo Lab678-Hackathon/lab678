@@ -15,7 +15,7 @@ async function ready(browser, width, response) {
   page.on('pageerror', error => errors.push(error.message));
   await page.route('**/map-config', route => route.fulfill({ json: { provider: 'leaflet', javascript_key: '' } }));
   if (response) await page.route('**/preview/transit', route => route.fulfill({ json: response }));
-  await page.goto(base);
+  await page.goto(base + '/checks');
   return { page, errors };
 }
 

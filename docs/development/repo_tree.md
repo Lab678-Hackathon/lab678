@@ -27,12 +27,15 @@ lab678/
     location_view.js
     map_config.py
     map_view.js
+    microphone_meter.js
     naito_chat.py
     outing.py
     places.py
     preferences.py
     preview.html
     preview.py
+    preview_meter.js
+    team_app.py
     team_chat.js
     team_culture.js
     team_preferences.js
@@ -46,6 +49,7 @@ lab678/
     test_places.py
     test_preferences.py
     test_preview.py
+    test_team_app.py
     test_transit.py
     test_walking.py
     tour_places.py
@@ -95,6 +99,7 @@ lab678/
       naito-usage.md
       natural-language-handoff.md
       natural-language-recommendation-review.md
+      next-chat-handoff.md
       outing-handoff.md
       place-search-api.md
       qa-chat/
@@ -128,6 +133,12 @@ lab678/
         map-check.json
       qa-transit-mobile/
         ui-checks.json
+      qa-unified-chat/
+        diagnostic-checks.json
+        meter-checks.json
+        navigation-checks.json
+        unified-checks.json
+        voice-checks.json
       qa-voice-navigation/
         navigation-checks.json
         session-checks.json
@@ -198,6 +209,7 @@ lab678/
         2026-10-31-transit-map.md
         2026-10-31-transit-provider-factcheck.md
         2026-10-31-two-stop-course.md
+        2026-10-31-voice-diagnostics-handoff.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
         20261031-conversation-discovery-direction.md
@@ -234,6 +246,7 @@ lab678/
       tooling-progress.md
       transit-mobile.md
       transit-progress.md
+      unified-chat-and-meter.md
       voice-browser-compatibility.md
     meetings/
       2026-10-28.md
@@ -302,6 +315,7 @@ lab678/
       check_input_contract.cjs
       check_kakao_map.cjs
       check_location_ui.cjs
+      check_microphone_meter.cjs
       check_natural_flow.cjs
       check_outing_ui.cjs
       check_place_search.cjs
@@ -312,6 +326,8 @@ lab678/
       check_transit_details.py
       check_transit_mobile.cjs
       check_transit_ui.cjs
+      check_unified_chat.cjs
+      check_voice_diagnostics.cjs
       check_voice_entry.cjs
       check_voice_navigation.cjs
       check_voice_session.cjs
