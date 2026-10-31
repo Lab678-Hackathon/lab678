@@ -22,6 +22,7 @@ const empty = () => ({
   lastRequest: null,
   sourceCheckedAt: null,
   sound: false,
+  mode: 'text',
 });
 
 function load() {
@@ -41,8 +42,8 @@ export function save() {
 
 /** 새 대화로 비우기 */
 export function resetChat() {
-  const sound = state.sound;
-  Object.assign(state, empty(), { sound });
+  const { sound, mode } = state;
+  Object.assign(state, empty(), { sound, mode });
   save();
 }
 
