@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **자연어 중심 추천·이전 구현 비교**: [docs/development/natural-language-recommendation-review.md](../../docs/development/natural-language-recommendation-review.md)
 - **팀 화면 AI 채팅·조건 동기화·동의 UI**: [backend/team_chat.js](../../backend/team_chat.js), [utils/scripts/team_chat_preview.py](../../utils/scripts/team_chat_preview.py), [utils/scripts/check_chat_ui.cjs](../../utils/scripts/check_chat_ui.cjs), [docs/development/chat-ui-handoff.md](../../docs/development/chat-ui-handoff.md), [docs/development/qa-chat/result.json](../../docs/development/qa-chat/result.json)
 - **대화 조건 초안·변경 동의·최신 입력 보호**: [backend/chat_conditions.py](../../backend/chat_conditions.py), [backend/test_chat_conditions.py](../../backend/test_chat_conditions.py), [docs/development/chat-conditions.md](../../docs/development/chat-conditions.md)
 - **Naito 채팅·모델 설정·HTTP 검증**: [backend/naito_chat.py](../../backend/naito_chat.py), [backend/test_naito_chat.py](../../backend/test_naito_chat.py), [utils/scripts/check_chat_api.py](../../utils/scripts/check_chat_api.py), [utils/scripts/check_chat_live.py](../../utils/scripts/check_chat_live.py), [docs/development/naito-usage.md](../../docs/development/naito-usage.md), [docs/development/examples/naito-chat.live.json](../../docs/development/examples/naito-chat.live.json)

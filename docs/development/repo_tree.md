@@ -79,6 +79,7 @@ lab678/
       mobility-routing-review.md
       mvp-plan.md
       naito-usage.md
+      natural-language-recommendation-review.md
       outing-handoff.md
       place-search-api.md
       qa-chat/
@@ -150,6 +151,7 @@ lab678/
         2026-10-31-walk.md
         20261031-naito-chat-prepared.md
         20261031-naito-live-verified.md
+        20261031-natural-language-review.md
         20261031-place-search-integration.md
         20261031-push-pr-issue.md
         20261031-qa01-received.md
