@@ -11,8 +11,12 @@ python3 frontend/dev_server.py    # 프론트 (5173), /preview/ 요청은 백엔
 브라우저에서 http://127.0.0.1:5173 을 열어요. 같은 주소로 API 를 부르니 CORS 설정이 필요 없어요.
 (마이크는 localhost 또는 https 주소에서만 켜져요)
 
+출발지 검색(`/preview/places`)은 백엔드에 카카오 REST 키(`LAB678_KAKAO_REST_API_KEY`)가 있어야 동작해요. 키가 없으면 안내 문구가 나오고, 현재 위치를 쓰면 돼요.
+
+배포: `index.html` 의 `<meta name="lab678-api" content="">` 에 Render https 주소를 넣고, Render 쪽 `LAB678_ALLOWED_ORIGINS` 에 Vercel 주소를 넣어요 (백엔드 CORS 허용목록 방식).
+
 시연·검증용 주소 옵션
-- `?mode=recorded`: 기록 데이터로 추천 (없으면 실시간 live)
+- `?mode=recorded`: 기록 데이터로 추천 (없으면 실시간 live). 이때 "QA 고정: 청량리역" 출발지 버튼이 보여요 (이슈 #16 좌표)
 - `?debug=1`: S03 카드·S04 상세에 후보 ID 표시
 - `?season=spring` / `?season=autumn` / `?season=none`: 시작 화면 계절 효과 강제
 - `#/home` 홈, `#/search` 나들이 찾기, `#/results` 추천 결과

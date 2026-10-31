@@ -3,13 +3,13 @@
  * 입력은 바로 저장해서 화면을 오가도 그대로 남고, 값을 바꾸면 확인을 다시 받아요.
  */
 import { state, save } from './state.js';
-import { requestRecommend, testMode } from './api.js';
+import { requestRecommend, searchPlaces, testMode } from './api.js';
 
-/** 출발지 예시 (청량리역 좌표는 docs/development/examples/outing-request.json 과 같아요) */
-export const START_PLACES = {
-  cheongnyangni: { label: '청량리역', lat: 37.5805961, lng: 127.0482573 },
-  seoulstation: { label: '서울역', lat: 37.554648, lng: 126.970631 },
-};
+/** QA-01 고정 출발지 (이슈 #16). 시험 모드(?mode=recorded 또는 ?debug)에서만 보여요. */
+const QA_START = { label: '청량리역', lat: 37.5805961, lng: 127.0482573 };
+const isTest = () => testMode() === 'recorded' || new URLSearchParams(location.search).has('debug');
+let placeAbort = null;
+let placeResults = [];
 const MIN_MINUTES = 60;
 const MSG = {
   start: '출발지를 골라 주세요.',
@@ -44,10 +44,61 @@ export function formatTime(t) {
   return `${h < 12 ? '오전' : '오후'} ${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')}`;
 }
 
-/** 현재 출발지 정보 (예시 장소 또는 현재 위치) */
+/** 현재 출발지 (검색해서 고른 곳 · 현재 위치 · QA 고정). 고르지 않았으면 null — 임의 기본 위치는 쓰지 않아요. */
 function startPlace() {
-  if (state.form.startKey === 'here') return state.form.here ? { label: '현재 위치', ...state.form.here } : null;
-  return START_PLACES[state.form.startKey] || null;
+  const f = state.form;
+  if (f.startKey === 'here') return f.here ? { label: '현재 위치', ...f.here } : null;
+  if (f.startKey === 'qa' && isTest()) return QA_START;
+  if (f.startKey === 'search' && f.picked) return f.picked;
+  return null;
+}
+
+/** 출발지 검색. 새 검색이 시작되면 이전 요청은 취소하고, 늦게 온 응답은 무시해요. */
+async function runPlaceSearch() {
+  const query = $('#f-place').value.trim();
+  const note = $('#place-note');
+  const list = $('#place-results');
+  if (!query) { showErrors({ start: '찾을 장소 이름이나 주소를 적어 주세요.' }); return; }
+  placeAbort?.abort();
+  placeAbort = new AbortController();
+  const btn = $('#btn-place');
+  btn.disabled = true;
+  note.hidden = false;
+  note.textContent = '찾고 있어요…';
+  list.hidden = true;
+  let res;
+  try {
+    res = await searchPlaces(query, placeAbort.signal);
+  } catch {
+    return; // 더 새로운 검색이 시작됨
+  } finally {
+    btn.disabled = false;
+  }
+  if (res.kind !== 'ready') { note.textContent = res.message; return; }
+  note.hidden = true;
+  placeResults = res.places;
+  list.replaceChildren(...res.places.map((p, i) => {
+    const li = document.createElement('li');
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.placeIndex = String(i);
+    b.append(Object.assign(document.createElement('strong'), { textContent: p.label }),
+      Object.assign(document.createElement('span'), { textContent: p.road_address || p.address || '' }));
+    li.append(b);
+    return li;
+  }));
+  list.hidden = false;
+}
+
+/** 검색 결과에서 출발지를 골라요 (첫 결과를 자동으로 확정하지 않아요) */
+function pickPlace(i) {
+  const p = placeResults[i];
+  if (!p) return;
+  state.form.startKey = 'search';
+  state.form.picked = { label: p.label, lat: p.lat, lng: p.lng, address: p.road_address || p.address || '' };
+  state.form.placeQuery = p.label;
+  $('#f-place').value = p.label;
+  $('#place-results').hidden = true;
 }
 
 /**
@@ -90,7 +141,13 @@ function showErrors(errors) {
 /** 입력값을 화면에 반영해요 */
 function renderForm() {
   const f = state.form;
+  $('#qa-start').hidden = !isTest();
   $$('#s02 [data-start-key]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.startKey === f.startKey)));
+  if (document.activeElement !== $('#f-place')) $('#f-place').value = f.placeQuery || '';
+  const place = startPlace();
+  const sel = $('#start-selected');
+  sel.hidden = !place;
+  if (place) sel.textContent = `출발지: ${place.label}${place.address ? ` · ${place.address}` : ''}`;
   $$('#s02 [data-category]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.category === f.category)));
   $$('#s02 [data-kind]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === f.kind)));
   $('#f-date').value = f.date;
@@ -154,6 +211,19 @@ async function submit() {
     location.hash = '/results';
     return;
   }
+  // 서버가 칸을 알려주면 그 칸 바로 아래에 보여주고 확인을 다시 받아요
+  const fieldKey = res.field && (
+    res.field.startsWith('start_location') ? 'start'
+      : res.field === 'start_at' || res.field === 'end_at' ? 'time'
+        : res.field === 'category' ? 'category' : null);
+  if (res.kind === 'need_input' && fieldKey) {
+    state.confirmed = null;
+    save();
+    renderConfirm();
+    showErrors({ [fieldKey]: res.message });
+    $(`#s02 [data-field="${fieldKey}"]`).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
   const err = $('#confirm-error');
   err.textContent = res.message;
   err.hidden = false;
@@ -203,7 +273,9 @@ export function initSearch() {
     const t = e.target.closest('button');
     if (!t) return;
     if (t.dataset.startKey === 'here') { useHere(); return; }
-    if (t.dataset.startKey) state.form.startKey = t.dataset.startKey;
+    if (t.id === 'btn-place') { runPlaceSearch(); return; }
+    if (t.dataset.placeIndex) pickPlace(Number(t.dataset.placeIndex));
+    else if (t.dataset.startKey) { state.form.startKey = t.dataset.startKey; state.form.placeQuery = ''; }
     else if (t.dataset.category) state.form.category = t.dataset.category;
     else if (t.dataset.kind && !t.disabled) state.form.kind = t.dataset.kind;
     else if (t.dataset.edit) {
@@ -219,6 +291,15 @@ export function initSearch() {
     showErrors({});
     changed();
   });
+  // 출발지 글자를 고치면 이전에 고른 좌표는 무효 → 다시 골라야 해요
+  $('#f-place').addEventListener('input', (e) => {
+    state.form.placeQuery = e.target.value;
+    if (state.form.startKey === 'search') { state.form.startKey = ''; state.form.picked = null; }
+    $('#place-results').hidden = true;
+    renderForm();
+    changed();
+  });
+  $('#f-place').addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); runPlaceSearch(); } });
   for (const [id, key] of [['#f-date', 'date'], ['#f-start', 'startTime'], ['#f-end', 'endTime']]) {
     $(id).addEventListener('change', (e) => { state.form[key] = e.target.value; showErrors({}); changed(); });
   }

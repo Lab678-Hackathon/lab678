@@ -1,10 +1,13 @@
 /**
- * 백엔드 추천 API 호출. 실패해도 Mock 후보로 바꾸지 않고, 결과 종류를 그대로 구분해서 돌려줘요.
- * 요청·응답 형식은 docs/development/examples/outing-request.json / outing-response.json 기준.
+ * 백엔드 API 호출. 실패해도 Mock 후보로 바꾸지 않고, 결과 종류를 그대로 구분해서 돌려줘요.
+ * 계약: docs/development/recommend-api.md, docs/development/place-search-api.md
  */
 
-/** 같은 주소(개발 서버·Vercel 프록시)로 부르면 CORS 설정이 필요 없어요. */
-const API_BASE = '';
+/**
+ * API 주소. index.html 의 <meta name="lab678-api"> 값을 써요.
+ * 비어 있으면 같은 주소(개발 서버 프록시)로 불러요. 배포 땐 Render https 주소를 넣어요.
+ */
+const API_BASE = (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
 
 /**
  * 시험 모드: 주소에 ?mode=recorded 를 붙이면 기록 데이터, 없으면 실시간(live).
@@ -15,26 +18,56 @@ export function testMode() {
 }
 
 /**
- * 추천을 요청해요.
- * @param {object} body request_kind, start_location{label,lat,lng}, start_at, end_at, category
- * @returns {Promise<{kind:'ready'|'no_results'|'need_input'|'error', data?:object, message?:string}>}
- *   ready: 후보 있음 · no_results: 0건 · need_input: 입력 오류(400) · error: 서버·네트워크 오류
+ * JSON POST. 응답이 HTML 오류여도 죽지 않게 본문 파싱 실패를 따로 처리해요.
+ * @returns {Promise<{status:number, data:object|null}|null>} 통신 자체가 실패하면 null
  */
-export async function requestRecommend(body) {
+async function post(path, body, signal) {
   let res;
   try {
-    res = await fetch(`${API_BASE}/preview/recommend`, {
+    res = await fetch(`${API_BASE}${path}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...body, mode: testMode() }),
+      body: JSON.stringify(body),
+      signal,
     });
-  } catch {
-    return { kind: 'error', message: '인터넷 연결을 확인하고 다시 시도해 주세요.' };
+  } catch (e) {
+    if (e.name === 'AbortError') throw e;
+    return null;
   }
   let data = null;
-  try { data = await res.json(); } catch { /* 본문이 JSON 이 아니면 아래에서 오류로 처리 */ }
-  if (res.status === 200 && data?.status === 'ready') return { kind: 'ready', data };
-  if (res.status === 200 && data?.status === 'no_results') return { kind: 'no_results', data };
-  if (res.status === 400) return { kind: 'need_input', message: data?.message || '입력한 조건을 확인해 주세요.' };
+  try { data = await res.json(); } catch { /* HTML 오류 등 */ }
+  return { status: res.status, data };
+}
+
+/**
+ * 추천을 요청해요.
+ * @param {object} body request_kind, start_location{label,lat,lng}, start_at, end_at, category
+ * @returns {Promise<{kind:'ready'|'no_results'|'need_input'|'error', data?:object, message?:string, field?:string, code?:string}>}
+ *   ready: 후보 있음 · no_results: 0건 · need_input: 입력 오류(400, field 가 있으면 해당 칸) · error: 서버·네트워크 오류
+ */
+export async function requestRecommend(body) {
+  const r = await post('/preview/recommend', { ...body, mode: testMode() });
+  if (!r) return { kind: 'error', message: '인터넷 연결을 확인하고 다시 시도해 주세요.' };
+  const { status, data } = r;
+  if (status === 200 && data?.status === 'ready') return { kind: 'ready', data };
+  if (status === 200 && data?.status === 'no_results') return { kind: 'no_results', data };
+  if (status === 400) return { kind: 'need_input', message: data?.message || '입력한 조건을 확인해 주세요.', field: data?.field, code: data?.code };
   return { kind: 'error', message: data?.message || '추천을 불러오지 못했어요. 다시 시도해 주세요.' };
+}
+
+/**
+ * 출발지를 장소명·주소로 찾아요. 사용자가 결과 중 하나를 골라야 출발지가 정해져요.
+ * @param {string} query
+ * @param {AbortSignal} signal 새 검색이 시작되면 이전 요청을 취소해요
+ * @returns {Promise<{kind:'ready'|'no_results'|'need_input'|'error', places?:object[], message?:string}>}
+ */
+export async function searchPlaces(query, signal) {
+  const r = await post('/preview/places', { query, type: 'keyword' }, signal);
+  if (!r) return { kind: 'error', message: '인터넷 연결을 확인하고 다시 찾아 주세요.' };
+  const { status, data } = r;
+  if (status === 200 && data?.status === 'ready') return { kind: 'ready', places: data.places || [] };
+  if (status === 200 && data?.status === 'no_results') return { kind: 'no_results', message: '검색 결과가 없어요. 다른 이름이나 주소로 찾아 주세요.' };
+  if (status === 400) return { kind: 'need_input', message: data?.message || '검색어를 확인해 주세요.' };
+  if (status === 429) return { kind: 'error', message: '검색이 잠시 몰렸어요. 조금 뒤에 다시 찾아 주세요.' };
+  return { kind: 'error', message: '출발지 검색을 지금 쓸 수 없어요. 현재 위치를 쓰거나 잠시 뒤 다시 찾아 주세요.' };
 }

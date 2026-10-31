@@ -183,7 +183,9 @@ export function renderPlace(id) {
     if (!value) r.append(warn('확인 필요'));
     info.append(r);
   };
+  if (c.event_start_date || c.event_end_date) row('행사 기간', `${c.event_start_date || '?'} ~ ${c.event_end_date || '?'}`);
   row('운영시간', c.opening_info);
+  if ('district' in c) row('지역', c.district);
   row('가격', c.price_info);
   if (c.fee_type) row('요금 구분', c.fee_type);
   row('대상', c.audience);
