@@ -1,0 +1,35 @@
+{
+  "base": "http://127.0.0.1:8765",
+  "cases": [
+    {
+      "name": "mobile_320_lines_stops_and_map",
+      "mode": "real API response replay",
+      "passed": true
+    },
+    {
+      "name": "mobile_390_lines_stops_and_map",
+      "mode": "real API response replay",
+      "passed": true
+    },
+    {
+      "name": "mobile_768_lines_stops_and_map",
+      "mode": "real API response replay",
+      "passed": true
+    },
+    {
+      "name": "missing_metadata_and_html_stay_plaintext",
+      "mode": "mock altered optional fields",
+      "passed": true
+    },
+    {
+      "name": "provider_failure_and_closed_dialog_do_not_show_stale_routes",
+      "mode": "mock 502 and delayed response",
+      "passed": true
+    },
+    {
+      "name": "live_api_lines_stops_to_mobile_cards",
+      "mode": "live Kakao API through app backend",
+      "passed": true
+    }
+  ]
+}

@@ -40,7 +40,7 @@ async function main() {
       await page.route("**/map-config",route=>route.fulfill({json:{provider:"kakao",javascript_key:"a".repeat(32)}}));
       await page.route("https://dapi.kakao.com/v2/maps/sdk.js?*",route=>route.fulfill({contentType:"text/javascript",body:"/* mock SDK supplied by test */"}));
     }
-    await page.goto("http://127.0.0.1:8765");
+    await page.goto("http://127.0.0.1:8765/checks");
     await page.waitForFunction(()=>document.documentElement.dataset.mapProvider==="kakao");
     await page.getByRole("button",{name:"나들이 찾기",exact:true}).click();
     await page.locator('[name="mode"]').selectOption("recorded");

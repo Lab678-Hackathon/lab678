@@ -1,0 +1,370 @@
+{
+  "checked_at": "2026-10-31T16:04:56+09:00",
+  "model": "claude-sonnet-4",
+  "mode": "live",
+  "passed": true,
+  "cases": [
+    {
+      "name": "budget_and_paid",
+      "message": "무료만 볼 필요는 없어. 유료도 괜찮고 1인 관람료는 2만원 이내로 해줘.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.51,
+      "result": {
+        "status": "draft",
+        "base_revision": 0,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place",
+          "free_only": false,
+          "budget_krw": 20000
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "budget_clear",
+      "message": "관람료 예산 제한은 없애줘. 유료도 괜찮아.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.44,
+      "result": {
+        "status": "draft",
+        "base_revision": 1,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place",
+          "free_only": false,
+          "budget_krw": "any"
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "exclude_accumulates",
+      "message": "송파도 빼줘. 아까 뺀 도암갤러리는 계속 빼고.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.26,
+      "result": {
+        "status": "draft",
+        "base_revision": 2,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place",
+          "exclude_terms": [
+            "도암갤러리",
+            "송파"
+          ]
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "exclude_clear",
+      "message": "장소 제외 조건을 전부 취소할게. 아까 뺀 곳도 다시 포함해줘.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 0.99,
+      "result": {
+        "status": "draft",
+        "base_revision": 3,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place",
+          "exclude_terms": []
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "hard_accessibility",
+      "message": "계단 없는 곳만 추천해줘. 반드시 지켜야 해.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.18,
+      "result": {
+        "status": "draft",
+        "base_revision": 4,
+        "assistant_text": "아직 확인할 수 없는 필수 조건입니다: 계단 없는 곳만. 이 조건을 유지할지, 직접 확인할 조건으로 바꿀지 알려 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place",
+          "unsupported_requirements": [
+            "계단 없는 곳만"
+          ]
+        },
+        "missing_fields": [],
+        "field_errors": [
+          {
+            "field": "unsupported_requirements",
+            "code": "unsupported_constraint",
+            "message": "아직 확인할 수 없는 필수 조건입니다: 계단 없는 곳만. 이 조건을 유지할지, 직접 확인할 조건으로 바꿀지 알려 주세요."
+          }
+        ],
+        "conflicts": [],
+        "ready_to_search": false,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "hard_explicit_release",
+      "message": "계단 없는 곳이라는 필수 조건은 취소할게. 내가 직접 확인할게.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.14,
+      "result": {
+        "status": "draft",
+        "base_revision": 5,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place",
+          "unsupported_requirements": []
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "ambiguous_time",
+      "message": "2시쯤 출발할래. 오전인지 오후인지는 아직 안 정했어.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 0.9,
+      "result": {
+        "status": "draft",
+        "base_revision": 6,
+        "assistant_text": "이번 말씀은 조건에 반영하지 못했어요. 입력 칸에서 확인하거나 출발지·날짜·시각·대표 분류를 다시 말씀해 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place",
+          "date": "2026-10-31"
+        },
+        "missing_fields": [
+          "start_at",
+          "end_at"
+        ],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": false,
+        "requires_final_confirmation": true,
+        "interpretation_status": "no_supported_change",
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "minimum_59",
+      "message": "같은 날 오후 2시에 출발해서 오후 2시 59분에 끝낼게.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.55,
+      "result": {
+        "status": "draft",
+        "base_revision": 7,
+        "assistant_text": "나들이 시간은 최소 1시간 이상으로 설정해 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T14:59:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place"
+        },
+        "missing_fields": [],
+        "field_errors": [
+          {
+            "field": "end_at",
+            "code": "minimum_duration",
+            "message": "나들이 시간은 최소 1시간 이상으로 설정해 주세요."
+          }
+        ],
+        "conflicts": [],
+        "ready_to_search": false,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "minimum_60",
+      "message": "그럼 종료 시각을 같은 날 오후 3시로 바꿀게.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.26,
+      "result": {
+        "status": "draft",
+        "base_revision": 8,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T15:00:00+09:00",
+          "category": "전시",
+          "categories": [
+            "전시"
+          ],
+          "request_kind": "place"
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    },
+    {
+      "name": "negative_interest",
+      "message": "국악은 싫어. 클래식만 듣고 싶어.",
+      "http_status": 200,
+      "passed": true,
+      "elapsed_seconds": 1.41,
+      "result": {
+        "status": "draft",
+        "base_revision": 9,
+        "assistant_text": "조건이 준비됐어요. 조건 확인 화면에서 확인한 뒤 추천받기를 눌러 주세요.",
+        "updated_condition_draft": {
+          "start_location": {
+            "label": "청량리역",
+            "lat": 37.5805961,
+            "lng": 127.0482573
+          },
+          "start_at": "2026-10-31T14:00:00+09:00",
+          "end_at": "2026-10-31T17:00:00+09:00",
+          "category": "클래식",
+          "categories": [
+            "클래식"
+          ],
+          "request_kind": "place",
+          "exclude_terms": [
+            "국악"
+          ],
+          "music_followup": false
+        },
+        "missing_fields": [],
+        "field_errors": [],
+        "conflicts": [],
+        "ready_to_search": true,
+        "requires_final_confirmation": true,
+        "source": "naito",
+        "model": "claude-sonnet-4"
+      }
+    }
+  ]
+}

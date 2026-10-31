@@ -1,5 +1,20 @@
 # Render 단일 서비스 시연 준비
 
+## 현재 운영 기준 정정 · 2026-10-31
+
+희영님 계정의 기존 Render 서비스를 사용한다. 아래 단일서비스 신규생성 안내는 준비 이력이며 새 서비스나 fork를 만들라는 현재 실행 지시가 아니다. 사용자 개인계정의 GitHub앱 설치요청 대기는 이 공유서비스의 가동을 차단하지 않는다.
+
+- 프론트: https://oneul-nadeuli.vercel.app/ · 팀 보고 `feature/front` 6accf0e.
+- 백엔드: https://oneul-nadeuli-api.onrender.com/ · 팀 보고 `develop` 06c0443, 공개Git URL, 자동배포 끔/수동재배포.
+- 팀 QA: [이슈16 배포결과](https://github.com/Lab678-Hackathon/lab678/issues/16#issuecomment-6541241808)에 recorded S02→S04/ID·59/60·예외·미래날짜200/CORS 검증 보고. 이는 팀 검증 결과다.
+- 이번 에이전트 직접 확인: backend `/healthz` HTTP200 `status:ok`; Vercel 루트HTTP200와 HTML내 backend주소 확인. 새 추천/전체화면QA는 실행하지 않았다. 정확한 현재배포SHA/소유계정/Render설정은 콘솔에서 직접 확인하지 않았다.
+- 카카오REST키 미등록은 팀보고 남은 항목이다. 최신 AI·문화정보 기능을 올릴 때 필요한 키도 Render환경변수에서 함께 확인한다. 키를 Git에 넣지 않는다.
+- 최신 로컬995d3bc까지의 자동대화/문화정보/모바일교통과8파일 프론트패치는 기존배포완료와 별개. 사용자가Push요청 시 PR/통합→희영님프론트패치확인→기존서비스에대상SHA로수동재배포→공개URL QA 순서다.
+
+공개Git URL 서비스는 수동배포한다는 점은 [Render 공식문서](https://render.com/docs/deploys)로 확인했다. 에이전트가 설치승인을 전체배포의 필수조건으로 안내했던 부분은 정정한다.
+
+## 아래는 이전 개인 시연 준비 이력
+
 2026-10-31 · 개인 점검 화면/백엔드 배포 준비 · **로컬 검사 완료, 실제 Render 배포 미실시**
 
 현재 화면과 Python 서버를 한 주소에서 제공하는 구성이다. Vercel·GitHub Pages를 먼저 연결할 필요는 없다. 최종 팀 UI 교체는 별도 통합이며 공용 배포 결정/자동배포 설정을 이 문서가 확정하지 않는다.

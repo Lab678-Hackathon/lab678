@@ -1,0 +1,102 @@
+{
+  "base": "http://127.0.0.1:8765/app",
+  "mode": "mock speech/TTS and AI unless marked live",
+  "cases": [
+    {
+      "name": "silence_prompts_once_without_empty_ai_request_or_extra_turn",
+      "passed": true
+    },
+    {
+      "name": "speech_before_three_seconds_suppresses_silence_prompt",
+      "passed": true
+    },
+    {
+      "name": "answer_after_short_prompt_submits_only_final_user_text",
+      "passed": true
+    },
+    {
+      "name": "stop_during_short_prompt_rejects_late_end",
+      "passed": true
+    },
+    {
+      "name": "legacy_settings_keep_opening_reading_by_default",
+      "passed": true
+    },
+    {
+      "name": "selected_immediate_home_starts_in_click_without_opening_tts",
+      "passed": true
+    },
+    {
+      "name": "optional_opening_waits_for_tts_and_restores_without_autostart",
+      "passed": true
+    },
+    {
+      "name": "stop_optional_opening_rejects_late_tts_end",
+      "passed": true
+    },
+    {
+      "name": "prefixed_recognition_adapter_two_turns",
+      "passed": true
+    },
+    {
+      "name": "unsupported_recognition_preserves_text_chat",
+      "passed": true
+    },
+    {
+      "name": "audio_events_control_wave_and_reduced_motion",
+      "passed": true
+    },
+    {
+      "name": "same_mic_button_toggle_off_and_restart",
+      "passed": true
+    },
+    {
+      "name": "two_turns_one_click_and_settings_restore",
+      "passed": true
+    },
+    {
+      "name": "no_speech_timeout_no_api_calls",
+      "passed": true
+    },
+    {
+      "name": "tts_excluded_from_silence_and_no_mic_overlap",
+      "passed": true
+    },
+    {
+      "name": "stop_rejects_late_recognition",
+      "passed": true
+    },
+    {
+      "name": "stop_rejects_late_api",
+      "passed": true
+    },
+    {
+      "name": "network_error_stops_without_retries",
+      "passed": true
+    },
+    {
+      "name": "api_failure_stops_and_preserves_input",
+      "passed": true
+    },
+    {
+      "name": "ready_stops_before_limit_no_auto_recommend",
+      "passed": true
+    },
+    {
+      "name": "navigation_and_manual_input_stop",
+      "passed": true
+    },
+    {
+      "name": "confirmation_and_place_selection_pause",
+      "passed": true
+    },
+    {
+      "name": "stop_during_tts_late_end_cannot_reopen_mic",
+      "passed": true
+    },
+    {
+      "name": "invalid_settings_do_not_start_microphone",
+      "passed": true
+    }
+  ]
+}

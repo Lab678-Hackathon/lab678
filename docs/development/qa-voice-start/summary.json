@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-31 Asia/Seoul",
+  "mode": "44 mock speech/TTS/AI and synthetic meter cases; user prior real log kept separate",
+  "cases": {
+    "voice-checks.json": 24,
+    "navigation-checks.json": 6,
+    "diagnostic-checks.json": 8,
+    "meter-checks.json": 6
+  },
+  "backend_tests": 87,
+  "package": ".local/chat-handoff-6accf0e-b617b6521d/project/frontend",
+  "sha256": {
+    "backend/team_chat.js": "0ebc20dbca355b72d6e8a079bdd9ce98b37683c3ba92d9f226774b03af41f449",
+    "backend/team_voice_actions.js": "33857760a8c85f2868900b7575f4920ac3ff3bff93be34004c6539227f9b88bd",
+    "backend/voice_session.js": "1a351a34a7c634f11145747ce074722ef0d0e9d57fadb5880ba01ff12ea3787c",
+    "backend/preview.html": "79da2aa07127506b57220173c75b16725c8738d75a4d4df1db94fae626b1f449"
+  },
+  "unverified": [
+    "modified Windows physical microphone/speaker session",
+    "full real speech to recommendation/details",
+    "MacBook and mobile physical devices",
+    "public deployment"
+  ],
+  "intermediate_failures": [
+    "compact panel 748.8px exceeded 700px; fixed by block layout and spacing",
+    "meter expected old automatic /search; updated to approved stay-on-home behavior; no-overlap assertions kept"
+  ],
+  "utility_tests": 26,
+  "static_issues": 0
+}

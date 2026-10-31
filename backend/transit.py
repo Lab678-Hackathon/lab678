@@ -63,6 +63,31 @@ def route_path(raw):
     return result
 
 
+def step_transport(step, mode):
+    """공급자의 차량 이름·정류장 순서를 보존한다. 선택 필드 손상/누락은 미확인으로 남긴다."""
+    def label(value):
+        """선택적 공개 노선/역 이름만 길이를 제한해 받는다. 없으면 사실을 추정하지 않는다."""
+        return value.strip() if isinstance(value, str) and 0 < len(value.strip()) <= 120 else None
+
+    vehicles = []
+    raw_vehicles = step.get("vehicles")
+    if mode != "WALKING" and isinstance(raw_vehicles, list):
+        for item in raw_vehicles[:50]:
+            if isinstance(item, dict) and (name := label(item.get("name"))):
+                vehicle = dict(name=name, type=label(item.get("type")))
+                if vehicle not in vehicles:
+                    vehicles.append(vehicle)
+    raw_stops = step.get("stops")
+    stops = []
+    if mode != "WALKING" and isinstance(raw_stops, list) and 2 <= len(raw_stops) <= 500:
+        names = [label(item.get("name")) if isinstance(item, dict) else None for item in raw_stops]
+        if all(names):
+            stops = names
+    return dict(vehicles=vehicles, stops=stops,
+                boarding_stop=stops[0] if stops else None,
+                alighting_stop=stops[-1] if stops else None)
+
+
 def normalize_routes(body):
     """공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다."""
     status = body.get("status")
@@ -89,7 +114,7 @@ def normalize_routes(body):
                 raise ValueError("미지원 이동 수단")
             steps.append(dict(mode=mode, instruction=short_text(step["guidance"]),
                               duration_s=metric(step["time"]), distance_m=metric(step["distance"], 10000000),
-                              path=route_path(raw.get("path"))))
+                              path=route_path(raw.get("path")), **step_transport(step, mode)))
         if not any(s["mode"] != "WALKING" for s in steps):
             raise ValueError("대중교통 구간 없음")
         walk = [s for s in steps if s["mode"] == "WALKING"]

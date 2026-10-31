@@ -1,0 +1,12 @@
+{
+  "frontend_ref": "164cd40f1a306e4ce5dbcbb69515ebfedd8d8ef6",
+  "backend_ref": "0b7494aec79b0e7d6a1a3b821014721a1203865d",
+  "patch_sha256": "ab4591e63174660618bb044b65fc578aa7d49a40c4c71643ddf8b460b3ac567c",
+  "patch_applied_and_verified": true,
+  "files": {
+    "frontend/index.html": "944147e02b6e15c8c3fa816ed9775be15cd9a51b529ca618d1fcae81e2018f41",
+    "frontend/js/search.js": "040545cd88e144038a3f62577dfea2643bbdb188ce0b297db88ba590c08ebddf",
+    "frontend/js/dj-chat.js": "ed9b303832812fe866083b4a97a2464c8d438bf8b2d23516c7cf11663c11e743",
+    "frontend/js/dj-preferences.js": "1805d5366dfeb66807304acea7c0d1ffa6eb492cf02c0a25c8431fc946432227"
+  }
+}

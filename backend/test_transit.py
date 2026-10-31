@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
 
-from transit import normalize_routes, route_path, transit_between
+from transit import normalize_routes, route_path, step_transport, transit_between
 
 
 def provider_response():
@@ -45,6 +45,30 @@ class TransitTests(unittest.TestCase):
         self.assertIsNone(route["listed_walk_duration_s"])
         self.assertIsNone(route["listed_walk_distance_m"])
         self.assertIn("전체 도보량은 확인되지",route["walk_note"])
+
+    def test_vehicle_and_stops(self):
+        """호선/버스 이름과 승하차를 실제 응답 필드에서만 보존하며 대체 노선도 유지한다."""
+        raw = provider_response()
+        props = raw["routes"][0]["steps"][1]["properties"]
+        props.update(vehicles=[{"name":"수도권 1호선", "type":"일반"}],
+                     stops=[{"name":"청량리"}, {"name":"제기동"}, {"name":"종로3가"}])
+        step = normalize_routes(raw)["routes"][0]["steps"][1]
+        self.assertEqual(step["vehicles"], [{"name":"수도권 1호선", "type":"일반"}])
+        self.assertEqual((step["boarding_stop"], step["alighting_stop"]), ("청량리", "종로3가"))
+        props.update(type="BUS", vehicles=[{"name":"273", "type":"간선"}, {"name":"201", "type":"간선"}])
+        step = normalize_routes(raw)["routes"][0]["steps"][1]
+        self.assertEqual([v["name"] for v in step["vehicles"]], ["273", "201"])
+
+    def test_optional_vehicle_metadata_is_not_guessed(self):
+        """누락/손상된 노선·역 이름을 안내문에서 추측하지 않고 HTML 문자도 평문으로 전달한다."""
+        step = step_transport({"guidance":"1호선 타세요"}, "SUBWAY")
+        self.assertEqual(step["vehicles"], [])
+        self.assertIsNone(step["boarding_stop"])
+        for stops in [None, [], [{"name":"한 역"}], [{"name":"승차"}, {}], [{"name":"승차"}, {"name":True}]]:
+            self.assertIsNone(step_transport({"stops":stops}, "BUS")["alighting_stop"])
+        data = step_transport({"vehicles":[None, {"name":"x"*121}, {"name":"<b>273</b>"}]}, "BUS")
+        self.assertEqual(data["vehicles"], [{"name":"<b>273</b>", "type":None}])
+        self.assertEqual(step_transport({"vehicles":[{"name":"273"}]}, "WALKING")["vehicles"], [])
 
     def test_route_geometry(self):
         """경위도 순서를 검증하고 손상/누락 경로선 때문에 텍스트 안내까지 잃지 않는다."""

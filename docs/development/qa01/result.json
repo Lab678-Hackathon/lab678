@@ -1,0 +1,88 @@
+{
+  "front": "http://127.0.0.1:5173",
+  "front_ref": "d7dee71",
+  "cases": [
+    {
+      "name": "QA-01 recorded",
+      "source": "real backend / recorded source",
+      "result": "PASS",
+      "api_candidate_ids": [
+        "seoul:159578",
+        "seoul:159859",
+        "seoul:159829",
+        "seoul:159723",
+        "seoul:159808"
+      ],
+      "s03_selected_id": "seoul:159578",
+      "s04_detail_id": "seoul:159578",
+      "map_unavailable": false,
+      "request": {
+        "request_kind": "place",
+        "start_location": {
+          "label": "청량리역",
+          "lat": 37.5805961,
+          "lng": 127.0482573
+        },
+        "start_at": "2026-10-31T14:00:00+09:00",
+        "end_at": "2026-10-31T17:00:00+09:00",
+        "category": "전시",
+        "mode": "recorded"
+      },
+      "conditions_preserved": true
+    },
+    {
+      "name": "출발지 미선택·59/60분",
+      "source": "real UI / recorded source",
+      "result": "PASS",
+      "missing_start_blocked": true,
+      "minutes_59_blocked": true,
+      "minutes_60_http": 200
+    },
+    {
+      "name": "정상 0건",
+      "source": "mock response / real UI",
+      "result": "PASS",
+      "mock_fallback": false,
+      "api_candidate_ids": []
+    },
+    {
+      "name": "400 오류",
+      "source": "mock response / real UI",
+      "result": "PASS",
+      "input_preserved": true,
+      "mock_fallback": false
+    },
+    {
+      "name": "502 오류",
+      "source": "mock response / real UI",
+      "result": "PASS",
+      "input_preserved": true,
+      "mock_fallback": false
+    },
+    {
+      "name": "네트워크 실패",
+      "source": "mock network abort / real UI",
+      "result": "PASS",
+      "input_preserved": true,
+      "mock_fallback": false
+    },
+    {
+      "name": "미래 날짜 live",
+      "source": "real backend / live source",
+      "result": "PASS",
+      "day": "2026-11-01",
+      "api_candidate_ids": [
+        "seoul:159978",
+        "seoul:159664",
+        "seoul:159613",
+        "seoul:159268"
+      ],
+      "s03_selected_id": "seoul:159978",
+      "s04_detail_id": "seoul:159978",
+      "map_unavailable": false,
+      "source_checked_at": "2026-10-31T14:36:34+09:00"
+    }
+  ],
+  "team_source_modified": false,
+  "checked_at": "2026-10-31T05:36:34.425Z"
+}

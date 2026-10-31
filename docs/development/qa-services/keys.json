@@ -1,0 +1,59 @@
+{
+  "checked_at": "2026-10-31T17:14:30+09:00",
+  "results": [
+    {
+      "service": "서울시 문화행사",
+      "http_status": 200,
+      "status": "ready",
+      "code": null,
+      "candidates_count": 22,
+      "passed": true
+    },
+    {
+      "service": "관광공사 문화시설",
+      "http_status": 200,
+      "status": "ready",
+      "code": null,
+      "candidates_count": 3,
+      "passed": true
+    },
+    {
+      "service": "카카오 REST 장소",
+      "http_status": 200,
+      "status": "ready",
+      "code": null,
+      "places_count": 5,
+      "passed": true
+    },
+    {
+      "service": "카카오 REST 대중교통",
+      "http_status": 200,
+      "status": "ready",
+      "code": null,
+      "routes_count": 3,
+      "passed": true
+    },
+    {
+      "service": "Valhalla 도보 (키 없음)",
+      "http_status": 200,
+      "status": null,
+      "code": null,
+      "steps_count": 21,
+      "duration_s": 1334.753,
+      "passed": true
+    },
+    {
+      "service": "Naito claude-sonnet-4",
+      "http_status": 200,
+      "status": "draft",
+      "code": null,
+      "interpreted_category": "국악",
+      "passed": true
+    },
+    {
+      "service": "카카오 JavaScript 지도",
+      "configured": true,
+      "verification": "configuration only; SDK and tile check separate"
+    }
+  ]
+}

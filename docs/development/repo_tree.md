@@ -19,23 +19,44 @@ lab678/
   backend/
     AGENTS.md
     README.md
+    chat_conditions.py
     course.py
+    culture.env.example
+    culture_config.py
+    deploy.env.example
     local_voice.py
     location_view.js
     map_config.py
     map_view.js
+    microphone_meter.js
+    naito_chat.py
     outing.py
     places.py
+    preferences.py
     preview.html
     preview.py
+    preview_meter.js
+    team_app.py
+    team_chat.js
+    team_culture.js
+    team_preferences.js
+    team_voice_actions.js
+    test_chat_conditions.py
     test_course.py
+    test_culture_sources.py
+    test_deployment_keys.py
     test_map_config.py
+    test_naito_chat.py
     test_outing.py
     test_places.py
+    test_preferences.py
     test_preview.py
+    test_team_app.py
     test_transit.py
     test_walking.py
+    tour_places.py
     transit.py
+    voice_session.js
     walking.py
   design/
     AGENTS.md
@@ -45,22 +66,31 @@ lab678/
     README.md
     development/
       README.md
+      automatic-voice.md
+      chat-conditions.md
+      chat-ui-handoff.md
+      conversation-validation.md
       course-alternatives-progress.md
+      culture-sources.md
       current-state.md
       demo-login-server-progress.md
       demo-profile-design.md
+      deployment-keys.md
       discussion-log.md
       engineering-loop.md
       examples/
         course-selected-place.live.json
         demo-users.sample.json
+        naito-chat.live.json
         outing-request.json
         outing-response.json
         place-search.address.live.json
         place-search.keyword.live.json
+        qa01-request.recorded.json
         recommend-response.recorded.json
         recommend-selected-place.live.json
         seoul-events.capture.json
+      frontend-chat-package.md
       hackathon-server-usage-review.md
       kakao-map-location.md
       keyless-routing-review.md
@@ -69,9 +99,80 @@ lab678/
         tooling-index.json
       mobility-routing-review.md
       mvp-plan.md
+      naito-usage.md
+      natural-language-handoff.md
+      natural-language-recommendation-review.md
+      next-chat-handoff.md
       outing-handoff.md
       place-search-api.md
+      planning-doc-refresh-progress.md
+      qa-chat/
+        chat-conflict.png
+        chat-to-detail.png
+        result.json
+      qa-conversation/
+        edges.json
+        recovery.json
+      qa-culture/
+        authenticated-check.json
+        initial-check.json
+        tour-key-check.json
+        tour-live-check.json
+      qa-handoff/
+        manifest.json
+        natural-flow.json
+        recovery.json
+      qa-microphone-toggle/
+        navigation-checks.json
+        session-checks.json
+      qa-natural/
+        confirmation.png
+        result.json
+        results.png
+      qa-services/
+        culture-ui-first-run.json
+        culture-ui.json
+        keys.json
+        manifest.json
+        map-check.json
+      qa-simple-settings/
+        diagnostic.json
+        meter.json
+        navigation.json
+        summary.json
+        voice.json
+      qa-transit-mobile/
+        ui-checks.json
+      qa-unified-chat/
+        diagnostic-checks.json
+        meter-checks.json
+        navigation-checks.json
+        unified-checks.json
+        voice-checks.json
+      qa-voice-navigation/
+        navigation-checks.json
+        session-checks.json
+      qa-voice-session/
+        live-ai-check.json
+        manifest.json
+        mock-checks.json
+      qa-voice-start/
+        diagnostic-checks.json
+        meter-checks.json
+        navigation-checks.json
+        summary.json
+        voice-checks.json
+      qa-voice-wave/
+        mock-checks.json
+      qa01-team-connection.md
+      qa01/
+        live-s03.png
+        live-s04.png
+        recorded-s03.png
+        recorded-s04.png
+        result.json
       recommend-api.md
+      release-checklist.md
       render-demo-guide.md
       repo_index.md
       repo_reverse_index.md
@@ -103,14 +204,17 @@ lab678/
         2026-10-31-mvp-plan.md
         2026-10-31-personal-attachment-copy.md
         2026-10-31-personal-notes-scope.md
+        2026-10-31-planning-doc-refresh.md
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
+        2026-10-31-release-ready.md
         2026-10-31-render-preparation.md
         2026-10-31-result-preservation.md
         2026-10-31-route-text.md
         2026-10-31-screen-spec-review.md
         2026-10-31-section-checks.md
+        2026-10-31-simple-settings-restore.md
         2026-10-31-speaker-check.md
         2026-10-31-speech-input-errors.md
         2026-10-31-speech-offline.md
@@ -125,18 +229,47 @@ lab678/
         2026-10-31-transit-map.md
         2026-10-31-transit-provider-factcheck.md
         2026-10-31-two-stop-course.md
+        2026-10-31-voice-compact-entry.md
+        2026-10-31-voice-diagnostics-handoff.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
+        20261031-conversation-discovery-direction.md
+        20261031-naito-chat-prepared.md
+        20261031-naito-live-verified.md
+        20261031-natural-language-review.md
         20261031-place-search-integration.md
         20261031-push-pr-issue.md
         20261031-qa01-received.md
+        20261031-team-chat-connected.md
+        20261031-team-flow-connected.md
+        20261031-user-preferences-kakao-review.md
+        automatic-voice-session.md
+        common-automatic-dialogue.md
+        conversation-validation.md
+        culture-source-preparation.md
+        deployment-status-correction.md
+        frontend-chat-package.md
+        microphone-toggle.md
+        natural-language-recommendation.md
+        seoul-live-and-tour-key.md
+        service-key-ui-integration.md
+        tour-key-verification.md
+        tour-live-verification.md
+        transit-mobile-cards.md
+        voice-entry-navigation.md
+        voice-wave-and-compatibility.md
       screen-spec-review.md
+      service-key-status.md
       state.json
       tasks.md
       team-backend-guide.md
       team-integration-checklist.md
       tooling-progress.md
+      transit-mobile.md
       transit-progress.md
+      unified-chat-and-meter.md
+      voice-browser-compatibility.md
+      voice-start-latency.md
     meetings/
       2026-10-28.md
     planning/
@@ -191,23 +324,43 @@ lab678/
     reverse_index.md
     scripts/
       catalog.py
+      check_chat_api.py
+      check_chat_live.py
+      check_chat_ui.cjs
+      check_conversation_edges.py
       check_course_alternatives.cjs
       check_course_edit.cjs
+      check_culture_sources.py
+      check_culture_ui.cjs
       check_deployment.cjs
       check_frontend_connection.cjs
       check_input_contract.cjs
       check_kakao_map.cjs
       check_location_ui.cjs
+      check_microphone_meter.cjs
+      check_natural_flow.cjs
       check_outing_ui.cjs
       check_place_search.cjs
+      check_preference_recovery.cjs
       check_result_preservation.cjs
+      check_service_keys.py
+      check_team_flow.cjs
+      check_transit_details.py
+      check_transit_mobile.cjs
       check_transit_ui.cjs
+      check_unified_chat.cjs
+      check_voice_diagnostics.cjs
+      check_voice_entry.cjs
+      check_voice_navigation.cjs
+      check_voice_session.cjs
       commit_report.py
       context.py
       harness.py
       loop.py
+      prepare_chat_handoff.py
       read_pdf.py
       reuse.py
+      team_chat_preview.py
       verify_watch.py
       watch.py
     templates/

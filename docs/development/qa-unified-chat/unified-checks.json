@@ -1,0 +1,19 @@
+{
+  "base": "http://127.0.0.1:8765",
+  "cases": [
+    {
+      "name": "old_microphone_entry_to_same_origin_real_chat_two_turns",
+      "mode": "Naito live 2 calls; no audio",
+      "passed": true,
+      "assistant_texts": [
+        "음악이라면 국악·클래식·콘서트를 찾아볼 수 있어요. 어떤 음악이 좋으세요? 골고루 듣고 싶다고 하셔도 돼요.",
+        "어디에서 출발하세요? 장소 검색 결과에서 출발지를 선택해 주세요."
+      ]
+    },
+    {
+      "name": "audio_end_without_result_retries_then_sends_once",
+      "mode": "mock audio/TTS/AI",
+      "passed": true
+    }
+  ]
+}

@@ -10,3 +10,6 @@
 ## 멘토링용 배포 준비
 
 [Render 단일 서비스 실행·설정·검증 안내](../docs/development/render-demo-guide.md)에 화면+Python 서버 배포 입력값을 정리했다. `--host`, 환경변수 `PORT`, `/healthz`, 공개 HTTPS origin을 지원한다. 로컬 기본 주소는 유지한다. 실제 Render 배포는 아직 하지 않았다.
+# 현재 로컬 확인 주소
+
+준비된앱이있으면 `http://127.0.0.1:8765/`에서나들이홈→음성/텍스트공통입력을사용한다. 기존개발점검은 `/checks`다. 준비/활성선택·실제마이크입력미터는 [현재 실행 안내](../docs/development/unified-chat-and-meter.md)를따른다. 아래이전점검설명의기본URL은개발점검에서 `/checks`로읽는다.

@@ -1,0 +1,19 @@
+{
+  "mode": "mock speech/AI; synthetic microphone; no physical-device success claim",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "extra_widths": [
+    320,
+    430,
+    1280
+  ],
+  "cases": {
+    "navigation": 5,
+    "voice": 24,
+    "diagnostic": 8,
+    "meter": 6
+  },
+  "package": "90841c41c2"
+}

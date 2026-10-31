@@ -1,0 +1,14 @@
+{
+  "frontend_ref": "164cd40f1a306e4ce5dbcbb69515ebfedd8d8ef6",
+  "backend_ref": "888c32987b24084d20e604e21e8fb0ba2ddd5791",
+  "patch_sha256": "78acae4abccac897501f203fe702d19e7ca24082f81e66e45c02c28766b1f5f7",
+  "patch_applied_and_verified": true,
+  "files": {
+    "frontend/index.html": "944147e02b6e15c8c3fa816ed9775be15cd9a51b529ca618d1fcae81e2018f41",
+    "frontend/js/search.js": "040545cd88e144038a3f62577dfea2643bbdb188ce0b297db88ba590c08ebddf",
+    "frontend/js/results.js": "1f6358c5c3a2d0a996d69d8c8b35775b9bdbabe856f453c4d50cd0998d1adb01",
+    "frontend/js/dj-culture.js": "f1729cf148be8530501e02ae6f97938588e023367aba019832e609d70ae9a05a",
+    "frontend/js/dj-chat.js": "ed9b303832812fe866083b4a97a2464c8d438bf8b2d23516c7cf11663c11e743",
+    "frontend/js/dj-preferences.js": "8491e8e7aa0e11af1f4ac5b2d4748bd8083713a8e90ce389f3a6b3d9078d1561"
+  }
+}
