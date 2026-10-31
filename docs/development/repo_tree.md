@@ -86,6 +86,7 @@ lab678/
         2026-10-31-frontend-ready.md
         2026-10-31-guide-push-ready.md
         2026-10-31-input-contract.md
+        2026-10-31-kakao-live-check.md
         2026-10-31-kakao-map.md
         2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md

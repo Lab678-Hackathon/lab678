@@ -6,7 +6,7 @@
 
 `backend/map_config.py`는 `LAB678_KAKAO_JAVASCRIPT_KEY` 환경변수 또는 Git 제외 `.local/map.env`에서 **JavaScript 키만** 읽는다. `/map-config`에는 지도 SDK에 필요한 공개 JS 키만 반환하며 REST 키는 반환하지 않는다. JS 키는 브라우저에서 사용하는 키이므로 허용 도메인 제한을 설정해야 한다. 실제 파일이나 REST 키를 공개 정적 파일로 제공하지 않는다.
 
-설정할 로컬 파일: 저장소의 `.local/map.env` (사용자 JS 키 저장 확인, 값은 기록하지 않음). 변수: `LAB678_KAKAO_JAVASCRIPT_KEY=`. 카카오 개발자 콘솔에서 같은 앱의 JavaScript SDK 도메인에 `http://127.0.0.1:8765`를 등록한다. 배포 후에는 실제 HTTPS 주소도 추가하고 Render 비밀 환경변수로 값을 등록한다. 변경 후 화면을 새로고침한다. 로컬 파일은 요청마다 읽는다.
+설정할 로컬 파일: 저장소의 `.local/map.env` (사용자 JS 키 저장·로컬 도메인 등록 확인, 값은 기록하지 않음). 변수: `LAB678_KAKAO_JAVASCRIPT_KEY=`. 카카오 개발자 콘솔에서 같은 앱의 JavaScript SDK 도메인에 `http://127.0.0.1:8765`를 등록한다. 배포 후에는 실제 HTTPS 주소도 추가하고 Render 비밀 환경변수로 값을 등록한다. 변경 후 화면을 새로고침한다. 로컬 파일은 요청마다 읽는다.
 
 무료 적용은 계정 기준 첫 카카오맵 활성 앱의 무료 쿼터 표시를 확인한다. 웹 지도 SDK는 공식 기준 일 30만 건이며 대중교통/도보 조회 쿼터와 다르다. [카카오 쿼터](https://developers.kakao.com/docs/ko/getting-started/quota), [설정 안내](https://apis.map.kakao.com/web/guide/).
 
@@ -39,3 +39,9 @@
 검증: `check_location_ui.cjs`와 `--kakao-mock`에서 모의 위치를 사용했다. 기존 실제 Leaflet 지도 및 모의 카카오 SDK 모두 시작 전 무수집, 이동·정확도, 수동 중지/늦은 콜백, 거부·오래된 좌표, 30초 만료, 탭 이탈·조건 복귀·경로 닫기/텍스트 전환 정리, 위치로 인한 POST 없음·입력/선택 유지 PASS. `check_kakao_map.cjs` 기존 전환/실패 검사도 PASS. 백엔드34 및 JS 문법 확인 PASS.
 
 **실제 카카오 연결 상태 정정:** 사용자가 JavaScript 키를 저장했고 서버 설정 인식 확인. 실제 SDK 검사는 준비 대기 시간 초과로 실패했으며 사용자가 아직 도메인 미등록이라고 확인했다. `http://127.0.0.1:8765` 등록 후 재검증한다. 아직 실제 카카오 타일 성공으로 표시하지 않는다. 실제 모바일 HTTPS에서 위치 허용·걷기·중지 검증도 남아 있다.
+
+## 도메인 등록 후 실제 카카오 지도 확인
+
+사용자가 `http://127.0.0.1:8765` 도메인 등록을 완료한 뒤 `check_kakao_map.cjs --live` PASS. 실제 SDK·지도 타일 로딩과 번호핀/카드 선택, 경로 단계/텍스트 전환을 확인했다. `.local/kakao-live-map.png`를 시각 확인했고 지도 저작권 표시도 유지됨을 확인했다. 경로 좌표는 해당 검사에서 모의 응답을 사용했다.
+
+`check_location_ui.cjs --kakao-live` PASS: **실제 카카오 SDK + 모의 위치**에서 위치 표시/이동/중지, 권한 실패, 오래된 좌표/만료, 탭 이탈/조건 복귀/경로 닫기, 입력·선택 보존과 위치 POST 없음 확인. 위의 도메인 미등록 대기 상태는 해소됐다. 실제 모바일 GPS·걷기·공개 HTTPS 검증은 여전히 남아 있다. 지도 표시에는 카카오 로그인 Redirect URI를 설정하지 않는다.

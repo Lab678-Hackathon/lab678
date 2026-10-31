@@ -1,5 +1,5 @@
 /** 모의 위치로 사용자 시작/중지·오차·오래된 좌표·권한 실패·화면 이탈을 검사한다.
- * 실제 GPS/모바일 이동 검증이 아니다. 위치를 서버로 보내거나 추천 조건을 덮지 않는지도 검사한다.
+ * --kakao-live는 실제 SDK/지도에서 모의 위치를 검사한다. 실제 GPS/모바일 이동 검증은 아니다.
  */
 const assert=require("node:assert/strict");
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE || "playwright");
@@ -12,12 +12,13 @@ async function main() {
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.on("pageerror",error=>errors.push(error.message));
     const kakao=process.argv.includes("--kakao-mock");
-    const shapes=kakao ? '#map [data-circle], #map .route-dot[title="내 위치"]' : '#map path[stroke="#2674dc"]';
+    const live=process.argv.includes("--kakao-live");
+    const shapes=live ? '#map .route-dot[title="내 위치"]' : kakao ? '#map [data-circle], #map .route-dot[title="내 위치"]' : '#map path[stroke="#2674dc"]';
     if (kakao) {
       await page.addInitScript(mockKakao);
       await page.route("**/map-config",route=>route.fulfill({json:{provider:"kakao",javascript_key:"a".repeat(32)}}));
       await page.route("https://dapi.kakao.com/v2/maps/sdk.js?*",route=>route.fulfill({contentType:"text/javascript",body:"/* mock SDK */"}));
-    } else await page.route("**/map-config",route=>route.fulfill({json:{provider:"leaflet",javascript_key:""}}));
+    } else if (!live) await page.route("**/map-config",route=>route.fulfill({json:{provider:"leaflet",javascript_key:""}}));
     await page.addInitScript(()=>{
       window.geo={count:0,cleared:[],ok:null,fail:null};
       Object.defineProperty(navigator,"geolocation",{value:{
@@ -27,6 +28,7 @@ async function main() {
       window.givePosition=(lat=37.58,accuracy=20,age=0)=>geo.ok({coords:{latitude:lat,longitude:127.02,accuracy},timestamp:Date.now()-age});
     });
     await page.goto("http://127.0.0.1:8765");
+    if (live) await page.waitForFunction(()=>document.documentElement.dataset.mapProvider==="kakao");
     assert.equal(await page.evaluate(()=>geo.count),0);
     await page.getByRole("button",{name:"나들이 찾기",exact:true}).click();
     await page.locator('[name="mode"]').selectOption("recorded");
@@ -41,7 +43,7 @@ async function main() {
     assert.equal(await page.evaluate(()=>geo.count),1);
     await page.evaluate(()=>givePosition());
     assert.match(await note.textContent(),/20m/);
-    assert.equal(await page.locator(shapes).count(),2);
+    assert.equal(await page.locator(shapes).count(),live ? 1 : 2);
     await page.evaluate(()=>givePosition(37.581,250));
     assert.match(await note.textContent(),/오차가 큰/);
     assert.equal(await page.locator('[name="lat"]').inputValue(),before);
@@ -79,7 +81,7 @@ async function main() {
     await page.locator("#route-location [data-location-toggle]").click();
     await page.evaluate(()=>givePosition());
     assert.match(await page.locator("#route-location .location-note").textContent(),/갱신 중/);
-    assert.equal(await page.locator(shapes.replaceAll('#map ','#route-map ')).count(),2);
+    assert.equal(await page.locator(shapes.replaceAll('#map ','#route-map ')).count(),live ? 1 : 2);
     await page.locator("#route-text").click();
     assert.equal(await page.locator("#route-location").isVisible(),false);
     assert.equal(await page.locator(shapes).count(),0);
@@ -90,7 +92,7 @@ async function main() {
     await page.evaluate(()=>givePosition());
     assert.equal(await page.locator(shapes).count(),0);
     assert.deepEqual(errors,[]);
-    console.log("PASS mock position ("+(kakao ? "mock Kakao" : "Leaflet")+"): no autostart, accuracy/update, stop/stale callback, permission/stale fix, hide/expiry/back/route-close cleanup, no location POST or origin/selection changes");
+    console.log("PASS mock position ("+(live ? "actual Kakao SDK" : kakao ? "mock Kakao" : "Leaflet")+"): no autostart, accuracy/update, stop/stale callback, permission/stale fix, hide/expiry/back/route-close cleanup, no location POST or origin/selection changes");
   } finally {await browser.close();}
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
