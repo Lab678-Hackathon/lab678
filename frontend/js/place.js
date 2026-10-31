@@ -211,7 +211,11 @@ function setBig(on) {
   setTimeout(refit, 80);
 }
 
-function credit(text) { $('#s08-credit').textContent = [text, $('#s08-credit').dataset.map].filter(Boolean).join(' · '); }
+/** 출처 표시: 경로 출처만 작고 희미하게. 카카오 지도는 지도 위 로고로 출처가 표시돼서 여기서는 빼요 */
+function credit(text) {
+  const map = $('#s08-credit').dataset.map;
+  $('#s08-credit').textContent = [text, map && !map.includes('Kakao') ? map : ''].filter(Boolean).join(' · ');
+}
 
 /** S08 */
 export async function renderMap(id) {
@@ -259,7 +263,7 @@ async function loadWalk(c) {
 function showWalk() {
   const r = route?.walk;
   draw(route.from, route.to, r?.path?.length > 1 ? [{ path: r.path, color: COLORS.walk }] : []);
-  credit(r ? `도보 경로 ${r.provider || 'Valhalla / FOSSGIS'}` : '');
+  credit(r ? `도보 경로 © OpenStreetMap · ${r.provider || 'Valhalla / FOSSGIS'}` : '');
 }
 
 const fmtMin = (s) => `${Math.round(s / 60)}분`;

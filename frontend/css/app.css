@@ -432,3 +432,6 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 .map-fullbar .btn { width: auto; padding: 0 16px; flex: none; }
 body.map-full-open #s08 .bottombar { display: none; }
 body.map-full-open #s08 .topbar { z-index: 41; }
+
+/* 경로 출처: 지우면 안 되는 표시라 작고 희미하게 */
+.credit { margin: -12px 0 0; font-size: 11px; color: var(--text-secondary); opacity: .45; text-align: right; }
