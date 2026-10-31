@@ -23,6 +23,10 @@ button,input,select {font:inherit; min-height:46px; border-radius:12px; max-widt
 button,summary {cursor:pointer} button {padding:8px 16px; background:white; border:1px solid #88a7a9; color:var(--ink); font-weight:650}
 button:disabled {opacity:.55; cursor:default}.primary {background:var(--teal); color:white; border:0; width:100%}
 .route-link {display:inline-block; padding:10px 16px; border:1px solid #88a7a9; border-radius:12px; font-weight:650; text-decoration:none}
+#automatic-chat-entry {background:#e3f1f3;border:2px solid #007385}
+#automatic-chat-entry[hidden] {display:none}
+#automatic-chat-entry strong {display:block;font-size:21px;margin-bottom:8px}
+#automatic-chat-link {display:block;padding:16px;background:#007385;color:white;text-align:center;font-size:19px;min-height:56px}
 dialog {width:min(94vw,760px); max-height:90vh; border:1px solid var(--line); border-radius:18px; padding:20px; color:var(--ink)}
 dialog::backdrop {background:#17363b88}
 #route-dialog > .actions:first-child {position:sticky; top:-20px; background:white; z-index:1001; padding-block:10px; margin-top:0}
@@ -87,6 +91,11 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 </style>
 <main>
 <header><span class="brand">LAB<b>678</b></span><small>서울 문화나들이</small></header>
+<aside id="automatic-chat-entry" class="panel" hidden>
+<strong>마이크로 AI와 대화하려면</strong>
+<p>이곳은 행사·경로 점검 화면이에요. 자동 음성 대화와 마이크 파동은 아래 화면에서 확인해 주세요.</p>
+<a id="automatic-chat-link" class="route-link">마이크 · 자동 대화 화면 열기</a>
+</aside>
 <section id="home" class="panel">
 <p class="kicker">문화 · 서울</p><h1>오늘은 어디로<br>나들이 갈까요?</h1>
 <p>출발할 곳과 가능한 시간을 알려주세요.<br>지도에서 전시와 공연을 함께 살펴볼 수 있어요.</p>
@@ -179,6 +188,13 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <script src="/map-view.js"></script>
 <script src="/location-view.js"></script>
 <script>
+/** 같은 PC의 최신 대화 화면으로 안내한다. 공개 배포에서는 개발용 주소를 노출하지 않는다. */
+function showAutomaticChatEntry() {
+  if (!['127.0.0.1', 'localhost'].includes(location.hostname)) return;
+  document.querySelector('#automatic-chat-link').href = 'http://127.0.0.1:5175/?#/home';
+  document.querySelector('#automatic-chat-entry').hidden = false;
+}
+showAutomaticChatEntry();
 const form = document.querySelector("#form");
 const fields = form.elements;
 fields.kind.onchange = () => {

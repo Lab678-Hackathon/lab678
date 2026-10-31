@@ -279,6 +279,11 @@
       "utils/scripts/check_voice_session.cjs",
       "docs/development/voice-browser-compatibility.md"
     ],
+    "기존 점검 화면→자동 대화 홈 진입": [
+      "backend/preview.html",
+      "utils/scripts/check_voice_entry.cjs",
+      "docs/development/automatic-voice.md"
+    ],
     "대중교통 노선·모바일 경로 카드": [
       "backend/transit.py",
       "backend/preview.html",

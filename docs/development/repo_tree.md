@@ -223,6 +223,7 @@ lab678/
         tour-key-verification.md
         tour-live-verification.md
         transit-mobile-cards.md
+        voice-entry-navigation.md
         voice-wave-and-compatibility.md
       screen-spec-review.md
       service-key-status.md
@@ -311,6 +312,7 @@ lab678/
       check_transit_details.py
       check_transit_mobile.cjs
       check_transit_ui.cjs
+      check_voice_entry.cjs
       check_voice_navigation.cjs
       check_voice_session.cjs
       commit_report.py
