@@ -77,6 +77,7 @@ lab678/
         2026-10-31-local-plan-folder.md
         2026-10-31-mobility-review.md
         2026-10-31-mvp-plan.md
+        2026-10-31-personal-attachment-copy.md
         2026-10-31-personal-notes-scope.md
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
@@ -105,7 +106,6 @@ lab678/
       2026-10-28.md
     planning/
       AGENTS.md
-      Lab_678_MVP_Screen_Spec_v0.1_20261030.md
       Lab_678_MVP_화면명세서.md
       PRD.md
       README.md

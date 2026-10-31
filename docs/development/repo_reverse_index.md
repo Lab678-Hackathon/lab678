@@ -4,7 +4,7 @@
 
 ## 기능 → 파일
 
-- **화면명세 수신·화면별 구현 차이 점검**: [docs/planning/Lab_678_MVP_Screen_Spec_v0.1_20261030.md](../../docs/planning/Lab_678_MVP_Screen_Spec_v0.1_20261030.md), [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md)
+- **화면명세 수신·화면별 구현 차이 점검**: [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md)
 - **대중교통 내부 텍스트 안내·서버 키 연결**: [backend/transit.py](../../backend/transit.py), [backend/test_transit.py](../../backend/test_transit.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_transit_ui.cjs](../../utils/scripts/check_transit_ui.cjs), [docs/development/transit-progress.md](../../docs/development/transit-progress.md)
 - **시간 충돌 동의·한 곳/이른 출발 대안**: [backend/course.py](../../backend/course.py), [backend/test_course.py](../../backend/test_course.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_course_alternatives.cjs](../../utils/scripts/check_course_alternatives.cjs), [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md)
 - **앱 내부 한국어 도보 안내·경로 지도 전환**: [backend/walking.py](../../backend/walking.py), [backend/test_walking.py](../../backend/test_walking.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
