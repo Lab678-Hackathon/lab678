@@ -158,6 +158,7 @@ lab678/
         20261031-qa01-received.md
         20261031-team-chat-connected.md
         20261031-team-flow-connected.md
+        20261031-user-preferences-kakao-review.md
       screen-spec-review.md
       state.json
       tasks.md
