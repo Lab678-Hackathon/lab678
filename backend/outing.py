@@ -14,6 +14,7 @@ KST = timezone(timedelta(hours=9))
 EXAMPLES = Path(__file__).resolve().parents[1] / "docs/development/examples"
 CATEGORIES = {"전시", "전체", "국악", "클래식", "콘서트", "연극"}
 MIN_OUTING_MINUTES = 60
+SEOUL_FETCH_LIMIT = 1000  # 서울시 API 한 번에 최대 1000건. 100건이면 위치와 상관없이 앞쪽 행사만 와서 먼 곳이 섞여요
 
 
 class InputError(ValueError):
@@ -78,7 +79,7 @@ def validate(data):
 
 
 def seoul_page(day, category, mode):
-    """지정일 키 없으면5건, 정식 키면100건을 조회한다. 인증 실패를 sample로 대체하지 않는다."""
+    """지정일 키 없으면5건, 정식 키면 최대 1000건(SEOUL_FETCH_LIMIT)을 조회한다. 인증 실패를 sample로 대체하지 않는다."""
     if mode == "recorded":
         captures = json.loads((EXAMPLES / "seoul-events.capture.json").read_bytes())["captures"]
         for capture in captures:
@@ -89,9 +90,12 @@ def seoul_page(day, category, mode):
         raise ValueError("조회 방식을 선택해 주세요.")
     segment = quote(" " if category == "전체" else category)
     key = culture_key("seoul")
-    limit = 100 if key else 5
-    url = f"http://openapi.seoul.go.kr:8088/{quote(key or 'sample', safe='')}/json/culturalEventInfo/1/{limit}/{segment}/%20/{day}/"
-    with urlopen(url, timeout=8) as response:
+    limit = SEOUL_FETCH_LIMIT if key else 5
+    # 정식 키: 날짜 조건 없이 최근 행사 최대 1000건을 받고, 그날 열리는지는 아래 코드에서 행사 기간으로 판정해요.
+    # (서울시 API 날짜 조건은 진행 중 행사를 많이 빠뜨려요. 11/1 기준 날짜 조건 23건 / 기간 판정 114건)
+    when = "%20" if key else quote(day)
+    url = f"http://openapi.seoul.go.kr:8088/{quote(key or 'sample', safe='')}/json/culturalEventInfo/1/{limit}/{segment}/%20/{when}/"
+    with urlopen(url, timeout=15) as response:
         payload = json.load(response)
     if not isinstance(payload, dict):
         raise RuntimeError("서울시 응답 형식 오류")
@@ -158,11 +162,11 @@ def recommend(data, mode="live"):
         url = urlsplit(row.get("HMPG_ADDR") or "")
         ids = parse_qs(url.query).get("cultcode", [])
         if url.scheme not in {"http", "https"} or url.hostname != "culture.seoul.go.kr" or not ids or not ids[0].isdigit():
-            raise RuntimeError("행사 식별 정보를 확인해 주세요.")
+            continue  # 식별 정보가 없는 행사 한 건 때문에 전체 조회를 실패시키지 않고 그 행사만 빼요
         try:
             first, last = (date.fromisoformat(row[key][:10]) for key in ("STRTDATE", "END_DATE"))
-        except (KeyError, TypeError, ValueError) as exc:
-            raise RuntimeError("서울시 행사 날짜를 확인할 수 없습니다.") from exc
+        except (KeyError, TypeError, ValueError):
+            continue  # 날짜를 확인할 수 없는 행사는 추천하지 않아요
         match = time_match(row, start, end)
         if not first <= start.date() <= last or match is False:
             continue
@@ -190,7 +194,7 @@ def recommend(data, mode="live"):
     candidates = list({candidate["id"]: candidate for candidate in candidates}.values())
     candidates, assessment = preferences.apply(candidates, options)
     access = "recorded" if mode == "recorded" else "authenticated" if culture_key("seoul") else "sample"
-    limit = 100 if access == "authenticated" else 5
+    limit = SEOUL_FETCH_LIMIT if access == "authenticated" else 5
     scope = "저장된 기록" if access == "recorded" else "정식 키" if access == "authenticated" else "공개 샘플"
     coverage = f"선택한 분류마다 {scope} 최대 {limit}건을 조회했습니다. 조회 범위 밖의 행사는 포함하지 않으며 0건이 서울 전체에 행사가 없다는 뜻은 아닙니다."
     return dict(status="ready" if candidates else "no_results", mode=mode, source_checked_at=checked,
