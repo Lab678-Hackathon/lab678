@@ -86,6 +86,7 @@ lab678/
         2026-10-31-spoken-category.md
         2026-10-31-tooling-setup.md
         2026-10-31-transit-guide.md
+        2026-10-31-transit-provider-factcheck.md
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md

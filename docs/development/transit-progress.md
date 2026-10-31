@@ -30,3 +30,15 @@
 저장소의 `.local/transit.env`(Git 제외)에 `LAB678_KAKAO_REST_API_KEY=` 값을 직접 채운다. 또는 동일 환경변수를 서버 실행 환경에 설정한다. 파일은 요청마다 읽으므로 저장 후 안내를 다시 열면 반영된다. 채팅·문서·브라우저로 키를 보내지 않는다. 앱 활성화·사용 가능량·과금 여부는 [공식 이용 안내](https://developers.kakao.com/docs/ko/kakaomap/common)에서 확인한다. 이 작업에서 계정·결제·제품 활성화 변경은 하지 않았다.
 
 카드 경로안내 → 대중교통 또는 선택 행사/코스 구간의 대중교통 안내 보기. 내부 텍스트는 공급자 경로 순서 최대 3개, 지도는 카카오맵 선택 링크. 지정 날짜·실제 운행·시니어 우대·접근성 미확인. 원문 경로 저장·자동 재시도·코스 시간 자동 변경 없음.
+
+## 제공사 선택 설명 재검증 · 10/31
+
+- [x] 사용자 제공 ODsay 우선 추천문의 카카오 비공개 전제·무료 수량·OPT 의미 공식 대조.
+- [x] 카카오 2026-07-21 공개 API 추가 공지 및 GET /v2/routing/publictraffic 확인.
+- [x] ODsay 현행 Basic 일 30회(개인/학생/5인 이하 스타트업), OPT=0 추천/1 유형별 정렬 확인. 월 1,000~3,000회·도보 최적화라는 설명은 근거로 사용하지 않음.
+- [x] 사용자 카카오 가입 확인을 상태에 기록. 로그인 앱 가입과 카카오맵 활성화/쿼터 적용은 구분.
+- [ ] 실제 앱 권한·키·무료 사용 조건 확인과 공개 장소 1구간 실조회.
+
+판단: 현재 카카오 어댑터/화면이 있으므로 먼저 검증하고 권한/조건/품질이 맞지 않으면 ODsay를 대안으로 검토한다. 이번에는 제공사를 전환하거나 사용자 계정 설정을 변경하지 않았다. 제공된 ODsay 코드에는 타임아웃·HTTP 및 본문 오류 처리 보완도 필요하다.
+
+근거: [카카오 신규 공지](https://devtalk.kakao.com/t/api-notice-on-new-kakao-map-api-features-and-free-quota-policy/150222), [카카오 명세](https://developers.kakao.com/docs/ko/kakaomap/rest-api), [ODsay 정책](https://lab.odsay.com/doc/totalPolicy), [ODsay 옵션](https://lab.odsay.com/guide/releaseReference). 전체 답변: reports/2026-10-31-transit-provider-factcheck.md.
