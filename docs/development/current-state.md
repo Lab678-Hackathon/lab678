@@ -45,10 +45,10 @@
 
 ## 다음 할 일 — 순서대로
 
-- 현재 작업은 dj/develop 로컬. 완료 보고문 커밋 후 기준 SHA를 공유한다. push는 별도 요청 시 원격 최신 차이를 확인하고 수행한다. 이번 원격 git fetch/병합/push 미실시.
-- 희영님 S02 입력→S02a 확인→S03 실제추천→S04 상세 연결 최우선. place-search-api.md와 recommend-api.md 및 examples/*live.json 전달. 팀 브랜치 최신 화면 준비 후 실제 통합 검사.
+- 기능 기준 dj/develop d6194e0, 백엔드42개. 팀의7bdb01f/34개는 이전 시점. Push/PR은 할 일에 기록; 사용자 별도 요청 시 원격 차이 확인 후 진행. 이번 기준 기록만 수행.
+- 기획 확정 QA-01: 청량리역 기존 테스트좌표·2026-10-31 14~17시·전시·place·mode=recorded. S02→S02a→S03→S04 후보ID 일치·캡처 우선. 이후 별도 실제 미래 날짜 live. 세부 체크표/양식 plan_dj/qa-01-integration.md.
 - 60분·CORS·place/course 구현 및 5173 테스트 페이지 확인 완료. 실제 팀 UI에서 선택 좌표/ID/핀/카드/상세, 결측·0건/실패·조건 복귀를 묶어 점검한다.
-- 복수 관심사/걷기 선호는 미구현. 첫 연결 대표 관심사 사용자 확인·나머지 상태 보존은 제안이며 합의 필요. AI 조건 추출은 첫 연결 이후.
+- 첫 연결 대표 관심사1개 검증은 기획 기준으로 확정 수신. 복수 관심사 요구 유지, 걷기 미적용 표시, 출발지 미확정 임의좌표 금지, API실패 Mock대체 금지. 팀프론트60분 확인·AI조건추출은 후속.
 - 기존 S05·도보/교통·카카오/위치 재사용 연결 뒤 팀 Vercel·Render 및 모바일 GPS/음성 검증. 실제 배포 origin·카카오 SDK 도메인 필요.
 - 개인 체크표 plan_dj/place-search-progress.md, 팀 요청/할 일 plan_dj/team-integration-requests-20261031.md. 공용 plan 수정 금지. 별도 개인 검색 UI 확장보다 팀 연결 우선.
 
