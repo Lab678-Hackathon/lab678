@@ -72,6 +72,7 @@ lab678/
         2026-10-31-directions.md
         2026-10-31-discord-status-checklist.md
         2026-10-31-events.md
+        2026-10-31-guide-push-ready.md
         2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md
         2026-10-31-local-plan-folder.md
