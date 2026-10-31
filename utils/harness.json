@@ -7,6 +7,7 @@
   "state_file": "docs/development/state.json",
   "repo_indexes": ["docs/development/repo_index.md", "docs/development/repo_reverse_index.md", "docs/development/repo_tree.md"],
   "features": {
+    "별도 프론트 연결·CORS·상세 사실 필드": ["backend/preview.py", "backend/outing.py", "backend/test_preview.py", "backend/test_outing.py", "utils/scripts/check_frontend_connection.cjs", "docs/development/recommend-api.md"],
     "추천 입력 60분·route 호환·오류 계약": ["backend/outing.py", "backend/preview.py", "backend/preview.html", "backend/test_outing.py", "backend/test_preview.py", "utils/scripts/check_input_contract.cjs", "docs/development/recommend-api.md"],
     "동료·LLM 백엔드 참조·실행 안내": ["docs/development/team-backend-guide.md", "docs/development/team-integration-checklist.md", "backend/README.md"],
     "화면명세 수신·화면별 구현 차이 점검": ["docs/development/screen-spec-review.md"],

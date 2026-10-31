@@ -23,6 +23,22 @@ class OutingTests(unittest.TestCase):
         self.assertEqual(events["seoul:159808"]["price_info"], "0원")
         distances = [item["distance_km"] for item in result["candidates"]]
         self.assertEqual(distances, sorted(distances))
+        self.assertTrue(all(item["event_start_date"] <= "2026-10-31" <= item["event_end_date"] for item in events.values()))
+        self.assertTrue(all(item["address"] is None for item in events.values()))
+
+    def test_detail_fields_from_source(self):
+        """행사 기간·지역은 공급자 원문을 쓰고 장소명을 주소로 바꾸지 않는다."""
+        row = json.loads((EXAMPLES / "seoul-events.capture.json").read_bytes())["captures"][0]["rows"][0]
+        row.update(STRTDATE="2026-10-01 00:00:00", END_DATE="2026-11-30 00:00:00", GUNAME="테스트구",
+                   PRO_TIME="00:00~23:59", CODENAME="전시/미술")
+        with patch("outing.seoul_page", return_value=([row],"test",1)):
+            event = recommend(self.request)["candidates"][0]
+        self.assertEqual((event["event_start_date"],event["event_end_date"],event["district"]),
+                         ("2026-10-01","2026-11-30","테스트구"))
+        self.assertIsNone(event["address"])
+        row.pop("GUNAME")
+        with patch("outing.seoul_page", return_value=([row],"test",1)):
+            self.assertIsNone(recommend(self.request)["candidates"][0]["district"])
 
     def test_end_boundary(self):
         """전시 종료 시각에 도착하는 입력은 단순 운영구간에서 제외한다."""

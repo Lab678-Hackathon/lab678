@@ -6,6 +6,7 @@
 
 | 심볼 | 정의 위치 | 개요 |
 |---|---|---|
+| `allowed_origins` | [backend/preview.py:19](../backend/preview.py#L19) | 환경변수의 명시적 HTTP(S) origin만 허용한다. 와일드카드·경로·자격정보는 제외한다. |
 | `api_key` | [backend/transit.py:20](../backend/transit.py#L20) | 전용 환경변수 또는 로컬 제외 파일의 키 한 개만 읽는다. 값은 응답·로그에 출력하지 않는다. |
 | `broken_links` | [utils/scripts/harness.py:49](../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
 | `build_course` | [backend/course.py:102](../backend/course.py#L102) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
@@ -49,25 +50,30 @@
 | `OutingTests` | [backend/test_outing.py:9](../backend/test_outing.py#L9) | 개인 추천의 의미가 바뀌는 경계 사례를 재현한다. |
 | `OutingTests.setUp` | [backend/test_outing.py:12](../backend/test_outing.py#L12) | 각 사례에 독립적인 청량리역 요청을 준비한다. |
 | `OutingTests.test_actual_fields` | [backend/test_outing.py:16](../backend/test_outing.py#L16) | 빈 요금, 무료 분류, 명시한 0원, 거리 오름차순을 보존한다. |
-| `OutingTests.test_bad_input` | [backend/test_outing.py:61](../backend/test_outing.py#L61) | 잘못된 출발 좌표나 종료 시각으로 외부 API를 호출하지 않는다. |
-| `OutingTests.test_empty_and_error` | [backend/test_outing.py:68](../backend/test_outing.py#L68) | 실제 후보 0건을 공급자 장애와 구분한다. |
-| `OutingTests.test_end_boundary` | [backend/test_outing.py:27](../backend/test_outing.py#L27) | 전시 종료 시각에 도착하는 입력은 단순 운영구간에서 제외한다. |
-| `OutingTests.test_genre_mismatch` | [backend/test_outing.py:75](../backend/test_outing.py#L75) | 국악 조회에 전시가 섞이거나 전시만 반환돼도 국악 외 행사는 제외한다. |
-| `OutingTests.test_input_error_fields` | [backend/test_outing.py:47](../backend/test_outing.py#L47) | 시간 누락·형식·시간대·역전·다음날 및 잘못된 좌표의 필드를 특정한다. |
-| `OutingTests.test_minimum_duration_before_source` | [backend/test_outing.py:34](../backend/test_outing.py#L34) | 59분과 59분59초는 외부 조회 전에 거절하며 정확히 60분은 허용한다. |
-| `OutingTests.test_recording_scope` | [backend/test_outing.py:86](../backend/test_outing.py#L86) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
+| `OutingTests.test_bad_input` | [backend/test_outing.py:77](../backend/test_outing.py#L77) | 잘못된 출발 좌표나 종료 시각으로 외부 API를 호출하지 않는다. |
+| `OutingTests.test_detail_fields_from_source` | [backend/test_outing.py:29](../backend/test_outing.py#L29) | 행사 기간·지역은 공급자 원문을 쓰고 장소명을 주소로 바꾸지 않는다. |
+| `OutingTests.test_empty_and_error` | [backend/test_outing.py:84](../backend/test_outing.py#L84) | 실제 후보 0건을 공급자 장애와 구분한다. |
+| `OutingTests.test_end_boundary` | [backend/test_outing.py:43](../backend/test_outing.py#L43) | 전시 종료 시각에 도착하는 입력은 단순 운영구간에서 제외한다. |
+| `OutingTests.test_genre_mismatch` | [backend/test_outing.py:91](../backend/test_outing.py#L91) | 국악 조회에 전시가 섞이거나 전시만 반환돼도 국악 외 행사는 제외한다. |
+| `OutingTests.test_input_error_fields` | [backend/test_outing.py:63](../backend/test_outing.py#L63) | 시간 누락·형식·시간대·역전·다음날 및 잘못된 좌표의 필드를 특정한다. |
+| `OutingTests.test_minimum_duration_before_source` | [backend/test_outing.py:50](../backend/test_outing.py#L50) | 59분과 59분59초는 외부 조회 전에 거절하며 정확히 60분은 허용한다. |
+| `OutingTests.test_recording_scope` | [backend/test_outing.py:102](../backend/test_outing.py#L102) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
-| `Preview` | [backend/preview.py:14](../backend/preview.py#L14) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
-| `Preview.do_GET` | [backend/preview.py:28](../backend/preview.py#L28) | 점검 폼과 저장소의 대표 요청만 제공한다. |
-| `Preview.do_POST` | [backend/preview.py:37](../backend/preview.py#L37) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
-| `Preview.reply` | [backend/preview.py:17](../backend/preview.py#L17) | UTF-8 본문을 길이와 함께 응답한다. |
+| `Preview` | [backend/preview.py:36](../backend/preview.py#L36) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
+| `Preview.do_GET` | [backend/preview.py:76](../backend/preview.py#L76) | 점검 폼과 저장소의 대표 요청만 제공한다. |
+| `Preview.do_OPTIONS` | [backend/preview.py:47](../backend/preview.py#L47) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
+| `Preview.do_POST` | [backend/preview.py:85](../backend/preview.py#L85) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.end_headers` | [backend/preview.py:39](../backend/preview.py#L39) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
+| `Preview.reply` | [backend/preview.py:65](../backend/preview.py#L65) | UTF-8 본문을 길이와 함께 응답한다. |
 | `PreviewContractTests` | [backend/test_preview.py:12](../backend/test_preview.py#L12) | 실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다. |
 | `PreviewContractTests.request` | [backend/test_preview.py:15](../backend/test_preview.py#L15) | JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다. |
-| `PreviewContractTests.setUp` | [backend/test_preview.py:28](../backend/test_preview.py#L28) | 각 테스트가 사용할 독립적인 정상 요청을 읽는다. |
-| `PreviewContractTests.test_invalid_kind` | [backend/test_preview.py:61](../backend/test_preview.py#L61) | 지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다. |
-| `PreviewContractTests.test_kind_compatibility` | [backend/test_preview.py:44](../backend/test_preview.py#L44) | 정확히 60분인 route/course가 같은 코스 경로로, place는 후보만 반환한다. |
-| `PreviewContractTests.test_short_duration_response` | [backend/test_preview.py:33](../backend/test_preview.py#L33) | 60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다. |
-| `PreviewContractTests.test_source_error_is_not_input_error` | [backend/test_preview.py:54](../backend/test_preview.py#L54) | 공급자 장애는 필드 오류 대신 502이며 공급자 예외 내용은 숨긴다. |
+| `PreviewContractTests.setUp` | [backend/test_preview.py:30](../backend/test_preview.py#L30) | 각 테스트가 사용할 독립적인 정상 요청을 읽는다. |
+| `PreviewContractTests.test_invalid_kind` | [backend/test_preview.py:63](../backend/test_preview.py#L63) | 지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다. |
+| `PreviewContractTests.test_kind_compatibility` | [backend/test_preview.py:46](../backend/test_preview.py#L46) | 정확히 60분인 route/course가 같은 코스 경로로, place는 후보만 반환한다. |
+| `PreviewContractTests.test_origin_configuration` | [backend/test_preview.py:68](../backend/test_preview.py#L68) | 허용 주소의 정확한 일치만 사용하고 와일드카드·자격정보·잘못된 설정을 제외한다. |
+| `PreviewContractTests.test_preflight` | [backend/test_preview.py:77](../backend/test_preview.py#L77) | 설정된 origin·POST·Content-Type만 사전 요청에서 허용한다. |
+| `PreviewContractTests.test_short_duration_response` | [backend/test_preview.py:35](../backend/test_preview.py#L35) | 60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다. |
+| `PreviewContractTests.test_source_error_is_not_input_error` | [backend/test_preview.py:56](../backend/test_preview.py#L56) | 공급자 장애는 필드 오류 대신 502이며 공급자 예외 내용은 숨긴다. |
 | `provider_response` | [backend/test_transit.py:11](../backend/test_transit.py#L11) | 공식 스키마를 따르는 가상 도보·지하철·도보 3구간을 만든다. 시연 데이터가 아니다. |
 | `query_walking` | [backend/walking.py:16](../backend/walking.py#L16) | 개인 화면의 도보 조회 간격을 제한하고 공급자의 JSON 또는 실패 상태를 반환한다. |
 | `recommend` | [backend/outing.py:122](../backend/outing.py#L122) | 검증된 요청의 후보를 계산한다. 입력 오류와 공급자 오류를 별도로 전달한다. |

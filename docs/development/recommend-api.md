@@ -43,6 +43,8 @@
 | `id`, `title`, `venue` | 안정 ID(`seoul:행사코드`), 제목, 장소 원문 |
 | `lat`, `lng` | 위도·경도. 미확인 시 `null`; 임의 좌표로 지도 핀을 만들지 않음 |
 | `distance_km` | 출발점 기준 직선거리 km. 이동거리/소요시간 아님. 좌표 미확인 시 `null` |
+| `event_start_date`, `event_end_date` | 공급자가 제공한 행사 기간의 날짜 `YYYY-MM-DD`. 운영시간·방문예정일과 구분 |
+| `district`, `address` | 공급자 지역명 또는 `null`. 현재 상세 주소는 미제공이므로 `address: null`; 장소명을 주소로 대체하지 않음 |
 | `genre`, `opening_info` | 분류 및 운영시간 원문. 운영시간 미확인 시 `null` |
 | `fixed_start_at` | 판독 가능한 공연 시작 시각 ISO, 그 외 `null` |
 | `price_info`, `fee_type`, `audience` | 요금 원문, 무료/유료 구분, 대상. 미확인 시 `null`; 요금 공란을 0원으로 바꾸지 않음 |
@@ -52,7 +54,7 @@
 
 `request_kind=route` 또는 `course`일 때 응답에는 기존 이름 **`course`** 객체가 추가된다. `route`라는 응답 필드로 이름을 바꾸지 않았다. UI는 `candidates`로 카드를 구성하고 `course.ids`가 있으면 해당 순서로 코스 장소를 선택한다. `course.status`는 `ready`, `check`, `conflict`, `insufficient`, `unavailable`을 구분한다. `stops`는 확인된 일정에만 포함될 수 있어 존재를 검사해야 한다. `arrive`, `begin`, `finish`는 요청 당일의 한국 시각 `HH:MM`, `walk_min`과 `walk_minutes`는 분이다. 실패 코스 응답을 관람 가능 일정으로 표시하지 않는다.
 
-주소·행사 시작/종료 날짜를 독립 필드로 모두 제공하는 상세 계약은 아직 보완 대상이다. `venue`를 주소라고 표시하거나 조회 날짜를 행사 시작일로 대신 사용하지 않는다.
+행사 기간과 지역은 현재 응답에 포함한다. 상세 주소는 아직 없으므로 `venue`를 주소라고 표시하거나 조회 날짜를 행사 시작일로 대신 사용하지 않는다.
 
 ## 입력 오류·실패
 
@@ -81,7 +83,33 @@
 ## 연결 전 확인
 
 - 서버는 현재 `127.0.0.1`에만 바인딩한다. 다른 PC 접속/배포 주소는 별도 결정해야 한다.
-- CORS/OPTIONS는 아직 없으며, 다른 포트의 프론트가 직접 호출하면 연결 문제가 생길 수 있다. 프론트 실행 환경을 받은 뒤 개발 프록시 또는 명시적 허용 origin을 결정한다.
+- CORS/OPTIONS는 명시적 허용 origin 설정을 지원한다. 실제 프론트 실행 주소는 아직 확인 전이며 아래 예시를 팀의 확정 포트로 취급하지 않는다. 환경변수 미설정 시 같은 서버의 점검 화면만 사용하고, 다른 origin 요청은 허용하지 않는다.
 - 음성 인식은 브라우저 기능이다. 현재 키워드 자동 반영을 AI 조건 대화 완료로 표시하지 않는다.
 - 도보/대중교통/음성 파일 엔드포인트는 [기존 실행 안내](team-backend-guide.md)와 [인계 문서](outing-handoff.md)를 참조한다.
 - 오프라인 검증: `python -m unittest discover -s backend -q`. 입력 구간 검증: `node utils/scripts/check_input_contract.cjs`(점검 서버 및 기존 Playwright 환경 필요).
+
+
+## 별도 화면 연결 설정
+
+UI 디자인만 있을 때는 기존 점검 화면으로 백엔드를 검증한다. 프론트 코드가 나오면 동일한 API를 호출하도록 연결한다. 다음은 **프론트가 실제로 localhost:5173에서 실행될 때만** 적용하는 예시다.
+
+```powershell
+$env:LAB678_ALLOWED_ORIGINS = "http://localhost:5173"
+python backend/preview.py
+```
+
+여러 실행 주소는 쉼표로 구분한다. `localhost`와 `127.0.0.1` 및 포트가 다른 주소는 각각 다른 origin이다. 와일드카드, 경로, 계정정보가 든 설정은 허용하지 않는다. 일반 `.env` 파일은 자동으로 읽지 않는다. 설정은 서버를 시작하는 터미널에 적용하고 재시작한다. 기본 서버 주소는 계속 로컬 `127.0.0.1:8765`이며, `--port 8766`처럼 포트를 바꿀 수 있다. 다른 팀원의 PC에서 동조님 PC의 127.0.0.1로 접속하는 방식은 동작하지 않는다. 우선 같은 PC에서 프론트와 백엔드를 함께 실행하거나 별도 배포 주소를 합의한다.
+
+```javascript
+const response = await fetch("http://127.0.0.1:8765/preview/recommend", {
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify(confirmedConditions)
+});
+const result = await response.json();
+// response.ok와 result.status를 구분하고 400의 field/message를 입력 아래에 표시한다.
+```
+
+쿠키/인증 헤더는 필요하지 않으며 `credentials: "include"`를 사용하지 않는다. 허용 origin의 JSON POST 사전 요청은 204, 미허용 origin/메서드/추가 헤더는 403이다. 허용 origin에는 정상·400·502 등 오류 응답에도 CORS 헤더가 붙는다. API 키는 서버에만 두며 브라우저에 전달하지 않는다.
+
+별도 포트 브라우저 검증: `node utils/scripts/check_frontend_connection.cjs`. 테스트용 화면/백엔드를 빈 포트에 띄워 기록 추천·상세 필드·400 오류·미허용 origin 차단을 확인하고 종료한다. 실제 팀 UI 통합 성공을 대신하지 않는다.

@@ -6,13 +6,13 @@ from email.message import Message
 from unittest.mock import Mock, patch
 
 from outing import EXAMPLES
-from preview import Preview
+from preview import Preview, allowed_origins
 
 
 class PreviewContractTests(unittest.TestCase):
     """실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다."""
 
-    def request(self, data):
+    def request(self, data, origin=None):
         """JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다."""
         raw = json.dumps(data).encode()
         handler = Preview.__new__(Preview)
@@ -20,6 +20,8 @@ class PreviewContractTests(unittest.TestCase):
         handler.headers = Message()
         handler.headers["Content-Type"] = "application/json"
         handler.headers["Content-Length"] = str(len(raw))
+        if origin:
+            handler.headers["Origin"] = origin
         handler.rfile = io.BytesIO(raw)
         handler.reply = Mock()
         handler.do_POST()
@@ -62,3 +64,34 @@ class PreviewContractTests(unittest.TestCase):
         """지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다."""
         status,body = self.request(dict(self.data,request_kind="unknown"))
         self.assertEqual((status,body["code"],body["field"]),(400,"invalid_kind","request_kind"))
+
+    def test_origin_configuration(self):
+        """허용 주소의 정확한 일치만 사용하고 와일드카드·자격정보·잘못된 설정을 제외한다."""
+        with patch.dict("os.environ",{"LAB678_ALLOWED_ORIGINS":"http://localhost:5173/,https://ui.example,*,null,http://user@host,http://@host,http://host/path,http://host:99999"}):
+            self.assertEqual(allowed_origins(),{"http://localhost:5173","https://ui.example"})
+        with patch.dict("os.environ",{"LAB678_ALLOWED_ORIGINS":""}), patch("outing.seoul_page") as source:
+            status,body=self.request(self.data, "http://unlisted.example")
+        self.assertEqual((status,body["status"]),(403,"forbidden"))
+        source.assert_not_called()
+
+    def test_preflight(self):
+        """설정된 origin·POST·Content-Type만 사전 요청에서 허용한다."""
+        for origin,method,headers,expected in [
+                ("http://localhost:5173","POST","content-type",204),
+                ("http://localhost:5173","DELETE","content-type",403),
+                ("http://localhost:5173","POST","authorization",403),
+                ("http://localhost:51730","POST","content-type",403),
+                ("null","POST","content-type",403)]:
+            handler=Preview.__new__(Preview)
+            handler.path="/preview/recommend"
+            handler.headers=Message()
+            for key,value in [("Origin",origin),("Access-Control-Request-Method",method),("Access-Control-Request-Headers",headers)]:
+                handler.headers[key]=value
+            handler.reply=Mock(); handler.send_response=Mock(); handler.send_header=Mock(); handler.end_headers=Mock()
+            with self.subTest(origin=origin,method=method,headers=headers), patch.dict("os.environ",{"LAB678_ALLOWED_ORIGINS":"http://localhost:5173"}):
+                handler.do_OPTIONS()
+            if expected == 204:
+                handler.send_response.assert_called_once_with(204)
+                handler.send_header.assert_any_call("Access-Control-Allow-Methods","POST")
+            else:
+                self.assertEqual(handler.reply.call_args.args[0],expected)

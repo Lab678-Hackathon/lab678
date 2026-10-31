@@ -156,6 +156,8 @@ def recommend(data, mode="live"):
             event_lat = event_lng = distance = None
             checks.append("지도 좌표 확인")
         candidates.append(dict(id="seoul:" + ids[0], title=row["TITLE"], venue=row["PLACE"], lat=event_lat,
+                               event_start_date=first.isoformat(), event_end_date=last.isoformat(),
+                               district=row.get("GUNAME") or None, address=None,
                                lng=event_lng, distance_km=distance, official_url=url.geturl(),
                                fixed_start_at=(start.date().isoformat() + "T" + row["PRO_TIME"].strip().zfill(5) + ":00+09:00"
                                                if match is True and genres <= {"국악", "콘서트", "클래식", "연극"}

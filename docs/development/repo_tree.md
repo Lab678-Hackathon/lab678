@@ -76,6 +76,7 @@ lab678/
         2026-10-31-directions.md
         2026-10-31-discord-status-checklist.md
         2026-10-31-events.md
+        2026-10-31-frontend-ready.md
         2026-10-31-guide-push-ready.md
         2026-10-31-input-contract.md
         2026-10-31-keyless-routing-review.md
@@ -168,6 +169,7 @@ lab678/
     scripts/
       catalog.py
       check_course_alternatives.cjs
+      check_frontend_connection.cjs
       check_input_contract.cjs
       check_outing_ui.cjs
       check_transit_ui.cjs
