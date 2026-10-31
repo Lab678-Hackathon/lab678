@@ -377,3 +377,5 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 .wave i:nth-child(5) { animation-delay: .2s; } .wave i:nth-child(6) { animation-delay: .1s; } .wave i:nth-child(7) { animation-delay: 0s; }
 @keyframes wave { 0%, 100% { height: 6px; } 50% { height: 22px; } }
 @media (prefers-reduced-motion: reduce) { .wave i, .listen__bird img { animation: none !important; } }
+
+.external { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; border-top: 1px dashed var(--border-default); }

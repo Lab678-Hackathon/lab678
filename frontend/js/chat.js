@@ -560,6 +560,8 @@ async function search() {
     say('조건에 맞는 곳을 찾지 못했어요. 날짜나 시간, 보고 싶은 것을 바꿔 말씀해 주시면 다시 찾아볼게요.');
     return;
   }
+  // 출발지에서 가까운 순서로 (서버는 받은 순서대로 줘요)
+  list.sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9));
   list.forEach((c) => { state.candidates[c.id] = c; });
   state.pool = list.map((c) => c.id);
   showCards(state.pool.slice(0, MAX_CARDS), distanceText(state.pool.slice(0, MAX_CARDS), list.length));
@@ -599,7 +601,8 @@ async function other() {
   busy = false;
   if (res.kind === 'ready') {
     res.data.candidates.forEach((c) => { state.candidates[c.id] = c; });
-    const more = res.data.candidates.map((c) => c.id).filter((id) => !state.shown.includes(id));
+    const more = [...res.data.candidates].sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9))
+      .map((c) => c.id).filter((id) => !state.shown.includes(id));
     state.pool.push(...more.filter((id) => !state.pool.includes(id)));
     if (more.length) { showCards(more.slice(0, MAX_CARDS), '같은 조건으로 새로 찾은 곳이에요.'); return; }
   }
