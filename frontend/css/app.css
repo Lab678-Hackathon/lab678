@@ -383,10 +383,11 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 /* 말로 대화: 말풍선마다 까치를 붙이지 않고, 큰 까치 한 마리가 왼쪽 가운데에 떠 있어요. 말풍선만 위로 올라가요 */
 #s02[data-mode="voice"] .listen__title { text-align: center; }
 #s02[data-mode="voice"] .msg__avatar { display: none; }
-#s02[data-mode="voice"] .msg--ai { padding-left: 104px; }
+#s02[data-mode="voice"] .msg--ai { padding-left: 42px; } /* 까치가 말풍선 테두리는 살짝 가려도 돼요 */
+#s02[data-mode="voice"] .msg--ai .msg__bubble { padding-left: 26px; } /* 글자는 까치와 안 겹치게 */
 .float-bird {
   position: fixed; z-index: 6; top: 42%; left: max(8px, calc(50% - 215px + 8px));
-  width: 96px; pointer-events: none; opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s;
+  width: 66px; pointer-events: none; opacity: 0; transform: translateY(10px); transition: opacity .3s, transform .3s;
 }
 .float-bird.is-shown { opacity: 1; transform: none; }
 #s02[data-mode="text"] .float-bird { display: none; }
@@ -398,4 +399,4 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 .listen__bird.is-listening img { animation: listen-bob 1.6s ease-in-out infinite; }
 @keyframes listen-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-2deg); } }
 @media (prefers-reduced-motion: reduce) { .listen__bird.is-listening img { animation: none !important; } }
-#s02[data-mode="voice"] .msg--user .msg__col { max-width: calc(100% - 100px); } /* 떠 있는 까치와 겹치지 않게 */
+#s02[data-mode="voice"] .msg--user .msg__col { max-width: calc(100% - 44px); } /* 떠 있는 까치와 겹치지 않게 */
