@@ -291,7 +291,7 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 /* S02 대화 */
 #s02.is-active { display: flex; flex-direction: column; min-height: 100dvh; }
 .chat__cond { margin: 0 var(--gutter); padding: 8px 12px; border-radius: 10px; background: var(--bg-soft); color: var(--brand-primary); font-size: var(--fs-caption); font-weight: 700; }
-.chat__log { flex: 1; padding: 12px var(--gutter) 260px; display: flex; flex-direction: column; gap: 16px; }
+.chat__log { flex: 1; padding: 12px var(--gutter) calc(var(--chat-bottom, 260px) + 20px); display: flex; flex-direction: column; gap: 16px; }
 .msg { display: flex; gap: 8px; align-items: flex-start; }
 .msg--user { justify-content: flex-end; }
 .msg__avatar { width: 44px; height: 44px; flex: none; }
@@ -315,7 +315,9 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 .chat-card__warn { font-size: var(--fs-caption); color: var(--status-warn-text); font-weight: 700; }
 .chat-card .btn, .saved-card .btn { margin-top: 6px; }
 .chat__bottom { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; padding: 10px var(--gutter) max(14px, env(safe-area-inset-bottom)); background: var(--bg-canvas); border-top: 1px solid var(--border-default); display: flex; flex-direction: column; gap: 10px; z-index: 20; }
-.chat__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.chat__actions { display: flex; flex-wrap: nowrap; gap: 8px; overflow-x: auto; margin: 0 calc(-1 * var(--gutter)); padding: 2px var(--gutter); scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.chat__actions::-webkit-scrollbar { display: none; }
+.chat__actions > * { flex: none; }
 .chat__actions:empty { display: none; }
 .chat__listen { margin: 0; color: var(--brand-primary); font-weight: 700; font-size: var(--fs-label); }
 .chat__form { display: flex; gap: 8px; align-items: center; }
@@ -363,7 +365,6 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 .listen__bird img { width: 100%; height: auto; transform-origin: 50% 90%; animation: breathe 2.4s ease-in-out infinite; }
 .listen__bird.is-talking img { animation: talk .42s ease-in-out infinite alternate; }
 .listen__title { font-size: var(--fs-title-l); }
-#s02[data-mode="voice"] .chat__log { padding-bottom: 220px; }
 .msg--live .msg__bubble { border: 2px dashed var(--brand-primary); background: var(--bg-surface); }
 .voicebar { display: flex; flex-direction: column; gap: 10px; }
 .listen__stop { display: flex; align-items: center; justify-content: center; gap: 12px; }

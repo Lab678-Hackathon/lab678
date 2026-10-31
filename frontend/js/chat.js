@@ -199,8 +199,20 @@ function render() {
   scrollEnd();
 }
 
+/** 맨 아래 말풍선이 아래 고정 버튼 위에 보이도록 끝까지 내려요 */
 function scrollEnd() {
-  requestAnimationFrame(() => { $('#chat-log').lastElementChild?.scrollIntoView({ block: 'end', behavior: 'smooth' }); });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  }));
+}
+
+/** 아래 고정 영역(빠른 답·말하기·입력)의 실제 높이만큼 대화 아래 여백을 둬요 (폰마다 높이가 달라요) */
+function watchBottom() {
+  const bottom = $('#s02 .chat__bottom');
+  const apply = () => $('#s02').style.setProperty('--chat-bottom', `${Math.ceil(bottom.getBoundingClientRect().height)}px`);
+  apply();
+  if ('ResizeObserver' in window) new ResizeObserver(() => { apply(); }).observe(bottom);
+  window.addEventListener('resize', apply);
 }
 
 /** 말로 대화 중 들리는 말을 대화 맨 아래에 바로바로 보여주는 말풍선 */
@@ -630,6 +642,7 @@ export function renderChat(opts = {}) {
 
 /** 이벤트 연결 (한 번) */
 export function initChat() {
+  watchBottom();
   $('#chat-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('#chat-input').value.trim();
