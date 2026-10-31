@@ -21,11 +21,18 @@ lab678/
     README.md
     course.py
     local_voice.py
+    location_view.js
+    map_config.py
+    map_view.js
     outing.py
+    places.py
     preview.html
     preview.py
     test_course.py
+    test_map_config.py
     test_outing.py
+    test_places.py
+    test_preview.py
     test_transit.py
     test_walking.py
     transit.py
@@ -45,11 +52,17 @@ lab678/
       discussion-log.md
       engineering-loop.md
       examples/
+        course-selected-place.live.json
         demo-users.sample.json
         outing-request.json
         outing-response.json
+        place-search.address.live.json
+        place-search.keyword.live.json
+        recommend-response.recorded.json
+        recommend-selected-place.live.json
         seoul-events.capture.json
       hackathon-server-usage-review.md
+      kakao-map-location.md
       keyless-routing-review.md
       konnect-reuse-reading-guide.md
       loops/
@@ -57,6 +70,9 @@ lab678/
       mobility-routing-review.md
       mvp-plan.md
       outing-handoff.md
+      place-search-api.md
+      recommend-api.md
+      render-demo-guide.md
       repo_index.md
       repo_reverse_index.md
       repo_tree.md
@@ -66,6 +82,7 @@ lab678/
         2026-10-31-chrome-speech.md
         2026-10-31-course-alternatives.md
         2026-10-31-course-demo-check.md
+        2026-10-31-course-edit.md
         2026-10-31-current-prd-sync.md
         2026-10-31-demo-server-reuse.md
         2026-10-31-develop-sync.md
@@ -73,9 +90,14 @@ lab678/
         2026-10-31-directions.md
         2026-10-31-discord-status-checklist.md
         2026-10-31-events.md
+        2026-10-31-frontend-ready.md
         2026-10-31-guide-push-ready.md
+        2026-10-31-input-contract.md
+        2026-10-31-kakao-live-check.md
+        2026-10-31-kakao-map.md
         2026-10-31-keyless-routing-review.md
         2026-10-31-konnect-preview.md
+        2026-10-31-live-location.md
         2026-10-31-local-plan-folder.md
         2026-10-31-mobility-review.md
         2026-10-31-mvp-plan.md
@@ -84,6 +106,8 @@ lab678/
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
+        2026-10-31-render-preparation.md
+        2026-10-31-result-preservation.md
         2026-10-31-route-text.md
         2026-10-31-screen-spec-review.md
         2026-10-31-section-checks.md
@@ -94,6 +118,7 @@ lab678/
         2026-10-31-spoken-category.md
         2026-10-31-team-backend-guide.md
         2026-10-31-team-feedback-review.md
+        2026-10-31-team-requests-record.md
         2026-10-31-tooling-setup.md
         2026-10-31-transit-guide.md
         2026-10-31-transit-live.md
@@ -102,6 +127,9 @@ lab678/
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
+        20261031-place-search-integration.md
+        20261031-push-pr-issue.md
+        20261031-qa01-received.md
       screen-spec-review.md
       state.json
       tasks.md
@@ -164,7 +192,15 @@ lab678/
     scripts/
       catalog.py
       check_course_alternatives.cjs
+      check_course_edit.cjs
+      check_deployment.cjs
+      check_frontend_connection.cjs
+      check_input_contract.cjs
+      check_kakao_map.cjs
+      check_location_ui.cjs
       check_outing_ui.cjs
+      check_place_search.cjs
+      check_result_preservation.cjs
       check_transit_ui.cjs
       commit_report.py
       context.py

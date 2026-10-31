@@ -1,0 +1,28 @@
+{
+  "note": "고정 공개 장소의 조회 시점 실제 응답. 최신 결과나 팀 UI 연결 성공을 보장하지 않는다.",
+  "request": {
+    "query": "서울 중구 세종대로 110",
+    "type": "address"
+  },
+  "http_status": 200,
+  "body": {
+    "status": "ready",
+    "places": [
+      {
+        "id": "kakao:address:3d9051851cf2f9b8d11d",
+        "label": "서울 중구 세종대로 110",
+        "lat": 37.566370776634,
+        "lng": 126.977918351844,
+        "address": "서울 중구 세종대로 110",
+        "road_address": "서울 중구 세종대로 110",
+        "official_url": null,
+        "type": "address"
+      }
+    ],
+    "source": "kakao_local",
+    "source_total": 1,
+    "skipped_count": 0,
+    "source_checked_at": "2026-10-31T14:22:31+09:00",
+    "message": "출발지를 선택해 주세요."
+  }
+}

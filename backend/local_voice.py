@@ -22,11 +22,16 @@ try {
 """
 
 
+def file_voice_available():
+    """Windows 파일 합성 지원 여부만 반환한다. 음성 설치·합성 성공은 별도 검증한다."""
+    return os.name == "nt" and os.environ.get("LAB678_FILE_VOICE", "on").lower() != "off"
+
+
 def render_wave(text):
     """문자열을 표준 입력으로 전달해 메모리에서 합성하고, 실패·과부하 때 예외를 반환한다."""
     if not isinstance(text, str) or not text.strip() or len(text) > 2500:
         raise ValueError("음성 파일로 읽을 문장을 확인해 주세요.")
-    if os.name != "nt" or not _SLOT.acquire(blocking=False):
+    if not file_voice_available() or not _SLOT.acquire(blocking=False):
         raise RuntimeError("현재 PC 음성을 사용할 수 없습니다.")
     try:
         result = subprocess.run(
