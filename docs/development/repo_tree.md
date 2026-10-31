@@ -4,6 +4,7 @@
 
 ```text
 lab678/
+  .DS_Store
   .env.example
   .github/
     ISSUE_TEMPLATE/
@@ -71,6 +72,7 @@ lab678/
       mvp-plan.md
       outing-handoff.md
       place-search-api.md
+      planning-doc-refresh-progress.md
       recommend-api.md
       render-demo-guide.md
       repo_index.md
@@ -103,6 +105,7 @@ lab678/
         2026-10-31-mvp-plan.md
         2026-10-31-personal-attachment-copy.md
         2026-10-31-personal-notes-scope.md
+        2026-10-31-planning-doc-refresh.md
         2026-10-31-preview-map.md
         2026-10-31-preview-speech.md
         2026-10-31-preview.md
