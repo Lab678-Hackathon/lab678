@@ -130,9 +130,9 @@ export async function renderMap(id) {
   result.textContent = '';
   sub.textContent = '';
   if (!c) return;
-  const kakao = `https://map.kakao.com/link/to/${encodeURIComponent(c.venue || c.title)},${c.lat},${c.lng}`;
+  const kakaoWalk = `https://map.kakao.com/link/to/${encodeURIComponent(c.venue || c.title)},${c.lat},${c.lng}`;
+  const kakao = kakaoWalk;
   $('#s08-kakao').href = kakao;
-  $('#s08-kakao-transit').href = kakao;
 
   // 지도
   try {
@@ -181,6 +181,7 @@ export async function renderMap(id) {
 
 function setMode(mode) {
   document.querySelectorAll('#s08 [data-mode]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === mode)));
+  $('#s08-kakao').textContent = mode === 'transit' ? '카카오맵 앱으로 대중교통 길찾기 ↗' : '카카오맵 앱으로 도보 길찾기 ↗';
   $('#s08-walk').hidden = mode !== 'walk';
   $('#s08-transit').hidden = mode !== 'transit';
 }

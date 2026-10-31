@@ -199,8 +199,20 @@ function render() {
   scrollEnd();
 }
 
+/** 맨 아래 말풍선이 아래 고정 버튼 위에 보이도록 끝까지 내려요 */
 function scrollEnd() {
-  requestAnimationFrame(() => { $('#chat-log').lastElementChild?.scrollIntoView({ block: 'end', behavior: 'smooth' }); });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+  }));
+}
+
+/** 아래 고정 영역(빠른 답·말하기·입력)의 실제 높이만큼 대화 아래 여백을 둬요 (폰마다 높이가 달라요) */
+function watchBottom() {
+  const bottom = $('#s02 .chat__bottom');
+  const apply = () => $('#s02').style.setProperty('--chat-bottom', `${Math.ceil(bottom.getBoundingClientRect().height)}px`);
+  apply();
+  if ('ResizeObserver' in window) new ResizeObserver(() => { apply(); }).observe(bottom);
+  window.addEventListener('resize', apply);
 }
 
 /** 말로 대화 중 들리는 말을 대화 맨 아래에 바로바로 보여주는 말풍선 */
@@ -548,6 +560,8 @@ async function search() {
     say('조건에 맞는 곳을 찾지 못했어요. 날짜나 시간, 보고 싶은 것을 바꿔 말씀해 주시면 다시 찾아볼게요.');
     return;
   }
+  // 출발지에서 가까운 순서로 (서버는 받은 순서대로 줘요)
+  list.sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9));
   list.forEach((c) => { state.candidates[c.id] = c; });
   state.pool = list.map((c) => c.id);
   showCards(state.pool.slice(0, MAX_CARDS), distanceText(state.pool.slice(0, MAX_CARDS), list.length));
@@ -587,7 +601,8 @@ async function other() {
   busy = false;
   if (res.kind === 'ready') {
     res.data.candidates.forEach((c) => { state.candidates[c.id] = c; });
-    const more = res.data.candidates.map((c) => c.id).filter((id) => !state.shown.includes(id));
+    const more = [...res.data.candidates].sort((a, b) => (a.distance_km ?? 1e9) - (b.distance_km ?? 1e9))
+      .map((c) => c.id).filter((id) => !state.shown.includes(id));
     state.pool.push(...more.filter((id) => !state.pool.includes(id)));
     if (more.length) { showCards(more.slice(0, MAX_CARDS), '같은 조건으로 새로 찾은 곳이에요.'); return; }
   }
@@ -630,6 +645,7 @@ export function renderChat(opts = {}) {
 
 /** 이벤트 연결 (한 번) */
 export function initChat() {
+  watchBottom();
   $('#chat-form').addEventListener('submit', (e) => {
     e.preventDefault();
     const v = $('#chat-input').value.trim();
