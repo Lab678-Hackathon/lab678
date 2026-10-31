@@ -18,6 +18,8 @@ let ticket = 0;
 let busy = false;
 let placeOptions = [];
 let recognizer = null;
+let voiceMode = false; // 말로 대화 중이면 까치가 질문한 뒤 다시 듣기 화면을 열어요
+let discardVoice = false;
 
 /* ---------------- 조건 ---------------- */
 
@@ -79,10 +81,11 @@ const show = (field, v) => {
 
 /** 까치 말 추가 (소리 켜짐이면 읽어 줘요) */
 function say(text, extra = {}) {
-  state.messages.push({ role: 'ai', text, ...extra });
+  const { ask, ...keep } = extra;
+  state.messages.push({ role: 'ai', text, ...keep });
   save();
   render();
-  speak(text);
+  speak(text, ask && voiceMode ? () => listen() : null);
 }
 
 function userSays(text) {
@@ -191,17 +194,28 @@ function render() {
 
 /* ---------------- 소리 (까치가 읽어 줘요) ---------------- */
 
-function speak(text) {
+/**
+ * 까치 말 읽기. 다 읽고 나면 then 실행 (말로 대화 중 다음 듣기). 소리를 끄면 잠깐 뒤 실행.
+ * 까치가 말하는 동안에는 마이크를 켜지 않아요 (자기 목소리를 다시 듣지 않게).
+ */
+function speak(text, then) {
   const avatar = $('#chat-log .msg--ai:last-of-type .msg__avatar');
-  talkFor(avatar, Math.min(600 + text.length * 70, 5000));
-  if (!state.sound || !('speechSynthesis' in window)) return;
+  const ms = Math.min(600 + text.length * 70, 5000);
+  talkFor(avatar, ms);
+  talkFor($('#listen-bird'), ms);
+  if (!state.sound || !('speechSynthesis' in window)) { if (then) setTimeout(then, 1200); return; }
   try {
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ko-KR';
     u.rate = 0.95;
+    let done = false;
+    const finish = () => { if (done) return; done = true; if (then) setTimeout(then, 300); };
+    u.onend = finish;
+    u.onerror = finish;
+    setTimeout(finish, 1500 + text.length * 180); // onend 가 안 오는 브라우저 대비
     speechSynthesis.speak(u);
-  } catch { /* 소리 실패해도 글자는 남아요 */ }
+  } catch { if (then) setTimeout(then, 1200); }
 }
 
 function setSound(on) {
@@ -213,40 +227,66 @@ function setSound(on) {
   if (!on && 'speechSynthesis' in window) speechSynthesis.cancel();
 }
 
-/* ---------------- 말하기 (한 번 듣기) ---------------- */
+/* ---------------- 말하기: 듣기 화면 (06 · S02 음성 듣기) ---------------- */
 
+function showListen(on) {
+  $('#listen-view').hidden = !on;
+  $('#chat-mic').classList.toggle('is-listening', on);
+}
+
+/** 듣기 시작. 듣는 동안 화면 전체에 "음성을 듣고 있어요"와 내가 한 말이 보여요. */
 function listen() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const mic = $('#chat-mic');
-  if (!SR) { say('이 브라우저에서는 말하기를 쓸 수 없어요. 아래 칸에 글자로 적어 주세요.'); return; }
-  if (recognizer) { recognizer.stop(); return; }
+  if (!SR) { voiceMode = false; say('이 브라우저에서는 말하기를 쓸 수 없어요. 아래 칸에 글자로 적어 주세요.'); return; }
+  if (recognizer || !$('#s02').classList.contains('is-active')) return;
   if ('speechSynthesis' in window) speechSynthesis.cancel();
+  voiceMode = true;
+  discardVoice = false;
+  const lastAi = [...state.messages].reverse().find((m) => m.role === 'ai' && m.text);
+  $('#listen-ask').textContent = lastAi?.text || '';
+  $('#listen-title').textContent = '편하게 말씀해 주세요.';
+  $('#listen-status').textContent = '음성을 듣고 있어요';
+  $('#listen-mine').hidden = true;
+  $('#listen-text').textContent = '';
+  showListen(true);
   recognizer = new SR();
   recognizer.lang = 'ko-KR';
   recognizer.interimResults = true;
   recognizer.continuous = false;
   let finalText = '';
-  mic.classList.add('is-listening');
-  mic.setAttribute('aria-label', '듣는 중 · 누르면 멈춰요');
-  $('#chat-listen').hidden = false;
+  let shown = '';
   recognizer.onresult = (e) => {
     let interim = '';
+    finalText = '';
     for (const r of e.results) { if (r.isFinal) finalText += r[0].transcript; else interim += r[0].transcript; }
-    $('#chat-input').value = finalText || interim;
+    shown = (finalText + interim).trim();
+    $('#listen-text').textContent = shown;
+    $('#listen-mine').hidden = !shown;
   };
   recognizer.onerror = (e) => {
-    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') say('마이크를 쓸 수 없어요. 아래 칸에 글자로 적어 주셔도 돼요.');
-    else if (e.error === 'no-speech') say('잘 듣지 못했어요. 마이크를 다시 누르고 말씀해 주세요.');
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { voiceMode = false; discardVoice = true; say('마이크를 쓸 수 없어요. 아래 칸에 글자로 적어 주셔도 돼요.'); }
+    else if (e.error === 'no-speech') { voiceMode = false; discardVoice = true; say('잘 듣지 못했어요. 마이크 버튼을 다시 누르고 말씀해 주세요.'); }
   };
   recognizer.onend = () => {
     recognizer = null;
-    mic.classList.remove('is-listening');
-    mic.setAttribute('aria-label', '말하기');
-    $('#chat-listen').hidden = true;
-    const text = finalText.trim();
-    if (text) { $('#chat-input').value = ''; handle(text); }
+    showListen(false);
+    const text = (finalText || shown).trim();
+    if (discardVoice) { if (text) $('#chat-input').value = text; return; }
+    if (text) handle(text);
+    else voiceMode = false;
   };
-  try { recognizer.start(); } catch { recognizer = null; }
+  try { recognizer.start(); } catch { recognizer = null; showListen(false); }
+}
+
+/** 말하기 마치기: 지금까지 들은 말만 보내요 */
+function stopListening() { recognizer?.stop(); }
+
+/** 글자로 입력하기: 듣기를 멈추고, 들은 말은 입력 칸에 넣어 고칠 수 있게 */
+function toText() {
+  voiceMode = false;
+  discardVoice = true;
+  if (recognizer) recognizer.stop(); else showListen(false);
+  setTimeout(() => $('#chat-input').focus(), 200);
 }
 
 /* ---------------- 해석 ---------------- */
@@ -383,16 +423,16 @@ function next() {
     return;
   }
   const need = missing();
-  if (need === 'category') { say('어떤 걸 보고 싶으세요? 전시, 국악, 클래식, 콘서트, 연극 중에서 골라 주셔도 돼요.'); return; }
-  if (need === 'date') { say('언제 가실 건가요?'); return; }
-  if (need === 'time') { say('몇 시부터 몇 시까지 시간이 되세요?'); return; }
+  if (need === 'category') { say('어떤 걸 보고 싶으세요? 전시, 국악, 클래식, 콘서트, 연극 중에서 골라 주셔도 돼요.', { ask: true }); return; }
+  if (need === 'date') { say('언제 가실 건가요?', { ask: true }); return; }
+  if (need === 'time') { say('몇 시부터 몇 시까지 시간이 되세요?', { ask: true }); return; }
   if (!longEnough(d().startTime, d().endTime) || minutes(d().endTime) <= minutes(d().startTime)) {
     d().endTime = null;
     save();
-    say('나들이 시간은 최소 1시간 이상으로 설정해 주세요. 몇 시까지 시간이 되세요?');
+    say('나들이 시간은 최소 1시간 이상으로 설정해 주세요. 몇 시까지 시간이 되세요?', { ask: true });
     return;
   }
-  if (need === 'startLocation') { say('어디에서 출발하세요? 출발할 곳 이름을 말씀하시거나 현재 위치를 써 주세요.'); return; }
+  if (need === 'startLocation') { say('어디에서 출발하세요? 출발할 곳 이름을 말씀하시거나 현재 위치를 써 주세요.', { ask: true }); return; }
   search();
 }
 
@@ -485,7 +525,7 @@ function closer() {
 /** 새 대화 첫 인사 */
 function start() {
   if (!state.messages.length) {
-    say('안녕하세요! 오늘은 어떤 나들이를 하고 싶으세요? "내일 오후 2시부터 5시까지 전시 보고 싶어요"처럼 편하게 말씀해 주세요.');
+    say('안녕하세요! 오늘은 어떤 나들이를 하고 싶으세요? "내일 오후 2시부터 5시까지 전시 보고 싶어요"처럼 편하게 말씀해 주세요.', { ask: true });
   } else render();
 }
 
@@ -493,9 +533,11 @@ function start() {
 export function renderChat(opts = {}) {
   if (opts.voice != null) setSound(opts.voice);
   else setSound(state.sound);
+  voiceMode = !!opts.voice;
+  const fresh = !state.messages.length;
   start();
-  if (opts.voice) setTimeout(listen, 400);
-  else if (opts.voice === false) $('#chat-input').focus();
+  if (opts.voice && !fresh) setTimeout(listen, 300); // 처음이면 인사를 다 읽은 뒤 자동으로 들어요
+  if (opts.voice === false) { voiceMode = false; $('#chat-input').focus(); }
 }
 
 /** 이벤트 연결 (한 번) */
@@ -507,7 +549,11 @@ export function initChat() {
     $('#chat-input').value = '';
     handle(v);
   });
-  $('#chat-mic').addEventListener('click', listen);
+  $('#chat-mic').addEventListener('click', () => { if (recognizer) stopListening(); else listen(); });
+  $('#listen-stop').addEventListener('click', stopListening);
+  $('#listen-text-btn').addEventListener('click', toText);
+  $('#chat-form').addEventListener('focusin', () => { voiceMode = false; });
+  window.addEventListener('hashchange', () => { if (recognizer) { discardVoice = true; recognizer.abort?.(); } voiceMode = false; });
   $('#chat-sound').addEventListener('click', () => setSound(!state.sound));
   $('#chat-new').addEventListener('click', () => { resetChat(); placeOptions = []; start(); });
 }

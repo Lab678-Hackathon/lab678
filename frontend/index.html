@@ -82,9 +82,28 @@
     </header>
     <p class="chat__cond" id="chat-cond" hidden></p>
     <div class="chat__log" id="chat-log" aria-live="polite"></div>
+    <!-- 듣기 화면 (말로 대화할 때 화면 전체) -->
+    <div class="listen" id="listen-view" hidden>
+      <p class="listen__status" id="listen-status">음성을 듣고 있어요</p>
+      <p class="listen__ask" id="listen-ask"></p>
+      <div class="listen__bird" id="listen-bird"><img src="assets/kkachi-hello.png" alt="귀 기울여 듣는 까치"></div>
+      <h2 class="listen__title" id="listen-title">편하게 말씀해 주세요.</h2>
+      <div class="listen__mine" id="listen-mine" hidden>
+        <span>내가 한 말</span>
+        <p id="listen-text"></p>
+      </div>
+      <p class="muted listen__hint">말씀이 끝나면 "말하기 마치기"를 눌러 주세요. 내 말은 글자로 고칠 수 있어요.</p>
+      <div class="listen__bottom">
+        <button class="btn btn--primary listen__stop" type="button" id="listen-stop">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <span class="wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+          말하기 마치기
+        </button>
+        <button class="btn btn--outline" type="button" id="listen-text-btn">글자로 입력하기</button>
+      </div>
+    </div>
     <div class="chat__bottom">
       <div class="chat__actions" id="chat-actions"></div>
-      <p class="chat__listen" id="chat-listen" hidden>듣고 있어요… 말씀이 끝나면 잠시 기다려 주세요.</p>
       <form class="chat__form" id="chat-form" autocomplete="off">
         <button class="chat__mic" type="button" id="chat-mic" aria-label="말하기">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
