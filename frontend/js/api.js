@@ -4,10 +4,11 @@
  */
 
 /**
- * API 주소. index.html 의 <meta name="lab678-api"> 값을 써요.
- * 비어 있으면 같은 주소(개발 서버 프록시)로 불러요. 배포 땐 Render https 주소를 넣어요.
+ * API 주소. index.html 의 <meta name="lab678-api"> 값(Render https 주소)을 써요.
+ * 내 PC(localhost)에서는 같은 주소(개발 서버 프록시)로 불러요.
  */
-const API_BASE = (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
+const LOCAL = ['localhost', '127.0.0.1'].includes(location.hostname);
+const API_BASE = LOCAL ? '' : (document.querySelector('meta[name="lab678-api"]')?.content || '').replace(/\/$/, '');
 
 /**
  * 시험 모드: 주소에 ?mode=recorded 를 붙이면 기록 데이터, 없으면 실시간(live).
