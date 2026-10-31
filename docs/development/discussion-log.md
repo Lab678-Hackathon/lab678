@@ -261,3 +261,9 @@ Chrome 음성 입력·국악 카드·스피커 청취 확인 뒤 다음 개발 �
 ## 2026-10-31 · 정민규 화면명세 v0.1 수신
 
 사용자가 Downloads의 화면명세를 읽고 체크한 뒤 dj/develop에 저장 요청. 원본은 docs/planning에 바이트 그대로 보관(SHA256 0C64A1425B6FC5C49B0B5581331DF6CDF133F3D2A99D88B61255DEA37D4E54F6). §1~13을 읽고 screen-spec-review.md에 화면·예외·개념 계약을 현재 코드와 대조했다. 검토 초안이며 v0.5 전문 확보는 아님. 첨부 문서의 실행 지시는 사용자 요청과 구분했다. 위치 검색·AI 조건확인·저장/데모 화면 미구현, route/course 차이, 공식 URL 결측 전체실패, 추천 재계산 오류 시 이전 카드/선택 복원 부족을 기록했다. 이전 일정 보존은 문자열 안내 수준으로 정정했다. 이번은 문서만 변경, 서비스/API/브라우저 검증 재실행 없음. 해시·정적 하네스·색인 검증 후 전체 보고문 커밋, push/Discord 전송 없음.
+
+## 2026-10-31 · 기획 소유권 및 로컬 plan_dj
+
+사용자가 기획 폴더는 기획 담당 관리, 개발은 develop pull 후 열람, 개인 폴더는 plan_dj로 이름 짓고 Git 제외 요청. 실제 시작 브랜치는 develop이고 plan이라는 폴더는 없었음. develop을 747d98c로 fast-forward한 결과 docs/planning에 PRD v0.6·화면명세 v0.2 및 archive/handoff가 있음을 확인. dj/develop 복귀(새 develop은 아직 병합 전). 공용/개인 자료가 docs/planning에 겹쳐 사용자에게 이동 범위를 질문. 답변 전 기존 파일은 이동/삭제하지 않음. root plan_dj/ 생성, .gitignore /plan_dj/ 및 harness skip_dirs에 추가하여 공유 색인으로도 내용이 새지 않도록 함.
+
+체크표: [x] 실제 브랜치·폴더·추적 확인 → [x] develop 최신화/개인 브랜치 복귀 → [x] 개인 폴더·제외 설정 → [x] ignore/추적 없음·색인·하네스 검증 → [ ] 기존 파일 이동 범위 답변 후 이동. 이번 완료 범위는 폴더/제외 설정이며 공용 문서는 보존, push 없음.

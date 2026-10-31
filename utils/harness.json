@@ -1,6 +1,6 @@
 {
   "source_roots": ["utils", "backend", "frontend"],
-  "skip_dirs": [".git", ".venv", "node_modules", "__pycache__", "dist", "vendor", ".local", ".aws", ".codex", ".agents"],
+  "skip_dirs": [".git", ".venv", "node_modules", "__pycache__", "dist", "vendor", ".local", "plan_dj", ".aws", ".codex", ".agents"],
   "markdown_roots": ["utils", "backend", "frontend", "design", "docs/development"],
   "branch": "dj/develop",
   "commit_deadline": "2026-11-01T13:00:00+09:00",
