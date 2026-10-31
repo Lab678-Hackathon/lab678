@@ -12,11 +12,11 @@ from preview import Preview, allowed_origins, server_options
 class PreviewContractTests(unittest.TestCase):
     """실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다."""
 
-    def request(self, data, origin=None):
+    def request(self, data, origin=None, path="/preview/recommend"):
         """JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다."""
         raw = json.dumps(data).encode()
         handler = Preview.__new__(Preview)
-        handler.path = "/preview/recommend"
+        handler.path = path
         handler.headers = Message()
         handler.headers["Content-Type"] = "application/json"
         handler.headers["Content-Length"] = str(len(raw))
@@ -128,3 +128,14 @@ class PreviewContractTests(unittest.TestCase):
             with self.assertRaises(RuntimeError):
                 render_wave("음성 검증")
             synth.assert_not_called()
+
+    def test_place_search_contract(self):
+        """새 검색 경로에도 입력400·허용origin·공급자 상태 전달을 동일 적용한다."""
+        status,body=self.request({"query":""},path="/preview/places")
+        self.assertEqual((status,body["code"],body["field"]),(400,"invalid_query","query"))
+        with patch.dict("os.environ",{"LAB678_ALLOWED_ORIGINS":"http://127.0.0.1:5173"}), \
+                patch("preview.search_places",return_value=(200,dict(status="no_results",places=[]))) as search:
+            self.assertEqual(self.request({"query":"검증"},"http://127.0.0.1:5173","/preview/places")[0],200)
+            self.assertEqual(search.call_count,1)
+            self.assertEqual(self.request({"query":"검증"},"http://other.example","/preview/places")[0],403)
+            self.assertEqual(search.call_count,1)

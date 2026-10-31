@@ -25,11 +25,13 @@ lab678/
     map_config.py
     map_view.js
     outing.py
+    places.py
     preview.html
     preview.py
     test_course.py
     test_map_config.py
     test_outing.py
+    test_places.py
     test_preview.py
     test_transit.py
     test_walking.py
@@ -50,10 +52,14 @@ lab678/
       discussion-log.md
       engineering-loop.md
       examples/
+        course-selected-place.live.json
         demo-users.sample.json
         outing-request.json
         outing-response.json
+        place-search.address.live.json
+        place-search.keyword.live.json
         recommend-response.recorded.json
+        recommend-selected-place.live.json
         seoul-events.capture.json
       hackathon-server-usage-review.md
       kakao-map-location.md
@@ -64,6 +70,7 @@ lab678/
       mobility-routing-review.md
       mvp-plan.md
       outing-handoff.md
+      place-search-api.md
       recommend-api.md
       render-demo-guide.md
       repo_index.md
@@ -120,6 +127,7 @@ lab678/
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
+        20261031-place-search-integration.md
       screen-spec-review.md
       state.json
       tasks.md
@@ -189,6 +197,7 @@ lab678/
       check_kakao_map.cjs
       check_location_ui.cjs
       check_outing_ui.cjs
+      check_place_search.cjs
       check_result_preservation.cjs
       check_transit_ui.cjs
       commit_report.py

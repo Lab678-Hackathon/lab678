@@ -19,7 +19,7 @@
 
 | 필드 | 현재 허용값·의미 |
 |---|---|
-| `request_kind` | 필수. `place` 행사 찾기, `route` 코스. 기존 `course`도 동일한 코스 요청으로 허용 |
+| `request_kind` | 필수. `place` 행사 찾기, `course` 코스. `route`도 동일한 코스 요청으로 호환 |
 | `start_location` | 필수. 공백 아닌 `label`, 유한한 `lat`(-90~90), `lng`(-180~180). 좌표 숫자 문자열도 기존 호환을 위해 허용 |
 | `start_at`, `end_at` | 필수. 시간대 포함 ISO 날짜·시각. 한국 시각으로 변환해 같은 날·종료>출발·**최소 60분** 검증 |
 | `category` | 필수. `전시`, `전체`, `국악`, `클래식`, `콘서트`, `연극` |
@@ -37,6 +37,8 @@
 정상은 HTTP 200이며 `status`가 `ready` 또는 `no_results`이다. `candidates`는 배열로, 0건일 때 빈 배열이다. `mode`, `source_checked_at`, `searched_count`(이번에 읽은 수), `source_total`(공급자가 알린 검색 수)을 포함한다. 현재 서울시 sample은 최대 5개만 읽으므로 전체 지역의 적합 행사가 없다고 단정하지 않는다.
 
 [전체 기록 재생 응답 예시](examples/recommend-response.recorded.json)는 저장된 서울시 응답으로 생성한 자료다. 실시간 조회 결과와 혼동하지 않는다.
+
+첫 프론트 연결용 [출발지 검색·실행 안내](place-search-api.md), [선택한 좌표의 실제 추천 요청·응답](examples/recommend-selected-place.live.json), [실제 코스 요청·응답](examples/course-selected-place.live.json)을 함께 참조한다. 코스 예시는 시간 부족 `conflict`이며 관람 가능한 일정 예시가 아니다.
 
 | 후보 필드 | 의미·결측 처리 |
 |---|---|
@@ -82,8 +84,8 @@
 
 ## 연결 전 확인
 
-- 서버는 현재 `127.0.0.1`에만 바인딩한다. 다른 PC 접속/배포 주소는 별도 결정해야 한다.
-- CORS/OPTIONS는 명시적 허용 origin 설정을 지원한다. 실제 프론트 실행 주소는 아직 확인 전이며 아래 예시를 팀의 확정 포트로 취급하지 않는다. 환경변수 미설정 시 같은 서버의 점검 화면만 사용하고, 다른 origin 요청은 허용하지 않는다.
+- 서버 기본 바인딩은 `127.0.0.1`이다. Render에서는 `--host 0.0.0.0`과 환경의 PORT를 사용한다. 실제 배포 주소는 아직 없다.
+- CORS/OPTIONS는 명시적 허용 origin 설정을 지원한다. 팀원이 전달한 로컬 프론트 주소는 `http://127.0.0.1:5173`이며 해당 origin에서 별도 검사 페이지로 호출을 검증했다. 실제 팀 화면 통합과는 구분한다.
 - 음성 인식은 브라우저 기능이다. 현재 키워드 자동 반영을 AI 조건 대화 완료로 표시하지 않는다.
 - 도보/대중교통/음성 파일 엔드포인트는 [기존 실행 안내](team-backend-guide.md)와 [인계 문서](outing-handoff.md)를 참조한다.
 - 오프라인 검증: `python -m unittest discover -s backend -q`. 입력 구간 검증: `node utils/scripts/check_input_contract.cjs`(점검 서버 및 기존 Playwright 환경 필요).
@@ -91,10 +93,10 @@
 
 ## 별도 화면 연결 설정
 
-UI 디자인만 있을 때는 기존 점검 화면으로 백엔드를 검증한다. 프론트 코드가 나오면 동일한 API를 호출하도록 연결한다. 다음은 **프론트가 실제로 localhost:5173에서 실행될 때만** 적용하는 예시다.
+프론트 담당이 공유한 실행 주소에 맞춘 로컬 설정이다. 팀 프론트의 S02 이후 화면에는 같은 API를 연결한다.
 
 ```powershell
-$env:LAB678_ALLOWED_ORIGINS = "http://localhost:5173"
+$env:LAB678_ALLOWED_ORIGINS = "http://127.0.0.1:5173"
 python backend/preview.py
 ```
 

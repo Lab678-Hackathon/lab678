@@ -6,7 +6,7 @@
 
 | 심볼 | 정의 위치 | 개요 |
 |---|---|---|
-| `allowed_origins` | [backend/preview.py:20](../backend/preview.py#L20) | 환경변수의 명시적 HTTP(S) origin만 허용한다. 와일드카드·경로·자격정보는 제외한다. |
+| `allowed_origins` | [backend/preview.py:21](../backend/preview.py#L21) | 환경변수의 명시적 HTTP(S) origin만 허용한다. 와일드카드·경로·자격정보는 제외한다. |
 | `api_key` | [backend/transit.py:20](../backend/transit.py#L20) | 전용 환경변수 또는 로컬 제외 파일의 키 한 개만 읽는다. 값은 응답·로그에 출력하지 않는다. |
 | `broken_links` | [utils/scripts/harness.py:49](../utils/scripts/harness.py#L49) | Check relative inline links outside fenced code; skip URLs and anchors. |
 | `build_course` | [backend/course.py:102](../backend/course.py#L102) | 사용자 출발 좌표와 공개 후보의 도보 초를 한 번 조회해 가장 짧은 가능한 조합을 선택한다. |
@@ -55,6 +55,7 @@
 | `MapConfigTests.test_key_priority_and_public_scope` | [backend/test_map_config.py:11](../backend/test_map_config.py#L11) | 환경변수의 JS 키만 공개하고 REST 키나 로컬 파일은 조회하지 않는다. |
 | `markdown_files` | [utils/scripts/harness.py:39](../utils/scripts/harness.py#L39) | Select active documentation, excluding copied PRDs and historical snapshots. |
 | `metric` | [backend/transit.py:34](../backend/transit.py#L34) | 응답의 초·m·원 값을 유한한 음수 아닌 수로 제한한다. 미확인은 0으로 대체하지 않는다. |
+| `normalize_places` | [backend/places.py:32](../backend/places.py#L32) | 공급자 x/y를 숫자 lng/lat로 바꾸고 선택 가능한 최대5건만 반환한다. 손상과0건을 구분한다. |
 | `normalize_routes` | [backend/transit.py:66](../backend/transit.py#L66) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |
 | `OutingTests` | [backend/test_outing.py:9](../backend/test_outing.py#L9) | 개인 추천의 의미가 바뀌는 경계 사례를 재현한다. |
 | `OutingTests.setUp` | [backend/test_outing.py:12](../backend/test_outing.py#L12) | 각 사례에 독립적인 청량리역 요청을 준비한다. |
@@ -67,13 +68,22 @@
 | `OutingTests.test_input_error_fields` | [backend/test_outing.py:63](../backend/test_outing.py#L63) | 시간 누락·형식·시간대·역전·다음날 및 잘못된 좌표의 필드를 특정한다. |
 | `OutingTests.test_minimum_duration_before_source` | [backend/test_outing.py:50](../backend/test_outing.py#L50) | 59분과 59분59초는 외부 조회 전에 거절하며 정확히 60분은 허용한다. |
 | `OutingTests.test_recording_scope` | [backend/test_outing.py:102](../backend/test_outing.py#L102) | 저장하지 않은 분류를 같은 날의 전체 기록으로 대체하지 않는다. |
+| `PlaceSearchTests` | [backend/test_places.py:12](../backend/test_places.py#L12) | 외부 조회를 대체한 경계 검사다. 실제 키 호출은 별도 브라우저 검사로 수행한다. |
+| `PlaceSearchTests.fixture` | [backend/test_places.py:15](../backend/test_places.py#L15) | 공개 장소를 뜻하지 않는 모의 공급자 문서를 만든다. |
+| `PlaceSearchTests.test_address_id_and_coordinates` | [backend/test_places.py:38](../backend/test_places.py#L38) | 주소 결과는 공급자 주소·좌표를 보존하고 재조회에도 같은 파생 식별자를 만든다. |
+| `PlaceSearchTests.test_empty_vs_invalid_source` | [backend/test_places.py:47](../backend/test_places.py#L47) | 정상0건과 좌표 손상·목록 누락을 구분하며 일부 손상 행은 별도 집계한다. |
+| `PlaceSearchTests.test_failures` | [backend/test_places.py:76](../backend/test_places.py#L76) | 권한·쿼터·시간초과·손상 응답의 공개 오류만 반환하며 공급자 상세는 숨긴다. |
+| `PlaceSearchTests.test_inputs_before_network` | [backend/test_places.py:20](../backend/test_places.py#L20) | 공백·길이초과·제어문자·잘못된 종류를 키 조회/외부 호출 전에 거절한다. |
+| `PlaceSearchTests.test_keyword_coordinates_and_null` | [backend/test_places.py:28](../backend/test_places.py#L28) | x/y를 올바른 축으로 변환하고 공란 주소·출처 URL을 임의 보완하지 않는다. |
+| `PlaceSearchTests.test_missing_key` | [backend/test_places.py:69](../backend/test_places.py#L69) | 키 미설정을 정상0건으로 반환하거나 외부 조회하지 않는다. |
+| `PlaceSearchTests.test_provider_request` | [backend/test_places.py:58](../backend/test_places.py#L58) | 키는 헤더에만 두고 검색어는 URL 인코딩하며 최대5건을 요청한다. |
 | `preflight` | [utils/scripts/commit_report.py:23](../utils/scripts/commit_report.py#L23) | Validate branch, cutoff, report encoding, scoped paths and an empty index. |
-| `Preview` | [backend/preview.py:39](../backend/preview.py#L39) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
-| `Preview.do_GET` | [backend/preview.py:79](../backend/preview.py#L79) | 점검 폼과 저장소의 대표 요청만 제공한다. |
-| `Preview.do_OPTIONS` | [backend/preview.py:50](../backend/preview.py#L50) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
-| `Preview.do_POST` | [backend/preview.py:99](../backend/preview.py#L99) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
-| `Preview.end_headers` | [backend/preview.py:42](../backend/preview.py#L42) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
-| `Preview.reply` | [backend/preview.py:68](../backend/preview.py#L68) | UTF-8 본문을 길이와 함께 응답한다. |
+| `Preview` | [backend/preview.py:40](../backend/preview.py#L40) | 허용된 화면과 개인 검증용 JSON 요청만 제공한다. |
+| `Preview.do_GET` | [backend/preview.py:80](../backend/preview.py#L80) | 점검 폼과 저장소의 대표 요청만 제공한다. |
+| `Preview.do_OPTIONS` | [backend/preview.py:51](../backend/preview.py#L51) | 설정된 프론트의 JSON POST 사전 요청만 허용하고 그 외 origin/메서드/헤더는 거절한다. |
+| `Preview.do_POST` | [backend/preview.py:100](../backend/preview.py#L100) | 장소 요청을 처리하고 입력·외부 공급자 오류를 다른 상태로 전달한다. |
+| `Preview.end_headers` | [backend/preview.py:43](../backend/preview.py#L43) | 정상/오류 응답 모두 허용 origin에만 CORS 헤더를 적용하며 쿠키 인증은 허용하지 않는다. |
+| `Preview.reply` | [backend/preview.py:69](../backend/preview.py#L69) | UTF-8 본문을 길이와 함께 응답한다. |
 | `PreviewContractTests` | [backend/test_preview.py:12](../backend/test_preview.py#L12) | 실제 POST 처리기를 사용하되 응답 전송과 외부 공급자만 대체한다. |
 | `PreviewContractTests.request` | [backend/test_preview.py:15](../backend/test_preview.py#L15) | JSON 요청을 HTTP 처리기에 전달하고 상태 코드·응답을 반환한다. |
 | `PreviewContractTests.setUp` | [backend/test_preview.py:30](../backend/test_preview.py#L30) | 각 테스트가 사용할 독립적인 정상 요청을 읽는다. |
@@ -81,6 +91,7 @@
 | `PreviewContractTests.test_invalid_kind` | [backend/test_preview.py:63](../backend/test_preview.py#L63) | 지원하지 않는 요청 종류를 place로 조용히 대체하지 않는다. |
 | `PreviewContractTests.test_kind_compatibility` | [backend/test_preview.py:46](../backend/test_preview.py#L46) | 정확히 60분인 route/course가 같은 코스 경로로, place는 후보만 반환한다. |
 | `PreviewContractTests.test_origin_configuration` | [backend/test_preview.py:68](../backend/test_preview.py#L68) | 허용 주소의 정확한 일치만 사용하고 와일드카드·자격정보·잘못된 설정을 제외한다. |
+| `PreviewContractTests.test_place_search_contract` | [backend/test_preview.py:132](../backend/test_preview.py#L132) | 새 검색 경로에도 입력400·허용origin·공급자 상태 전달을 동일 적용한다. |
 | `PreviewContractTests.test_preflight` | [backend/test_preview.py:77](../backend/test_preview.py#L77) | 설정된 origin·POST·Content-Type만 사전 요청에서 허용한다. |
 | `PreviewContractTests.test_render_origin` | [backend/test_preview.py:99](../backend/test_preview.py#L99) | 서버 설정의 공개 HTTPS 주소만 허용하고 비슷한 다른 주소는 거절한다. |
 | `PreviewContractTests.test_server_options` | [backend/test_preview.py:108](../backend/test_preview.py#L108) | 배포 포트·주소를 지원하되 명시 옵션이 우선하고 잘못된 포트는 시작 전에 거절한다. |
@@ -104,8 +115,10 @@
 | `safe_target` | [utils/scripts/reuse.py:18](../utils/scripts/reuse.py#L18) | Resolve a relative destination without traversal, links or Git internals. |
 | `schedule_pair` | [backend/course.py:35](../backend/course.py#L35) | 두 구간과 당일 시간표를 합산해 가능·미확인·충돌 및 방문별 예상시각을 반환한다. |
 | `script` | [backend/map_view.js:9](../backend/map_view.js#L9) | JS/TS 정규식 후보; AST 검증 아님 |
+| `search_input` | [backend/places.py:16](../backend/places.py#L16) | 검색어 1~80자와 keyword/address를 검증한다. 요청값을 오류에 되돌려 쓰지 않는다. |
+| `search_places` | [backend/places.py:73](../backend/places.py#L73) | 카카오에 검색어를 보내 후보를 반환한다. HTTP 상태·권한/쿼터/시간초과를 구분하고 비밀값은 숨긴다. |
 | `seoul_page` | [backend/outing.py:68](../backend/outing.py#L68) | 지정일 첫 5건·조회시각·전체 수를 가져온다. 기록과 실시간은 명시적으로 분리한다. |
-| `server_options` | [backend/preview.py:158](../backend/preview.py#L158) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
+| `server_options` | [backend/preview.py:163](../backend/preview.py#L163) | 로컬 기본값을 유지하고 명시한 접속 주소·배포 환경의 PORT 범위를 검증한다. |
 | `short_text` | [backend/transit.py:41](../backend/transit.py#L41) | 이동 안내 원문을 길이 제한된 텍스트로 받아 HTML 실행 없이 표시하도록 반환한다. |
 | `signature` | [utils/scripts/watch.py:18](../utils/scripts/watch.py#L18) | Track eligible file names and metadata, excluding outputs and temp files. |
 | `snapshot` | [utils/scripts/reuse.py:42](../utils/scripts/reuse.py#L42) | Preflight all selected blobs, then copy exactly without replacing files. |
@@ -114,6 +127,7 @@
 | `start` | [utils/scripts/loop.py:14](../utils/scripts/loop.py#L14) | Create an explicit task state with at most ten verification attempts. |
 | `status` | [backend/location_view.js:15](../backend/location_view.js#L15) | JS/TS 정규식 후보; AST 검증 아님 |
 | `stop` | [backend/location_view.js:25](../backend/location_view.js#L25) | JS/TS 정규식 후보; AST 검증 아님 |
+| `text_or_none` | [backend/places.py:27](../backend/places.py#L27) | 공급자 텍스트를 제한된 길이로 읽고 공백·누락은 null로 유지한다. |
 | `time_match` | [backend/outing.py:106](../backend/outing.py#L106) | 단순 전시 개방구간/공연 시작을 검사한다. 복합 운영규칙은 미확인(None)이다. |
 | `ToolsTest` | [utils/tests/test_tools.py:25](../utils/tests/test_tools.py#L25) | Check behavior with independent fixtures rather than mirrored implementation. |
 | `ToolsTest.git_repo` | [utils/tests/test_tools.py:46](../utils/tests/test_tools.py#L46) | Initialize only the disposable Git fixture; set fixture-local identity. |

@@ -13,8 +13,9 @@ from course import build_course
 from walking import walk_between
 from transit import transit_between
 from map_config import map_config
+from places import search_places
 
-POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit"}
+POST_PATHS = {"/preview/recommend", "/preview/voice", "/preview/walk", "/preview/transit", "/preview/places"}
 
 
 def allowed_origins():
@@ -116,6 +117,10 @@ class Preview(BaseHTTPRequestHandler):
             data = json.loads(self.rfile.read(length))
             if not isinstance(data, dict):
                 raise ValueError("요청 형식을 확인해 주세요.")
+            if self.path == "/preview/places":
+                status, body = search_places(data)
+                self.reply(status, body)
+                return
             if self.path == "/preview/transit":
                 try:
                     status, body = transit_between(data.get("points"))

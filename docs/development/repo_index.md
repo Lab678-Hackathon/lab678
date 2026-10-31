@@ -24,12 +24,14 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [backend/map_config.py](../../backend/map_config.py) | 지도 표시용 공개 JavaScript 키만 읽는다. 서버 REST 키와 설정 파일은 공개하지 않는다. | `2fdb9049ff08` |
 | [backend/map_view.js](../../backend/map_view.js) | 카카오 지도 우선 표시와 기존 지도 대체를 제공하는 개인 점검용 어댑터. | `a20657b13cb6` |
 | [backend/outing.py](../../backend/outing.py) | 서울시 행사 다섯 건에서 날짜·시간·분류를 확인하고 직선거리 순으로 반환한다. | `3c837461218e` |
+| [backend/places.py](../../backend/places.py) | 출발지 선택용 카카오 장소명/주소 검색. 사용자 검색어·키·원문 응답은 저장하지 않는다. | `a7ee2f080b69` |
 | [backend/preview.html](../../backend/preview.html) | 설정·자료 파일; 필요할 때 원문 확인 | `9113b15dfebb` |
-| [backend/preview.py](../../backend/preview.py) | 동조 개인용 로컬 추천 점검 화면. python backend/preview.py로 시작한다. | `3463baf57e8e` |
+| [backend/preview.py](../../backend/preview.py) | 동조 개인용 로컬 추천 점검 화면. python backend/preview.py로 시작한다. | `5b4d10812b1f` |
 | [backend/test_course.py](../../backend/test_course.py) | 두 곳 도보 일정의 마감 경계·휴관 원문·결측·방문 순서를 검사한다. | `94dbe388fa2a` |
 | [backend/test_map_config.py](../../backend/test_map_config.py) | 지도 공개 설정이 JS 키만 노출하고 서버 키·잘못된 입력을 배제하는지 검증한다. | `d8a32938f98b` |
 | [backend/test_outing.py](../../backend/test_outing.py) | 서울시 공개 응답 재생으로 입력·선별·결측·실패를 검사한다. | `4f76676a4a52` |
-| [backend/test_preview.py](../../backend/test_preview.py) | HTTP 처리기의 입력 오류 계약과 route/course 호환을 외부 조회 없이 검증한다. | `f61a6ae3b199` |
+| [backend/test_places.py](../../backend/test_places.py) | 장소/주소 검색의 입력·좌표·실제0건·공급자 장애·비밀값 노출 방지 회귀. | `944752f387e3` |
+| [backend/test_preview.py](../../backend/test_preview.py) | HTTP 처리기의 입력 오류 계약과 route/course 호환을 외부 조회 없이 검증한다. | `c0259bb3c2a0` |
 | [backend/test_transit.py](../../backend/test_transit.py) | 실제 노선 성공과 구분한 대중교통 어댑터 단위 검증. 가상 수치로 응답/오류 경계를 검사한다. | `edc7bef15b85` |
 | [backend/test_walking.py](../../backend/test_walking.py) | 한국어 경로 단계와 지도 좌표가 같은 응답을 사용하는지 검증한다. | `c93d16baf2e1` |
 | [backend/transit.py](../../backend/transit.py) | 개인 점검용 카카오 대중교통 텍스트 안내. 키는 서버에서만 읽고 원문 응답은 저장하지 않는다. | `023f0760ebe1` |
@@ -40,15 +42,19 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/README.md](../../docs/README.md) | docs | `6f5e3f0160f6` |
 | [docs/development/README.md](../../docs/development/README.md) | LAB678 · 김동조 개발 작업 맥락 | `ee8c06558346` |
 | [docs/development/course-alternatives-progress.md](../../docs/development/course-alternatives-progress.md) | 시간 부족 → 동의 → 대안 선택 진행표 | `a662e7da1bee` |
-| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `6754b7c9d84d` |
+| [docs/development/current-state.md](../../docs/development/current-state.md) | 현재 상태와 다음 할 일 | `25fcb93db045` |
 | [docs/development/demo-login-server-progress.md](../../docs/development/demo-login-server-progress.md) | 데모 로그인·해커톤 서버 검토 진행표 | `ca878f31c5f8` |
 | [docs/development/demo-profile-design.md](../../docs/development/demo-profile-design.md) | 인증 없는 이용·체험 프로필·로컬 저장 설계안 | `87e1d5b21681` |
-| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `9082c46811a0` |
+| [docs/development/discussion-log.md](../../docs/development/discussion-log.md) | LAB678 · 김동조 대화·작업 기록 | `e65a4b553b23` |
 | [docs/development/engineering-loop.md](../../docs/development/engineering-loop.md) | 개발 도구·반복 검증·컨텍스트 운영 | `ce0d9492072b` |
+| [docs/development/examples/course-selected-place.live.json](../../docs/development/examples/course-selected-place.live.json) | 구조화 설정·상태 데이터 | `447d8ceff61e` |
 | [docs/development/examples/demo-users.sample.json](../../docs/development/examples/demo-users.sample.json) | 구조화 설정·상태 데이터 | `f148990a7ff7` |
 | [docs/development/examples/outing-request.json](../../docs/development/examples/outing-request.json) | 구조화 설정·상태 데이터 | `3fc7504a23dd` |
 | [docs/development/examples/outing-response.json](../../docs/development/examples/outing-response.json) | 구조화 설정·상태 데이터 | `1e10713e15a7` |
+| [docs/development/examples/place-search.address.live.json](../../docs/development/examples/place-search.address.live.json) | 구조화 설정·상태 데이터 | `6d3077cafd3b` |
+| [docs/development/examples/place-search.keyword.live.json](../../docs/development/examples/place-search.keyword.live.json) | 구조화 설정·상태 데이터 | `a5df5ce8d2fa` |
 | [docs/development/examples/recommend-response.recorded.json](../../docs/development/examples/recommend-response.recorded.json) | 구조화 설정·상태 데이터 | `3e7b476fdf1a` |
+| [docs/development/examples/recommend-selected-place.live.json](../../docs/development/examples/recommend-selected-place.live.json) | 구조화 설정·상태 데이터 | `9b55500b1a7a` |
 | [docs/development/examples/seoul-events.capture.json](../../docs/development/examples/seoul-events.capture.json) | 구조화 설정·상태 데이터 | `1bb3cf6f854e` |
 | [docs/development/hackathon-server-usage-review.md](../../docs/development/hackathon-server-usage-review.md) | 해커톤 GPU/일반 서버 활용 검토 | `6f9d563a603a` |
 | [docs/development/kakao-map-location.md](../../docs/development/kakao-map-location.md) | 카카오 지도 전환·내 위치 표시 구현 기록 | `3209d6cec5a7` |
@@ -58,7 +64,8 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/mobility-routing-review.md](../../docs/development/mobility-routing-review.md) | LAB678 · 도보·대중교통 이동 안내 기술검토 | `459a27237290` |
 | [docs/development/mvp-plan.md](../../docs/development/mvp-plan.md) | 김동조의 문화외출 MVP 개발 계획 | `5642ac169efe` |
 | [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md) | 동조 개발용 추천 인계 초안 | `80d8382d12f3` |
-| [docs/development/recommend-api.md](../../docs/development/recommend-api.md) | 추천 API 연결 안내 | `4eb4ed20ed14` |
+| [docs/development/place-search-api.md](../../docs/development/place-search-api.md) | 출발지 검색과 첫 프론트 연결 안내 | `366d19adbc07` |
+| [docs/development/recommend-api.md](../../docs/development/recommend-api.md) | 추천 API 연결 안내 | `bcf89858a1e4` |
 | [docs/development/render-demo-guide.md](../../docs/development/render-demo-guide.md) | Render 단일 서비스 시연 준비 | `85efffadf892` |
 | [docs/development/repo_index.md](../../docs/development/repo_index.md) | 자동 생성 색인 | `generated` |
 | [docs/development/repo_reverse_index.md](../../docs/development/repo_reverse_index.md) | 자동 생성 색인 | `generated` |
@@ -113,10 +120,11 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [docs/development/reports/2026-10-31-two-stop-course.md](../../docs/development/reports/2026-10-31-two-stop-course.md) | **두 곳 문화코스**를 구현했습니다. 출발지부터 첫 행사장까지의 도보, 두 행사 사이 이동, 관람시간을 합쳐 방문 순서와 예상 시각을 보여줍니다. | `27a95f3ce6f9` |
 | [docs/development/reports/2026-10-31-walk-demo.md](../../docs/development/reports/2026-10-31-walk-demo.md) | 동조님 시연 PC에서 **국악 추천 → 행사 선택 → 도보 시간 확인**까지 정상 동작한 것으로 기록했습니다. | `a933333d6e14` |
 | [docs/development/reports/2026-10-31-walk.md](../../docs/development/reports/2026-10-31-walk.md) | 두 행사 사이 도보 시간을 추천 화면에서 확인할 수 있습니다. | `ca0e5a18f78b` |
+| [docs/development/reports/20261031-place-search-integration.md](../../docs/development/reports/20261031-place-search-integration.md) | 출발지 검색 API와 프론트 연결 자료를 준비했습니다. | `095bcfc1e353` |
 | [docs/development/screen-spec-review.md](../../docs/development/screen-spec-review.md) | 화면명세 v0.1 수신·구현 대조 체크표 | `6be14b542825` |
-| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `2498f2ff3f17` |
+| [docs/development/state.json](../../docs/development/state.json) | 구조화 설정·상태 데이터 | `42d8ca89727a` |
 | [docs/development/tasks.md](../../docs/development/tasks.md) | LAB678 · 김동조 개발 할 일 | `ecc6ea2576d6` |
-| [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md) | LAB678 · 동료와 LLM을 위한 개발 참조·실행 안내 | `34bbe0f4e72b` |
+| [docs/development/team-backend-guide.md](../../docs/development/team-backend-guide.md) | LAB678 · 동료와 LLM을 위한 개발 참조·실행 안내 | `a8cfdbe6a06b` |
 | [docs/development/team-integration-checklist.md](../../docs/development/team-integration-checklist.md) | 팀 의견 대조 · 최종 UI 연결 우선 체크표 | `a9c94afd0cf6` |
 | [docs/development/tooling-progress.md](../../docs/development/tooling-progress.md) | 재사용 도구·자동 색인·컨텍스트 구축 진행 체크표 | `b72aa1e78379` |
 | [docs/development/transit-progress.md](../../docs/development/transit-progress.md) | 앱 내부 대중교통 안내 진행표 | `de4987d17983` |
@@ -153,7 +161,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [frontend/README.md](../../frontend/README.md) | frontend | `8f3bc2455014` |
 | [utils/AGENTS.md](../../utils/AGENTS.md) | utils 작업 | `606b01a12f06` |
 | [utils/README.md](../../utils/README.md) | 재사용 개발 도구 | `e1df914a2f02` |
-| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `0252a3dbe989` |
+| [utils/harness.json](../../utils/harness.json) | 구조화 설정·상태 데이터 | `30be360d453f` |
 | [utils/index.md](../../utils/index.md) | 자동 생성 색인 | `generated` |
 | [utils/reverse_index.md](../../utils/reverse_index.md) | 자동 생성 색인 | `generated` |
 | [utils/scripts/catalog.py](../../utils/scripts/catalog.py) | Build deterministic code indexes without importing source modules. | `ecb99cd9ca5b` |
@@ -165,6 +173,7 @@ Python 함수·클래스는 AST, JS/TS는 이름 있는 선언·화살표 함수
 | [utils/scripts/check_kakao_map.cjs](../../utils/scripts/check_kakao_map.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `4f6f756329a2` |
 | [utils/scripts/check_location_ui.cjs](../../utils/scripts/check_location_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `30cf7dc85519` |
 | [utils/scripts/check_outing_ui.cjs](../../utils/scripts/check_outing_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `431b112db40c` |
+| [utils/scripts/check_place_search.cjs](../../utils/scripts/check_place_search.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `fa354bb75fad` |
 | [utils/scripts/check_result_preservation.cjs](../../utils/scripts/check_result_preservation.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `a65aea175729` |
 | [utils/scripts/check_transit_ui.cjs](../../utils/scripts/check_transit_ui.cjs) | 설정·자료 파일; 필요할 때 원문 확인 | `a1f5a4ac7b53` |
 | [utils/scripts/commit_report.py](../../utils/scripts/commit_report.py) | Commit an approved task with its complete UTF-8 report as the exact message. | `71ec658dfada` |
