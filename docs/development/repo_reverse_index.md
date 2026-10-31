@@ -4,6 +4,7 @@
 
 ## 기능 → 파일
 
+- **코스 제외 예정·취소·명시적 재생성**: [backend/preview.html](../../backend/preview.html), [utils/scripts/check_course_edit.cjs](../../utils/scripts/check_course_edit.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **추천 재요청·실패 복원·늦은 응답 방지**: [backend/preview.html](../../backend/preview.html), [utils/scripts/check_result_preservation.cjs](../../utils/scripts/check_result_preservation.cjs), [docs/development/outing-handoff.md](../../docs/development/outing-handoff.md)
 - **별도 프론트 연결·CORS·상세 사실 필드**: [backend/preview.py](../../backend/preview.py), [backend/outing.py](../../backend/outing.py), [backend/test_preview.py](../../backend/test_preview.py), [backend/test_outing.py](../../backend/test_outing.py), [utils/scripts/check_frontend_connection.cjs](../../utils/scripts/check_frontend_connection.cjs), [docs/development/recommend-api.md](../../docs/development/recommend-api.md)
 - **추천 입력 60분·route 호환·오류 계약**: [backend/outing.py](../../backend/outing.py), [backend/preview.py](../../backend/preview.py), [backend/preview.html](../../backend/preview.html), [backend/test_outing.py](../../backend/test_outing.py), [backend/test_preview.py](../../backend/test_preview.py), [utils/scripts/check_input_contract.cjs](../../utils/scripts/check_input_contract.cjs), [docs/development/recommend-api.md](../../docs/development/recommend-api.md)

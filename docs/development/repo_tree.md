@@ -69,6 +69,7 @@ lab678/
         2026-10-31-chrome-speech.md
         2026-10-31-course-alternatives.md
         2026-10-31-course-demo-check.md
+        2026-10-31-course-edit.md
         2026-10-31-current-prd-sync.md
         2026-10-31-demo-server-reuse.md
         2026-10-31-develop-sync.md
@@ -170,6 +171,7 @@ lab678/
     scripts/
       catalog.py
       check_course_alternatives.cjs
+      check_course_edit.cjs
       check_frontend_connection.cjs
       check_input_contract.cjs
       check_outing_ui.cjs

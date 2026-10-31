@@ -56,7 +56,8 @@ async function main() {
       assert.equal(await page.locator("#file-read").isEnabled(),true);
     }
     behavior="failure";
-    await page.getByRole("button",{name:"이 행사 빼고 다시 추천",exact:true}).first().click();
+    await page.getByRole("button",{name:"이 장소 제외",exact:true}).first().click();
+    await page.getByRole("button",{name:"코스 다시 만들기",exact:true}).click();
     await page.locator("#status").filter({hasText:"보관"}).waitFor();
     await page.locator("#restore-recommendation").click();
     assert.deepEqual(await page.evaluate(()=>excludedIds),[]);

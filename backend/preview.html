@@ -96,6 +96,10 @@ summary {padding-block:10px; color:#23616b} a {color:#005f70} .muted {font-size:
 <div class="actions"><button id="back">조건 바꾸기</button></div>
 <section class="panel" id="course-result" hidden><h3>두 곳 문화코스</h3><p id="course-conditions"></p><p id="course-text" class="facts"></p>
 <div id="course-directions"></div>
+<section id="course-edit" hidden aria-label="코스 장소 변경">
+<p id="exclusion-status" role="status">제외할 장소를 고른 뒤 코스를 다시 만들 수 있어요.</p>
+<button id="rebuild-course" type="button" disabled>코스 다시 만들기</button>
+<p id="course-rebuild-status" role="status"></p></section>
 <section id="alternatives" hidden aria-label="문화코스 대안">
 <p>시간이 부족해요. 한 곳만 관람하거나 출발을 최대 두 시간 앞당기는 대안을 찾아드릴까요? 종료 시각과 관람시간은 유지해요.</p>
 <button id="find-alternatives" type="button">네, 대안 찾아주세요</button>
@@ -148,6 +152,7 @@ fields.kind.onchange = () => {
 };
 let previousCourse = "";
 let excludedIds = [];
+const pendingExcludedIds = new Set();
 let resultOrigin = null;
 const routeDialog = document.querySelector("#route-dialog");
 const routeStatus = document.querySelector("#route-status");
@@ -696,14 +701,21 @@ function showCard(item) {
   li.append(directions);
   if (fields.kind.value === "course") {
     const exclude = document.createElement("button");
-    exclude.textContent = "이 행사 빼고 다시 추천";
+    exclude.type = "button";
+    exclude.dataset.excludeId = item.id;
+    exclude.textContent = "이 장소 제외";
+    const pending = document.createElement("p");
+    pending.className = "exclusion-note";
+    pending.hidden = true;
+    pending.textContent = "제외 예정 · 아직 코스에 반영하지 않았어요.";
     exclude.onclick = () => {
-      excludedIds.push(item.id);
-      results.hidden = true;
-      form.hidden = false;
-      form.requestSubmit();
+      if (recommendationController) return;
+      if (pendingExcludedIds.has(item.id)) pendingExcludedIds.delete(item.id);
+      else pendingExcludedIds.add(item.id);
+      document.querySelector("#course-rebuild-status").textContent = "";
+      updateExclusionControls();
     };
-    li.append(exclude);
+    li.append(pending, exclude);
   }
   list.append(li);
 }
@@ -934,6 +946,25 @@ let recommendationVersion = 0;
 let alternativeController = null;
 let alternativeVersion = 0;
 
+/** 제외 예정은 카드 표시만 바꾸며 요청·코스·지도 순서는 명시적 재생성 전까지 유지한다. */
+function updateExclusionControls() {
+  for (const button of document.querySelectorAll("[data-exclude-id]")) {
+    const pending = pendingExcludedIds.has(button.dataset.excludeId);
+    button.textContent = pending ? "제외 취소" : "이 장소 제외";
+    button.setAttribute("aria-pressed", String(pending));
+    button.disabled = Boolean(recommendationController);
+    button.closest("li").querySelector(".exclusion-note").hidden = !pending;
+  }
+  document.querySelector("#exclusion-status").textContent = pendingExcludedIds.size ?
+    pendingExcludedIds.size + "곳 제외 예정이에요. ‘코스 다시 만들기’를 누르면 반영해요." :
+    "제외할 장소를 고른 뒤 코스를 다시 만들 수 있어요.";
+  document.querySelector("#rebuild-course").disabled = !pendingExcludedIds.size || Boolean(recommendationController);
+}
+document.querySelector("#rebuild-course").onclick = event => {
+  if (!pendingExcludedIds.size || !recommendationSnapshot || recommendationController) return;
+  search(event, true);
+};
+
 /** 조건 변경·재조회·취소 시 지난 대안 응답이 현재 화면을 바꾸지 못하게 한다. */
 function resetAlternatives() {
   alternativeVersion++;
@@ -954,14 +985,18 @@ function recommendationRequest(data) {
 }
 
 /** 검증된 응답의 조건·카드·지도·경로를 한 번에 적용하고 충돌일 때만 동의를 요청한다. */
-function renderRecommendation(body, data) {
+function renderRecommendation(body, data, exclusions = excludedIds) {
   if (!body || !["ready","no_results"].includes(body.status) || !Array.isArray(body.candidates) ||
       body.candidates.some(item => !item || typeof item.id !== "string" || typeof item.title !== "string" ||
         typeof item.venue !== "string" || !Array.isArray(item.checks_required))) throw new Error("추천 응답을 확인하지 못했어요.");
   const candidates = body.course?.ids ? body.course.ids.map(id => body.candidates.find(item => item.id === id)) :
-    body.candidates.filter(item => !excludedIds.includes(item.id));
+    body.candidates.filter(item => !exclusions.includes(item.id));
   if (candidates.some(item => !item)) throw new Error("코스에 해당하는 행사 정보를 확인하지 못했어요.");
+  if (candidates.some(item => exclusions.includes(item.id))) throw new Error("제외한 장소가 포함되어 있어 이전 코스를 유지했어요.");
   resetAlternatives();
+  excludedIds = [...exclusions];
+  pendingExcludedIds.clear();
+  document.querySelector("#course-rebuild-status").textContent = "";
   clearRoute();
   document.querySelector("#restore-recommendation").hidden = true;
   stopReading();
@@ -991,6 +1026,8 @@ function renderRecommendation(body, data) {
   document.querySelector("#alternatives").hidden = body.course?.status !== "conflict";
   recommendationSnapshot = candidates.length ? {data:{...data}, request:recommendationRequest(data),
     status:statusText.textContent, courseStatus:body.course?.status} : null;
+  document.querySelector("#course-edit").hidden = data.kind !== "course" || !body.course?.ids?.length;
+  updateExclusionControls();
 }
 
 /** 진행 중 추천을 취소하고 늦게 도착한 성공/오류 응답이 화면을 바꾸지 못하게 한다. */
@@ -1000,6 +1037,7 @@ function cancelRecommendation() {
   recommendationController = null;
   fields.fields.disabled = false;
   document.querySelector("#cancel-recommendation").hidden = true;
+  updateExclusionControls();
 }
 
 /** 이전 결과와 함께 그 결과에 적용된 입력·제외 조건·선택을 복원한다. 새 시도 조건과 섞지 않는다. */
@@ -1011,6 +1049,9 @@ function restoreRecommendation() {
   for (const [name,value] of Object.entries(snapshot.data)) if (fields.namedItem(name)) fields.namedItem(name).value = value;
   fields.kind.onchange();
   excludedIds = [...snapshot.request.exclude_ids];
+  pendingExcludedIds.clear();
+  document.querySelector("#course-rebuild-status").textContent = "";
+  updateExclusionControls();
   showTimeError("start", ""); showTimeError("end", "");
   form.hidden = true; results.hidden = false;
   statusText.textContent = snapshot.status + " · 이전 조건과 결과를 다시 보여드려요.";
@@ -1025,6 +1066,7 @@ document.querySelector("#restore-recommendation").onclick = restoreRecommendatio
 document.querySelector("#cancel-recommendation").onclick = () => {
   cancelRecommendation();
   statusText.textContent = "추천 요청을 취소했어요. 입력한 조건은 유지했어요.";
+  document.querySelector("#course-rebuild-status").textContent = pendingExcludedIds.size ? "코스 변경 요청을 취소했어요. 제외 예정은 유지했어요." : "";
   document.querySelector("#restore-recommendation").hidden = !recommendationSnapshot;
 };
 
@@ -1112,7 +1154,7 @@ for (const name of ["start", "end"]) {
 }
 
 /** 입력을 유지하면서 재조회하고 시도별 결과·실패를 구분한다. */
-async function search(event) {
+async function search(event, rebuilding = false) {
   event.preventDefault();
   if (recommendationController) return;
   if (!checkTimeInputs(true)) return;
@@ -1121,11 +1163,14 @@ async function search(event) {
     session.stop(); return;
   }
   resetAlternatives();
-  const data = Object.fromEntries(new FormData(form));
+  const data = rebuilding ? {...recommendationSnapshot.data} : Object.fromEntries(new FormData(form));
   const request = recommendationRequest(data);
+  if (rebuilding) request.exclude_ids = [...new Set([...recommendationSnapshot.request.exclude_ids, ...pendingExcludedIds])];
   const version = ++recommendationVersion;
   const controller = new AbortController();
   recommendationController = controller;
+  updateExclusionControls();
+  document.querySelector("#course-rebuild-status").textContent = rebuilding ? "코스를 다시 만들고 있어요." : "";
   stopReading();
   fields.fields.disabled = true;
   statusText.textContent = "문화정보 조회 중…";
@@ -1142,12 +1187,13 @@ async function search(event) {
       if (["start_at", "end_at"].includes(body.field)) showTimeError(body.field === "start_at" ? "start" : "end", body.message);
       throw new Error(body.message);
     }
-    if (recommendationSnapshot && (body.status === "no_results" || ["unavailable","insufficient"].includes(body.course?.status))) {
+    if (recommendationSnapshot && (body.status === "no_results" || ["unavailable","insufficient"].includes(body.course?.status) ||
+        (rebuilding && body.course?.status !== "ready"))) {
       statusText.textContent = body.course?.message || "이번 조건으로는 후보를 찾지 못했어요.";
       statusText.textContent += " 이전 조건과 결과는 보관했어요. 조건을 바꾸거나 이전 결과로 돌아갈 수 있어요.";
       return;
     }
-    renderRecommendation(body, data);
+    renderRecommendation(body, data, request.exclude_ids);
   } catch (error) {
     if (version !== recommendationVersion || error.name === "AbortError") return;
     statusText.textContent = error.message || "조회 실패";
@@ -1158,6 +1204,8 @@ async function search(event) {
       recommendationController = null;
       fields.fields.disabled = false;
       document.querySelector("#cancel-recommendation").hidden = true;
+      if (rebuilding && pendingExcludedIds.size) document.querySelector("#course-rebuild-status").textContent = statusText.textContent;
+      updateExclusionControls();
     }
   }
 }
@@ -1193,6 +1241,9 @@ document.querySelector("#back").onclick = () => {
   cancelRecommendation();
   resetAlternatives();
   excludedIds = [];
+  pendingExcludedIds.clear();
+  document.querySelector("#course-rebuild-status").textContent = "";
+  updateExclusionControls();
   stopReading(); results.hidden = true; form.hidden = false; statusText.textContent = ""; fields.category.focus();
   document.querySelector("#restore-recommendation").hidden = !recommendationSnapshot;
 };
