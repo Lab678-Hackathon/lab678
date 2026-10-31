@@ -12,15 +12,6 @@
   --status-warn-text: #8F5410;
   --status-danger: #B3261E;
   --status-ok-bg: #E2F1E6;
-  /* 까치색 포인트 (Figma 07 · UI Polish Final, 11/1): 초록은 기본, 아래는 포인트에만 */
-  --accent-navy: #2F4B7C;      /* 까치 날개: 까치 말풍선·지하철·출발 */
-  --accent-orange: #C24E25;    /* 목도리(글자용): 까치 이름표·선택 표시 */
-  --accent-orange-pin: #E0663A;/* 목도리(면): 도착 핀·선택 테두리 */
-  --accent-yellow: #F2B544;    /* 단풍: 켜짐 칩 테두리 */
-  --accent-yellow-bg: #FFF3D6;
-  --accent-yellow-text: #7A4E00;
-  --warm-bg: #FDF0E4;
-  --glow: #FCE7C3;             /* 까치 뒤 따뜻한 빛 */
 
   --font: "Noto Sans KR", system-ui, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   /* 글자 크게를 켜면 --scale 이 1.15 가 돼요 */
