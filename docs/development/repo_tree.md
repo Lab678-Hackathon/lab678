@@ -104,6 +104,7 @@ lab678/
         authenticated-check.json
         initial-check.json
         tour-key-check.json
+        tour-live-check.json
       qa-handoff/
         manifest.json
         natural-flow.json
@@ -191,6 +192,7 @@ lab678/
         natural-language-recommendation.md
         seoul-live-and-tour-key.md
         tour-key-verification.md
+        tour-live-verification.md
       screen-spec-review.md
       state.json
       tasks.md

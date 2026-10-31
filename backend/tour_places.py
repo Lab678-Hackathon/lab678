@@ -55,9 +55,22 @@ def official_link(value):
     """공식 응답이 제공한 홈페이지만 허용한다. ID로 확인하지 않은 상세 URL을 만들어 내지 않는다."""
     if not isinstance(value, str):
         return None
+    value = unescape(value).strip()
     match = re.search(r'''href\s*=\s*["']([^"']+)["']''', value, re.I)
-    link = unescape(match[1] if match else value).strip()
-    parsed = urlsplit(link)
+    if match:
+        link = match[1].strip()
+    else:
+        # Plain homepages can include a following social-media label on a new line.
+        match = re.match(r'''https?://[^\s<>"']+''', value, re.I)
+        if not match:
+            return None
+        link = match[0]
+    if any(char.isspace() or ord(char) < 32 for char in link):
+        return None
+    try:
+        parsed = urlsplit(link)
+    except ValueError:
+        return None
     if parsed.scheme in {"http", "https"} and parsed.hostname and not parsed.username and not parsed.password:
         return link
     return None

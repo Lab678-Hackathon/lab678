@@ -49,19 +49,20 @@
 | `CourseTests.test_unknown_and_wait` | [backend/test_course.py:26](../backend/test_course.py#L26) | 공연 시작 전 대기는 포함하고 종료 미상 또는 휴관 조건 미상은 확정하지 않는다. |
 | `create` | [backend/map_view.js:49](../backend/map_view.js#L49) | JS/TS 정규식 후보; AST 검증 아님 |
 | `culture_key` | [backend/culture_config.py:6](../backend/culture_config.py#L6) | seoul/tour 키를 읽는다. 명시 환경값이 로컬 파일보다 우선하며 미설정은 빈 문자열이다. |
-| `culture_places` | [backend/tour_places.py:101](../backend/tour_places.py#L101) | 선택적 문화시설 API. 키 없음503/조회 실패502/정상0건을 구분하며 행사 추천에 몰래 혼합하지 않는다. |
-| `culture_places.details` | [backend/tour_places.py:121](../backend/tour_places.py#L121) | 동일 ID의 소개/홈페이지를 가져온다. 상세 호출 실패를 값 없음으로 숨기지 않는다. |
+| `culture_places` | [backend/tour_places.py:114](../backend/tour_places.py#L114) | 선택적 문화시설 API. 키 없음503/조회 실패502/정상0건을 구분하며 행사 추천에 몰래 혼합하지 않는다. |
+| `culture_places.details` | [backend/tour_places.py:134](../backend/tour_places.py#L134) | 동일 ID의 소개/홈페이지를 가져온다. 상세 호출 실패를 값 없음으로 숨기지 않는다. |
 | `CultureSourceTests` | [backend/test_culture_sources.py:13](../backend/test_culture_sources.py#L13) | 실제 키 없이 가능한 공급자 계약 회귀. 실서비스 성공과 구분한다. |
 | `CultureSourceTests.response` | [backend/test_culture_sources.py:22](../backend/test_culture_sources.py#L22) | 공식 response/header/body 형태를 생성한다. 실제 행사 데이터가 아니다. |
 | `CultureSourceTests.setUp` | [backend/test_culture_sources.py:16](../backend/test_culture_sources.py#L16) | 공개 위치의 시험 입력과 가상 문화시설 응답을 준비한다. |
 | `CultureSourceTests.test_detail_identity_and_html` | [backend/test_culture_sources.py:69](../backend/test_culture_sources.py#L69) | 상세 ID 불일치를 거절하고 공식 텍스트/링크만 정규화한다. |
 | `CultureSourceTests.test_facility_facts_and_unknowns` | [backend/test_culture_sources.py:59](../backend/test_culture_sources.py#L59) | 상설 장소에 행사 날짜/가격/공연 시작을 만들어 넣지 않는다. |
-| `CultureSourceTests.test_full_facility_lookup_budget_and_secrets` | [backend/test_culture_sources.py:89](../backend/test_culture_sources.py#L89) | 목록→소개→공통 상세를 연결하고 무료 조건·비밀값 비노출을 확인한다. |
-| `CultureSourceTests.test_full_facility_lookup_budget_and_secrets.source` | [backend/test_culture_sources.py:91](../backend/test_culture_sources.py#L91) | 세 고정 API의 모의 응답을 반환한다. |
-| `CultureSourceTests.test_scope_and_missing_key_before_network` | [backend/test_culture_sources.py:80](../backend/test_culture_sources.py#L80) | 공연/코스/기록/잘못된반경 요청은 거절하고 키없음은503이다. |
+| `CultureSourceTests.test_full_facility_lookup_budget_and_secrets` | [backend/test_culture_sources.py:99](../backend/test_culture_sources.py#L99) | 목록→소개→공통 상세를 연결하고 무료 조건·비밀값 비노출을 확인한다. |
+| `CultureSourceTests.test_full_facility_lookup_budget_and_secrets.source` | [backend/test_culture_sources.py:101](../backend/test_culture_sources.py#L101) | 세 고정 API의 모의 응답을 반환한다. |
+| `CultureSourceTests.test_homepage_with_provider_annotation` | [backend/test_culture_sources.py:80](../backend/test_culture_sources.py#L80) | 실제 응답의 홈페이지 뒤 SNS 안내는 제외하고 잘못된 링크는 null로 둔다. |
+| `CultureSourceTests.test_scope_and_missing_key_before_network` | [backend/test_culture_sources.py:90](../backend/test_culture_sources.py#L90) | 공연/코스/기록/잘못된반경 요청은 거절하고 키없음은503이다. |
 | `CultureSourceTests.test_seoul_auth_failure_no_sample_retry` | [backend/test_culture_sources.py:35](../backend/test_culture_sources.py#L35) | 유효하지 않은 정식 키를 sample 성공으로 숨기지 않는다. |
 | `CultureSourceTests.test_seoul_authenticated_and_sample_limits` | [backend/test_culture_sources.py:27](../backend/test_culture_sources.py#L27) | 정식 키100건·미설정sample5건을 구분하며 입력 키를 경로 구분자로 해석하지 않는다. |
-| `CultureSourceTests.test_source_failure_not_empty_or_partial_success` | [backend/test_culture_sources.py:104](../backend/test_culture_sources.py#L104) | 실패·권한거절·제한을0건으로 바꾸지 않고 URL에 있는 키를 오류로 내보내지 않는다. |
+| `CultureSourceTests.test_source_failure_not_empty_or_partial_success` | [backend/test_culture_sources.py:114](../backend/test_culture_sources.py#L114) | 실패·권한거절·제한을0건으로 바꾸지 않고 URL에 있는 키를 오류로 내보내지 않는다. |
 | `CultureSourceTests.test_tour_request_encoding_and_axis` | [backend/test_culture_sources.py:43](../backend/test_culture_sources.py#L43) | 국문 고정 주소·경도X/위도Y·인코딩키 1회 변환을 검사한다. |
 | `CultureSourceTests.test_tour_zero_vs_malformed` | [backend/test_culture_sources.py:53](../backend/test_culture_sources.py#L53) | 0건은 정상이며 누락 목록/오류코드/XML은 정상 빈 결과가 아니다. |
 | `decide` | [backend/team_chat.js:152](../backend/team_chat.js#L152) | JS/TS 정규식 후보; AST 검증 아님 |
@@ -119,7 +120,7 @@
 | `NaitoChatTests.test_success_and_no_recommendation` | [backend/test_naito_chat.py:49](../backend/test_naito_chat.py#L49) | 모의 국악 해석 뒤 출발지 질문으로 이어지며 추천은 실행하지 않는다. |
 | `NaitoChatTests.test_validate_before_provider` | [backend/test_naito_chat.py:25](../backend/test_naito_chat.py#L25) | 잘못된 요청은 공급자/키 조회 전에 거절한다. |
 | `normalize` | [backend/preferences.py:9](../backend/preferences.py#L9) | 선호 부분 갱신을 검증한다. 빈 목록/false/any는 명시적 해제이며 null은 변경 없음이다. |
-| `normalize_place` | [backend/tour_places.py:66](../backend/tour_places.py#L66) | 목록/상세 사실만 통합한다. 결측 좌표·운영·요금은 null, 관람 가능 여부는 check다. |
+| `normalize_place` | [backend/tour_places.py:79](../backend/tour_places.py#L79) | 목록/상세 사실만 통합한다. 결측 좌표·운영·요금은 null, 관람 가능 여부는 check다. |
 | `normalize_places` | [backend/places.py:32](../backend/places.py#L32) | 공급자 x/y를 숫자 lng/lat로 바꾸고 선택 가능한 최대5건만 반환한다. 손상과0건을 구분한다. |
 | `normalize_proposal` | [backend/chat_conditions.py:24](../backend/chat_conditions.py#L24) | 허용된 조건만 정규화한다. null은 변경 없음, 좌표·잘못된 값은 ValueError다. |
 | `normalize_routes` | [backend/transit.py:66](../backend/transit.py#L66) | 공식 응답의 경로 최대 세 개를 초·m 단위로 검증한다. 누락·공급자 오류는 실패로 구분한다. |

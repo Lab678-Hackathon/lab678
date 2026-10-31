@@ -7,7 +7,7 @@ from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 
 from outing import EXAMPLES, InputError, seoul_page
-from tour_places import call, culture_places, normalize_place
+from tour_places import call, culture_places, normalize_place, official_link
 
 
 class CultureSourceTests(unittest.TestCase):
@@ -76,6 +76,16 @@ class CultureSourceTests(unittest.TestCase):
         self.assertEqual(candidate["official_url"], "https://example.org/museum")
         self.assertEqual(candidate["fee_type"], "무료")
         self.assertEqual(candidate["closed_info"], "월요일")
+
+    def test_homepage_with_provider_annotation(self):
+        """실제 응답의 홈페이지 뒤 SNS 안내는 제외하고 잘못된 링크는 null로 둔다."""
+        self.assertEqual(official_link("https://www.l4d.or.kr/bfl/index.do\n인스타그램 @baebongsanforest"),
+                         "https://www.l4d.or.kr/bfl/index.do")
+        self.assertEqual(official_link('<a href="https://example.org/?a=1&amp;b=2">공식</a>'),
+                         "https://example.org/?a=1&b=2")
+        for value in ('<a href="https://example.org/\nlabel">공식</a>', 'https://[invalid',
+                      'javascript:alert(1)', 'https://user:password@example.org', '홈페이지 미제공'):
+            self.assertIsNone(official_link(value))
 
     def test_scope_and_missing_key_before_network(self):
         """공연/코스/기록/잘못된반경 요청은 거절하고 키없음은503이다."""
