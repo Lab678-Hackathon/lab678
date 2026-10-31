@@ -7,7 +7,7 @@ import { wakeServer } from './api.js';
 import { initChat, renderChat } from './chat.js';
 import { initPlace, renderPlace, renderMap } from './place.js';
 import { isSignedIn, savedPlaces, endDemo, startDemo } from './saved.js';
-import { $, el, button, readStore, writeStore, talkFor } from './util.js';
+import { $, el, button, readStore, writeStore, talkFor, unlockSpeech, speakKo } from './util.js';
 
 /** 까치가 일어나는 모습을 최소한 이만큼은 보여줘요 (너무 빨리 넘어가면 깜빡이는 느낌) */
 const MIN_WAKE_MS = 1600;
@@ -98,10 +98,14 @@ function initLanding() {
   const wake = async () => {
     if (box.dataset.state === 'waking' || box.dataset.state === 'ready') return;
     if (box.dataset.state === 'tired') pending = wakeServer();
+    unlockSpeech(); // 누른 순간에 소리를 열어 둬야 폰에서도 인사를 읽어 줘요
     show('waking');
     const [ok] = await Promise.all([pending, new Promise((r) => setTimeout(r, MIN_WAKE_MS))]);
     show(ok ? 'ready' : 'tired');
-    if (ok) talkFor(document.querySelector('#s00 .wake__bird'), 2600);
+    if (ok) {
+      talkFor(document.querySelector('#s00 .wake__bird'), 3600);
+      speakKo('안녕하세요! 나들이 친구 까치예요. 오늘 어디로 나들이 가 볼까요?');
+    }
   };
 
   document.querySelectorAll('#s00 [data-wake]').forEach((el) => el.addEventListener('click', wake));
@@ -186,7 +190,10 @@ function initTextSize() {
 function initNavigation() {
   document.addEventListener('click', (e) => {
     const target = e.target.closest('[data-go]');
-    if (target && !target.disabled) location.hash = target.dataset.go;
+    if (target && !target.disabled) {
+      if (target.dataset.go.startsWith('/chat')) unlockSpeech();
+      location.hash = target.dataset.go;
+    }
   });
   window.addEventListener('hashchange', route);
 }

@@ -96,3 +96,33 @@ export function talkFor(node, ms) {
   clearTimeout(node._talkTimer);
   node._talkTimer = setTimeout(() => node.classList.remove('is-talking'), ms);
 }
+
+/**
+ * 읽어 주기 준비. 폰 브라우저는 사용자가 누른 순간에 한 번 열어 둬야 나중에 소리를 내요.
+ * 버튼 클릭 처리 안에서 불러 주세요.
+ */
+export function unlockSpeech() {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    const u = new SpeechSynthesisUtterance(' ');
+    u.volume = 0;
+    speechSynthesis.speak(u);
+  } catch { /* 소리 없이도 글자는 보여요 */ }
+}
+
+/**
+ * 한국어로 읽어 주기. 실패해도 화면 글자는 그대로예요.
+ * @param {string} text
+ */
+export function speakKo(text) {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'ko-KR';
+    u.rate = 0.95;
+    const ko = speechSynthesis.getVoices().find((v) => v.lang?.startsWith('ko'));
+    if (ko) u.voice = ko;
+    speechSynthesis.speak(u);
+  } catch { /* 무시 */ }
+}

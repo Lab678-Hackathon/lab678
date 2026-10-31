@@ -8,7 +8,7 @@
 import { state, save, resetChat } from './state.js';
 import { requestRecommend, requestChat, searchPlaces } from './api.js';
 import { parseUtterance, longEnough } from './parse.js';
-import { $, el, button, formatDate, formatTime, todayIso, minutes, hhmm, isTest, isDebug, talkFor } from './util.js';
+import { $, el, button, formatDate, formatTime, todayIso, minutes, hhmm, isTest, isDebug, talkFor, unlockSpeech } from './util.js';
 
 const QA_START = { label: '청량리역', lat: 37.5805961, lng: 127.0482573 };
 const CATEGORIES = ['전시', '국악', '클래식', '콘서트', '연극', '전체'];
@@ -209,6 +209,8 @@ function speak(text, then) {
     const u = new SpeechSynthesisUtterance(text);
     u.lang = 'ko-KR';
     u.rate = 0.95;
+    const ko = speechSynthesis.getVoices().find((v) => v.lang?.startsWith('ko'));
+    if (ko) u.voice = ko;
     let done = false;
     const finish = () => { if (done) return; done = true; if (then) setTimeout(then, 300); };
     u.onend = finish;
@@ -554,6 +556,6 @@ export function initChat() {
   $('#listen-text-btn').addEventListener('click', toText);
   $('#chat-form').addEventListener('focusin', () => { voiceMode = false; });
   window.addEventListener('hashchange', () => { if (recognizer) { discardVoice = true; recognizer.abort?.(); } voiceMode = false; });
-  $('#chat-sound').addEventListener('click', () => setSound(!state.sound));
+  $('#chat-sound').addEventListener('click', () => { unlockSpeech(); setSound(!state.sound); });
   $('#chat-new').addEventListener('click', () => { resetChat(); placeOptions = []; start(); });
 }
