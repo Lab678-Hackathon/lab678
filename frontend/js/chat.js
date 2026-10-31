@@ -237,7 +237,7 @@ function speak(text, then) {
   const avatar = $('#chat-log .msg--ai:last-of-type .msg__avatar');
   const ms = Math.min(600 + text.length * 70, 5000);
   talkFor(avatar, ms);
-  talkFor($('#listen-bird'), ms);
+  talkFor($('#listen-bird'), state.sound ? Math.max(ms, 1500 + text.length * 120) : ms);
   if (!state.sound || !('speechSynthesis' in window)) { if (then) setTimeout(then, 1200); return; }
   try {
     speechSynthesis.cancel();
@@ -298,6 +298,7 @@ function updateVoiceUi() {
   $('#voice-main').classList.toggle('is-listening', on);
   $('#voice-main-label').textContent = on ? '말하기 마치기' : '말하기';
   $('#voice-wave').hidden = !on;
+  $('#listen-bird').classList.toggle('is-listening', on); // 듣는 중엔 귀 기울이듯 움직여요
   $('#listen-status').textContent = on ? '음성을 듣고 있어요 · 말씀이 끝나고 잠시 조용하면 보내요' : (busy ? '까치가 찾고 있어요' : '아래 "말하기"를 누르고 말씀해 주세요');
   $('#listen-status').classList.toggle('is-idle', !on);
   $('#chat-input').placeholder = on && !voiceMode ? '듣고 있어요… 말씀이 끝나면 마이크를 다시 눌러 주세요' : '글자로 적어도 돼요';

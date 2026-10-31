@@ -379,3 +379,15 @@ a.btn { display: flex; align-items: center; justify-content: center; text-decora
 @media (prefers-reduced-motion: reduce) { .wave i, .listen__bird img { animation: none !important; } }
 
 .external { display: flex; flex-direction: column; gap: 6px; padding-top: 4px; border-top: 1px dashed var(--border-default); }
+
+/* 말로 대화: 큰 까치를 위에 붙여 두고(스크롤해도 그대로), 말할 때 움직여요 */
+#s02[data-mode="voice"] .voicehead {
+  position: sticky; top: 60px; z-index: 5; background: var(--bg-canvas);
+  padding-bottom: 10px; border-bottom: 1px solid var(--border-default); gap: 8px;
+}
+#s02[data-mode="voice"] .listen__bird { width: 112px; }
+#s02[data-mode="voice"] .listen__title { font-size: var(--fs-title-m); text-align: center; }
+#s02[data-mode="voice"] .msg__avatar { display: none; }
+.listen__bird.is-listening img { animation: listen-bob 1.6s ease-in-out infinite; }
+@keyframes listen-bob { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-4px) rotate(-2deg); } }
+@media (prefers-reduced-motion: reduce) { .listen__bird.is-listening img { animation: none !important; } }
