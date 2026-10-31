@@ -19,17 +19,21 @@ lab678/
   backend/
     AGENTS.md
     README.md
+    chat_conditions.py
     course.py
     local_voice.py
     location_view.js
     map_config.py
     map_view.js
+    naito_chat.py
     outing.py
     places.py
     preview.html
     preview.py
+    test_chat_conditions.py
     test_course.py
     test_map_config.py
+    test_naito_chat.py
     test_outing.py
     test_places.py
     test_preview.py
@@ -45,6 +49,7 @@ lab678/
     README.md
     development/
       README.md
+      chat-conditions.md
       course-alternatives-progress.md
       current-state.md
       demo-login-server-progress.md
@@ -70,6 +75,7 @@ lab678/
         tooling-index.json
       mobility-routing-review.md
       mvp-plan.md
+      naito-usage.md
       outing-handoff.md
       place-search-api.md
       qa01-team-connection.md
@@ -135,6 +141,7 @@ lab678/
         2026-10-31-two-stop-course.md
         2026-10-31-walk-demo.md
         2026-10-31-walk.md
+        20261031-naito-chat-prepared.md
         20261031-place-search-integration.md
         20261031-push-pr-issue.md
         20261031-qa01-received.md
@@ -200,6 +207,7 @@ lab678/
     reverse_index.md
     scripts/
       catalog.py
+      check_chat_api.py
       check_course_alternatives.cjs
       check_course_edit.cjs
       check_deployment.cjs

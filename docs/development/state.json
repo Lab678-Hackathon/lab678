@@ -4,7 +4,7 @@
     "김동조 · LAB678 개발 담당 · dj/develop. 기술 통합·배포 담당 수락은 별개 미정."
   ],
   "objective": [
-    "동조님은 백엔드 중심 개발에 집중한다는 사용자 방향. 문화정보/API·추천·코스·이동·테스트를 구현하고 프론트 담당에게 계약을 인계한다. 기존 preview는 개발 검증용이며 팀 UI 통합은 별도 확인."
+    "백엔드 중심으로 S02 AI 대화 조건 해석과 안전한 초안 반영을 준비한다. Naito claude-sonnet-4는 사용자 지정. Render 인증/배포는 보류, 팀 프론트는 담당 협의 후 연결한다."
   ],
   "permissions": [
     "10/31 최신 사용자 지시: 공용 plan/기획 문서는 수정하지 않고 개인 개발 계획은 plan_dj에 저장한다. plan_dj·개인 첨부·환경 파일은 Git와 공유 색인에서 제외한다.",
@@ -14,49 +14,41 @@
     "10/31 진행표에 따라 구현 재개 승인. 개인 backend/점검 화면·API 전달 문서·검증 및 작업별 커밋을 진행한다. 공용 기획/최종 UI/공유 계약 확정은 담당 협의. push는 별도 요청, develop은 PR 필수. 2026-11-01 13:00 KST 이후 커밋 금지.",
     "팀 요청: 앞으로 문서·이슈·PR·커밋에 이전 프로젝트 고유 명칭을 쓰지 않고 기존 프로젝트/기존 코드로 표현한다. 기존 이력 재작성은 요청받지 않았다.",
     "10/31 카카오 지도 전환→내 위치 표시→이동 중 갱신/중지를 차례대로 개발하도록 사용자 승인. 공용 plan은 수정하지 않는다. 실제 키/도메인 확인과 모바일 실검증은 별도.",
-    "이전 작업 Push·PR #15 develop 병합·이슈 #16 생성 완료. 이후 사용자 다음 작업/연결 승인: 팀 최신 화면을 격리 실행해 QA-01 검사. 팀 소스/공용기획 임의 수정·새 Push는 하지 않는다. 팀 요청문 초안은 작성하되 전송하지 않는다."
+    "PR #15 develop 병합·이슈 #16 생성 및 팀 화면 QA 완료. 사용자 다음 작업 승인으로 채팅 백엔드 개발 진행. Naito 사용법 보관·claude-sonnet-4 지정. 작업별 커밋, 새 Push는 별도 요청. 공용 plan/팀 UI는 수정하지 않는다."
   ],
   "completed": [
     "음성·국악·청취·두 곳 코스·내부 도보·동의 기반 대안 검증. 사용자 저장 카카오 키로 대중교통 실조회 성공: 청량리→돈화문 3경로, 도암갤러리 브라우저 3경로 선택/전환. 실응답의 접근 도보 누락 발견·총 도보 null 및 안내 구간만 별도 표시로 수정. 백엔드 19개·live 화면/모의 오류 PASS.",
-    "정민규 화면명세 v0.1 원본 수신·해시 일치 보관, S01~S07 대조 완료(screen-spec-review.md). v0.5 기반 초안이며 PRD 전문 수신은 아님. 위치 검색/AI 확인/상세·저장 미구현, 재계산 실패는 이전 일정 문자열만 보존함을 정정.",
-    "PR #5 병합을 origin/develop 50c34d3에서 확인. 로컬 develop 갱신 후 dj/develop에 충돌 없이 반영하고 구간별 점검 기록 5bca221을 보존. 첨부 기획 6개와 TEAM_WORKFLOW 구버전 15개 보관.",
-    "docs/align-team-workflow는 이미 develop에 병합됨. 현재 루트 협업 문서 적용.",
     "PR #15로 develop 병합06c0443: 최소60분/CORS/사실필드·결과보존·코스변경·Render준비·카카오지도/위치·장소검색. 백엔드42개 PASS. 후속 팀프론트d7dee71 실제5173프록시로 recorded/live 카드·상세ID, 입력경계·모의예외7검사PASS. 공개배포/기획최종QA/실기기는 미검증.",
-    "utils 색인 2개와 repo 파일/기능/함수/구조 색인 3개, state.json → 짧은 현재 상태 구축.",
-    "도구 구축 커밋 a04c871. 현재 기본 도구 8개+PDF 도구 1개이며 최종 테스트 26개·정적 하네스 PASS. 기본 감시 실검증도 PASS.",
-    "test1/test2 JSON과 무인증·기기 저장/선택 프로필 설계 작성. Google·Supabase 필수 아님이라는 최신 사용자 지시 반영.",
-    "framework_doc 및 konnect/study 관련 분석을 읽고 두 브랜치 역할·선별 이식·불필요 LLM/DB 분리 가이드 작성.",
-    "서버 매뉴얼 23쪽 확인·렌더·주요 페이지 시각 확인, 로컬 원본 해시 일치. VPN 전용·11/1 13:00 삭제 예정 기반 STT 평가 우선안 작성."
+    "팀 화면 QA-01 로컬 커밋6c6ece8: recorded/live 선택·상세 ID 일치 및 오류7구간PASS. feature/front 최신 원격164cd40은 아직 develop 병합 미확인.",
+    "대화 조건 코어·Naito 어댑터·POST /preview/chat 구현. 확인값 변경 동의/거절, revision 보호, 좌표 생성 금지, 기존60분 검증. 백엔드60개·실제 로컬HTTP4구간PASS(공급자 응답은 모의).",
+    "사용자 제공 Naito 주소/프로토콜/모델표/설정 예제 저장. 앱 모델claude-sonnet-4, 로컬 .local/naito.env 생성(키 미출력·Git 제외).",
+    "작업 재개용 state/context·파일/함수 색인 운영. 상세 완료 이력은 기존 reports/discussion-log에 보존."
   ],
   "in_progress": [
-    "feature/front 최신 d7dee71 S02~S04 실제 API 연결본을 격리 실행, 프록시5173→8765로 QA-01 통과. recorded 5건 S03/S04 seoul:159578, 미래11/1 live4건 seoul:159978 일치. 입력/59·60분/모의0건·400·502·통신실패 포함7구간PASS. 팀 소스 수정 없음. 공개배포·기획최종QA·실기기 미실시.",
-    "대중교통 실제 연결/화면 성공, 총 도보량은 누락 가능해 확인 필요. 문화데이터 현재 서울시 sample만: 11:08 전시8중5/국악2중2 확인. TourAPI 미연결; 제공된 KONNECT main/로컬 소스 비교 완료. 팀 UI/API 최종 확인 대기.",
-    "색인 감시기 기록 PID 14908은 실행 중이 아니며 잠금 파일이 남아 있다. 이번 색인은 context/catalog로 갱신했다. 다음 개발 재개 때 감시기 상태를 복구한다."
+    "실제 Naito 키 호출 미실시. API 키 저장 후 한국어 조건 추출·모호한 시각·조건 정정 품질 확인 필요. HTTP/API 구조와 오류는 모의 테스트 완료.",
+    "Render 가입 및 GitHub 조직 연결 요청 진행했으나 승인/배포 확인 전 사용자 요청으로 보류. 공개 서비스 URL 없음.",
+    "채팅 API는 개인 백엔드 구현이며 팀 계약 합의/최종UI 연결 전. 지원 필드는 대표 분류·출발지 검색어·날짜시각·종류·체류시간. 복수관심사/걷기/예산 등 요구 유지·미적용."
   ],
   "next": [
-    "공유완료: PR #15 develop 병합06c0443·이슈 #16 열림. dj/develop에 develop을 fast-forward 반영했다. 이번 QA 기록/검사도구는 로컬 커밋 대상이며 새 Push는 별도 요청.",
-    "QA-01 첫 화면 연결 기술검사 완료. qa01-team-connection.md와 캡처/결과JSON 확인. 희영님 출발지검색 연결·배포 API 방식과 URL 확인, 민규님 사용자관점 QA 요청 초안 준비.",
-    "인터넷 공유를 위한 Render 백엔드와 Vercel 프론트 연결 다음. 팀 프론트는 동일origin /preview를 호출하므로 Vercel프록시 또는 API기본주소+CORS 중 실제방식 합의 필요. 팀 요청에 따라 동조님 본인 Render계정 가입 예정. 가입·로그인 완료 대기. 관리API키는 웹 배포 필수 아님.",
-    "첫 연결 대표 관심사1개 검증은 기획 기준으로 확정 수신. 복수 관심사 요구 유지, 걷기 미적용 표시, 출발지 미확정 임의좌표 금지, API실패 Mock대체 금지. 팀프론트60분 확인·AI조건추출은 후속.",
-    "기존 S05·도보/교통·카카오/위치 재사용 연결 뒤 팀 Vercel·Render 및 모바일 GPS/음성 검증. 실제 배포 origin·카카오 SDK 도메인 필요.",
-    "개인 체크표 plan_dj/place-search-progress.md, 팀 요청/할 일 plan_dj/team-integration-requests-20261031.md. 공용 plan 수정 금지. 별도 개인 검색 UI 확장보다 팀 연결 우선."
+    "Naito API 키를 .local/naito.env의 LAB678_NAITO_API_KEY에 저장하면 모델claude-sonnet-4 실호출 검증. 키 값을 채팅/로그/문서에 남기지 않는다.",
+    "채팅 계약 초안을 프론트 담당과 확인: STT 종료 자동 요청, revision 비교, 변경 동의/거절, S02a 최종 확인, 실패 시 입력 유지. 현재 서버는 새 코드 반영 재시작 필요.",
+    "최신 작업 기록/코드는 로컬 커밋만. Push/PR/develop 병합은 사용자 별도 요청 후. QA-01과 채팅 완료 범위를 혼동하지 않는다.",
+    "Render 승인 확인·Vercel 프록시/백엔드 배포 통신은 사용자 재개 요청 시 진행. 이후 팀 UI/모바일 실기기 최종QA.",
+    "개인 계획 plan_dj/chat-progress.md와 팀 통합 체크표 유지. 공용 plan 수정 금지."
   ],
   "open_questions": [
-    "PRD v0.6.1·화면명세 v0.2 확보 및 개인 대응계획 대조 완료. 공유 screen-spec-review.md는 v0.1 시점 기록이다. 최종 UI 통합과 API 계약·시연 검증 완료를 의미하지 않는다.",
-    "GPU 매뉴얼은 예시 사양·11/1 13:00 삭제 예정. 실제 배정/최신 공지 확인·결과 회수 필요. PDF 원본은 연락처/내부 안내로 로컬 보관만.",
-    "로컬 팀 화면 첫 연결 완료. Render 계정접속·실제 배포 origin/프록시 방식·기획 최종QA·모바일 실기기는 미확인. 복수관심사/걷기/AI·코스/저장/음성 팀UI 연결은 후속.",
-    "Discord 연결은 보류. 제품명 오늘 나들이, LAB678은 팀명(병합된 PRD v0.6.1 확인)."
+    "Naito 실제 키·모델 권한·한국어 추출 품질 미검증. API 전송에 사용자 문장과 최근 대화/조건 요약이 포함되며 좌표는 제외한다.",
+    "팀 프론트의 충돌 UI·revision·STT 자동전송 및 대화 계약 합의 필요. 코어 구현만으로 브라우저 최신값 보호 완료를 주장하지 않는다.",
+    "복수관심사/걷기/예산/제외 등 조건은 미적용. 자유로운 전체 AI 상담·TTS 응답·팀 최종 UI 완료가 아니다.",
+    "PRD v0.6.1·화면명세 v0.2 기준. 기술 통합/최종배포 담당과 main 승인 기준은 TEAM_WORKFLOW를 따른다."
   ],
   "read_next": [
+    "[대화 조건·API 초안](chat-conditions.md): 구현/미검증·revision·변경동의·요청/오류.",
+    "[Naito 사용 안내](naito-usage.md): 사용자 제공 주소·모델표·설정, 앱 모델claude-sonnet-4.",
     "[QA-01 실제 팀 화면 연결 결과](qa01-team-connection.md): recorded/live ID일치·모의오류 구분·캡처·다음배포.",
     "[Render 실행·공개 점검 안내](render-demo-guide.md): 입력값·환경변수·검증 완료/미실시 범위. 계획은 plan_dj에만 보관.",
     "[추천 API 요청·응답·오류 계약](recommend-api.md): 현재 구현 자료와 기록 응답. 팀 최종 계약 확정과 구분.",
     "[출발지 검색·첫 프론트 연결](place-search-api.md): 실제 JSON, 실행/CORS, 오류와 구현/미검증 구분.",
-    "[동료·LLM 개발 참조 및 실행 안내](team-backend-guide.md): 브랜치/읽는 순서/Python 실행/키·OS·CORS 제약/API/PR 흐름. GitHub TEAM_WORKFLOW 원문 대조 완료.",
-    "[화면명세 대조·차이·후속 체크표](screen-spec-review.md): 수신 v0.1 기준 S01~S07 구현 범위와 보완 사항.",
-    "[개인 시연·UI 인계](outing-handoff.md), [MVP 실행 체크표](mvp-plan.md), [개발 할 일](tasks.md).",
-    "[양쪽 참조 순서](konnect-reuse-reading-guide.md), [서버 활용안](hackathon-server-usage-review.md), [도구 사용법](../../utils/README.md).",
-    "[파일 색인](repo_index.md)·[기능/함수 역색인](repo_reverse_index.md)·[구조](repo_tree.md).",
-    "결정 이유가 필요할 때만 [대화 기록](discussion-log.md)·[이동 검토](mobility-routing-review.md)·[개발 맥락](README.md)의 해당 부분 읽기."
+    "[동료·LLM 개발 참조 및 실행 안내](team-backend-guide.md): 브랜치/읽는 순서/Python 실행/키·OS·CORS 제약/API/PR 흐름. GitHub TEAM_WORKFLOW 원문 대조 완료."
   ]
 }

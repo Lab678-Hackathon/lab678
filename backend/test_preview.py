@@ -32,6 +32,15 @@ class PreviewContractTests(unittest.TestCase):
         self.data = json.loads((EXAMPLES / "outing-request.json").read_bytes())
         self.data.update(start_at="2026-10-31T14:00:00+09:00", end_at="2026-10-31T15:00:00+09:00")
 
+    def test_chat_route_and_validation(self):
+        """새 대화 경로는 어댑터 응답을 전달하고 잘못된 입력은 필드 오류를 반환한다."""
+        with patch("preview.chat", return_value=(503, {"status": "unconfigured"})) as call:
+            status, body = self.request({"message": "국악", "revision": 0}, path="/preview/chat")
+        self.assertEqual((status, body["status"]), (503, "unconfigured"))
+        call.assert_called_once()
+        status, body = self.request({"message": "", "revision": 0}, path="/preview/chat")
+        self.assertEqual((status, body["field"]), (400, "message"))
+
     def test_short_duration_response(self):
         """60분 미만은 필드/코드가 있는 400이며 문화/코스 조회를 하지 않는다."""
         self.data.update(request_kind="route", end_at="2026-10-31T14:59:00+09:00")
